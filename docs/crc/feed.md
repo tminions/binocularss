@@ -2,7 +2,11 @@
 
 # Responsibility:
 
-- Agregate all the different articles
+- Aggregate all the different articles
+- Have tags to be filtered by
+- Save (to file)
+- Load (from file)
+- 
 
 # Collaborators:
 
