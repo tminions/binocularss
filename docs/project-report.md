@@ -12,20 +12,18 @@
 
 ## Working on/future plans:
 
-###Benson
+### Benson
 
-###Eamon
+### amon
 
-###Hisbaan
+### Hisbaan
 
-###Ismail
+### Ismail
 
-###Mac
+### Mac
 
 ### Sal
 
-###Simon
+### Simon
 
-###Tai
-
-###
+### Tai
