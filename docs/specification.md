@@ -25,7 +25,7 @@ A mobile, feature rich, RSS reader. RSS stands for Really Simply Syndication. RS
 - Multiple feeds
 - Tags to allow for pooled feeds
   - Save for later/watch later
-- sort by whatever (headline, feed name, priority)
+- sort by whatever metrics we decide on later (headline, feed name, priority)
 - priority (like important in mail or like a ranking)
 - Offline mode? 
 - Search function

@@ -6,7 +6,6 @@
 - Have tags to be filtered by
 - Save (to file)
 - Load (from file)
-- 
 
 # Collaborators:
 
