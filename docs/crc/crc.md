@@ -1,5 +1,7 @@
 # Class: Article
 
+## Clean Architecture Group: Enterprise Business Rule
+
 ## Responsibility:
 
 - Get the text and images of a specific article
@@ -12,9 +14,28 @@
 
 - Feed
 
+# Class: Feed
+
+## Clean Architecture Group: Enterprise Business Rule 
+<!-- TODO: maybe application business rule? -->
+
+## Responsibility:
+
+- Aggregate all the different articles
+- Have tags to be filtered by
+- Save (to file)
+- Load (from file)
+
+## Collaborators:
+
+- Article
+- FeedGroup
+
 # Class: FeedGroup
 
-The main group of RSS feeds. This contains and saves any feeds that the user adds. This will be persistent across applications lifecycles.
+The main group of RSS feeds. This contains and saves any feeds that the user adds. This will be persistent across applications lifecycles. We may choose to have multiple feed groups or have them all in one and distinguish groupings with 'tags'.
+
+## Clean Architecture Group: Interface Adapter
 
 ## Responsibility:
 
@@ -30,23 +51,26 @@ The main group of RSS feeds. This contains and saves any feeds that the user add
 - Feed
 - Higher UI Elements
 
-# Class: Feed
+# Class: PullFeedTask
 
-## Responsibility:
+## Clean Architecture Group: Interface Adapter
+<!-- TODO: I think this is a gateway? -->
 
-- Aggregate all the different articles
-- Have tags to be filtered by
-- Save (to file)
-- Load (from file)
+## Responsibility
 
-## Collaborators:
+- Get the XML of an RSS feed from the web
 
-- Article
+## Collaborators
+
 - FeedGroup
+- Feed
+- AsyncTask
 
 # Class: Operations
 
 A class that contains all of the operations (like sorting, searching, etc) we need to perform on lists of articles.
+
+## Clean Architecture Group: Interface Adapter
 
 ## Responsibility:
 
@@ -60,6 +84,8 @@ A class that contains all of the operations (like sorting, searching, etc) we ne
 
 # Class: UserData
 
+## Clean Architecture Group: Enterprise Business Rule
+
 ## Responsibility:
 
 - Save articles (bookmark)
@@ -70,3 +96,4 @@ A class that contains all of the operations (like sorting, searching, etc) we ne
 ## Collaborators:
 
 - FeedGroup
+
