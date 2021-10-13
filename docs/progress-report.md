@@ -1,4 +1,4 @@
-# Project Report
+# Progress Report
 
 ## Specification Summary
 
