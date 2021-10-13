@@ -1,5 +1,7 @@
 package monster.minions.binocularss;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,5 +84,20 @@ public class Feed {
 
     public void setArticles(List<Article> articles) {
         this.articles = articles;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Feed{" +
+                "title='" + title + '\'' +
+                ", url='" + url + '\'' +
+                ", description='" + description + '\'' +
+                ", copyright='" + copyright + '\'' +
+                ", date='" + date + '\'' +
+                ", tags=" + tags +
+                ", priority=" + priority +
+                ", articles=" + articles +
+                '}';
     }
 }
