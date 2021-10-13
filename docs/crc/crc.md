@@ -1,8 +1,16 @@
-# Class: Article
+ 3/3 entity
+ 
+ 2/2 use cases
+ 
+ 5/1 controller 
 
-## Clean Architecture Group: Enterprise Business Rule
+ 1/1 user interface
 
-## Responsibility:
+# Clean Architecture Group: Enterprise Business Rules
+
+## Class Article
+
+### Responsibility:
 
 - Get the text and images of a specific article
 - Save (to file)
@@ -14,30 +22,41 @@
 
 - Feed
 
-# Class: Feed
+## Class UserData
 
-## Clean Architecture Group: Enterprise Business Rule 
-<!-- TODO: maybe application business rule? -->
+### Responsibility:
 
-## Responsibility:
+- Save articles (bookmark)  
+- Save lists of FeedGroups
+- Save UserPreferences
+- Save history
+
+### Collaborators:
+
+- FeedGroup
+
+## Class: Feed
+
+### Responsibility:
 
 - Aggregate all the different articles
 - Have tags to be filtered by
 - Save (to file)
 - Load (from file)
 
-## Collaborators:
+### Collaborators:
 
 - Article
 - FeedGroup
 
-# Class: FeedGroup
+# Clean Architecture Group: Application Business Rules
+
+## Class: FeedGroup
 
 The main group of RSS feeds. This contains and saves any feeds that the user adds. This will be persistent across applications lifecycles. We may choose to have multiple feed groups or have them all in one and distinguish groupings with 'tags'.
 
-## Clean Architecture Group: Interface Adapter
 
-## Responsibility:
+### Responsibility:
 
 - Create Feed objects
 - Read Feed object
@@ -46,54 +65,91 @@ The main group of RSS feeds. This contains and saves any feeds that the user add
 - Filter articles in feeds by date
 - Sort articles in feeds chronologically (and reverse)
 
-## Collaborators:
+### Collaborators:
 
 - Feed
-- Higher UI Elements
 
-# Class: PullFeedTask
+## Class: UserDataUpdater
 
-## Clean Architecture Group: Interface Adapter
+### Responsability
+- Rewrites saved information in UserData
+
+### Collaborators
+- UserData
+
+# Clean Architecture Group: Interface Adapter
+
+## Class: FeedReader
+
+### Responsability
+- Gets a list of feeds satisfying a condition if given
+- Formats feeds for display 
+
+### Collaborators
+- FeedGroup
+- uI Classes (Not yet written)
+
+## Class: ArticleReader
+
+### Responsability
+- Gets a single article from a given feed  
+- Formats article for display
+
+### Collaborators
+- FeedGroup
+- uI Classes (Not yet written)
+
+
+
+## Class: PullFeedTask
+
 <!-- TODO: I think this is a gateway? -->
 
-## Responsibility
+### Responsibility
 
 - Get the XML of an RSS feed from the web
 
-## Collaborators
+### Collaborators
 
 - FeedGroup
 - Feed
 - AsyncTask
 
-# Class: Operations
+## Class: Operations
 
 A class that contains all of the operations (like sorting, searching, etc) we need to perform on lists of articles.
 
-## Clean Architecture Group: Interface Adapter
+### Responsibility:
 
-## Responsibility:
-
-- Return a list that is sorted
+- Return a list that is sorted by date
 - Return a list that is filtered by search term
 - Return a list that is filtered by date
 
-## Collaborators:
+### Collaborators:
 
 - UI elements
+- Article
 
-# Class: UserData
+## Class: UserDataReader:
 
-## Clean Architecture Group: Enterprise Business Rule
+### Responsibility
+- Gets the saved UserData preferences
+- Formats user date information for display
 
-## Responsibility:
+### Collaborators
+- UserData
 
-- Save articles (bookmark)
-- Save lists of FeedGroups
-- Save UserPreferences
-- Save history
+#  Clean Architecture Group: Frameworks and Drivers
 
-## Collaborators:
+## Class CmdUI
 
-- FeedGroup
+### Responsibility
+- Displays received Feeds 
+- Displays received Articles
+- Displays the current user data 
+
+### Collaborators
+- UserDataReader
+- FeedReader
+- ArticleReader
 
