@@ -17,11 +17,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     String mFeedTitle;
     String mFeedUrl;
     String mFeedDescription;
+    Feed feed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,24 +54,34 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        Feed feed = new Feed("https://rss.cbc.ca/lineup/topstories.xml");
+        mFetchFeedButton.setOnClickListener(view -> {
+            // Get feed url from EditText
+            String feedUrl = mEditText.getText().toString();
+            Log.e("Edit Text", "Edit Text: " + mEditText.getText().toString());
 
-        mFetchFeedButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new PullFeedTask().execute(feed);
+            // If EditText is empty, set the url to cbc for testing purposes
+            if (feedUrl.equalsIgnoreCase("")) {
+                feedUrl = "https://rss.cbc.ca/lineup/topstories.xml";
             }
+            feed = new Feed(feedUrl);
+            new PullFeedTask().execute(feed);
         });
 
-        mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new PullFeedTask().execute(feed);
+        mSwipeLayout.setOnRefreshListener(() -> {
+            // Get feed url from EditText
+            String feedUrl = mEditText.getText().toString();
+            Log.e("Edit Text", "Edit Text: " + mEditText.getText().toString());
+
+            // If EditText is empty, set the url to cbc for testing purposes
+            if (feedUrl.equalsIgnoreCase("")) {
+                feedUrl = "https://rss.cbc.ca/lineup/topstories.xml";
             }
+            feed = new Feed(feedUrl);
+            new PullFeedTask().execute(feed);
         });
     }
 
-    public class PullFeedTask extends AsyncTask<Feed, Void, List<Feed>> {
+    public static class PullFeedTask extends AsyncTask<Feed, Void, List<Feed>> {
 
         @Override
         protected List<Feed> doInBackground(Feed... feeds) {
@@ -88,38 +97,10 @@ public class MainActivity extends AppCompatActivity {
 
                 List<Article> items = new ArrayList<Article>();
 
-                // If the url does not already contain an http(s) at the beginning, add one.
-                if (!feed.getUrl().startsWith("http://") && !feed.getUrl().startsWith("https://")) {
-                    feed.setUrl("http://" + feed.getUrl());
-                }
-
-                String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
-                        "<rss version=\"2.0\">\n" +
-                        "<channel>\n" +
-                        " <title>RSS Title</title>\n" +
-                        " <description>This is an example of an RSS feed</description>\n" +
-                        " <link>http://www.example.com/main.html</link>\n" +
-                        " <copyright>2020 Example.com All rights reserved</copyright>\n" +
-                        " <lastBuildDate>Mon, 06 Sep 2010 00:01:00 +0000</lastBuildDate>\n" +
-                        " <pubDate>Sun, 06 Sep 2009 16:20:00 +0000</pubDate>\n" +
-                        " <ttl>1800</ttl>\n" +
-                        "\n" +
-                        " <item>\n" +
-                        "  <title>Example entry</title>\n" +
-                        "  <description>Here is some text containing an interesting description.</description>\n" +
-                        "  <link>http://www.example.com/blog/post/1</link>\n" +
-                        "  <guid isPermaLink=\"false\">7bd204c6-1655-4c27-aeee-53f933c5395f</guid>\n" +
-                        "  <pubDate>Sun, 06 Sep 2009 16:20:00 +0000</pubDate>\n" +
-                        " </item>\n" +
-                        "\n" +
-                        "</channel>\n" +
-                        "</rss>";
-
                 // Initialize an inputStreamReader for the RSS feed.
                 try {
                     link = new URL(feed.getUrl());
-                    inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-                    // inputStream = link.openConnection().getInputStream();
+                    inputStream = link.openConnection().getInputStream();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -183,10 +164,6 @@ public class MainActivity extends AppCompatActivity {
                                 feed.setTitle(itemTitle);
                                 feed.setUrl(itemUrl);
                                 feed.setDescription(itemDescription);
-
-                                Log.d("Test", itemTitle + " plus this is runnnig");
-                                Log.d("Test", feed.getDescription());
-                                Log.d("Test", feed.getUrl());
                             }
 
                             // Reset the variables for the next loop
@@ -212,21 +189,16 @@ public class MainActivity extends AppCompatActivity {
             return returnFeeds;
         }
 
-        @Override
-        protected void onPostExecute(List<Feed> feeds) {
-            super.onPostExecute(feeds);
+//        @Override
+//        protected void onPostExecute(List<Feed> feeds) {
+//            super.onPostExecute(feeds);
+//
+//            for (Feed feed : feeds) {
+//                mFeedTitleTextView.setText(feed.getTitle());
+//                mFeedDescriptionTextView.setText(feed.getDescription());
+//                mFeedUrlTextView.setText(feed.getUrl());
+//            }
+//        }
 
-            for (Feed feed : feeds) {
-//                Log.d("Post Execute", "This is running");
-                Log.d("Post Execute", feed.getTitle() + " plus this is runnnig");
-                Log.d("Post Execute", feed.getDescription());
-                Log.d("Post Execute", feed.getUrl());
-
-
-                mFeedTitleTextView.setText(feed.getTitle());
-                mFeedDescriptionTextView.setText(feed.getDescription());
-                mFeedUrlTextView.setText(feed.getUrl());
-            }
-        }
     }
 }

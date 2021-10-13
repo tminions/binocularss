@@ -12,10 +12,15 @@ public class Feed {
     private String description;
     private String copyright;
     private String date;
+    private List<String> tags;
     int priority;
     List<Article> articles = new ArrayList<Article>();
 
     public Feed(String url) {
+        // If the url does not already contain an http(s) at the beginning, add one.
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "http://" + url;
+        }
         this.url = url;
     }
 
@@ -52,6 +57,10 @@ public class Feed {
     }
 
     public void setUrl(String url) {
+        // If the url does not already contain an http(s) at the beginning, add one.
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "http://" + url;
+        }
         this.url = url;
     }
 
