@@ -1,17 +1,13 @@
- 3/3 entity
- 
- 2/2 use cases
- 
- 5/1 controller 
-
- 1/1 user interface
+ <!-- Entity:         [3/3] -->
+ <!-- Use Cases:      [2/2] -->
+ <!-- Controllers:    [5/1] -->
+ <!-- User Interface: [1/1] -->
 
 # Clean Architecture Group: Enterprise Business Rules
 
 ## Class Article
 
 ### Responsibility:
-
 - Get the text and images of a specific article
 - Save (to file)
 - Load (from file)
@@ -19,45 +15,38 @@
 - Read flag
 
 ### Collaborators:
-
 - Feed
 
 ## Class UserData
 
 ### Responsibility:
-
-- Save articles (bookmark)  
+- Save articles (bookmark)
 - Save lists of FeedGroups
 - Save UserPreferences
 - Save history
 
 ### Collaborators:
-
 - FeedGroup
 
 ## Class: Feed
 
 ### Responsibility:
-
 - Aggregate all the different articles
 - Have tags to be filtered by
 - Save (to file)
 - Load (from file)
 
 ### Collaborators:
-
 - Article
 - FeedGroup
 
 # Clean Architecture Group: Application Business Rules
 
 ## Class: FeedGroup
-
 The main group of RSS feeds. This contains and saves any feeds that the user adds. This will be persistent across applications lifecycles. We may choose to have multiple feed groups or have them all in one and distinguish groupings with 'tags'.
 
 
 ### Responsibility:
-
 - Create Feed objects
 - Read Feed object
 - Delete Feed objects
@@ -66,7 +55,6 @@ The main group of RSS feeds. This contains and saves any feeds that the user add
 - Sort articles in feeds chronologically (and reverse)
 
 ### Collaborators:
-
 - Feed
 
 ## Class: UserDataUpdater
@@ -87,30 +75,24 @@ The main group of RSS feeds. This contains and saves any feeds that the user add
 
 ### Collaborators
 - FeedGroup
-- uI Classes (Not yet written)
+- UI Classes (Not yet written)
 
 ## Class: ArticleReader
 
 ### Responsability
-- Gets a single article from a given feed  
+- Gets a single article from a given feed
 - Formats article for display
 
 ### Collaborators
 - FeedGroup
-- uI Classes (Not yet written)
-
-
+- UI Classes (Not yet written)
 
 ## Class: PullFeedTask
 
-<!-- TODO: I think this is a gateway? -->
-
 ### Responsibility
-
 - Get the XML of an RSS feed from the web
 
 ### Collaborators
-
 - FeedGroup
 - Feed
 - AsyncTask
@@ -120,13 +102,11 @@ The main group of RSS feeds. This contains and saves any feeds that the user add
 A class that contains all of the operations (like sorting, searching, etc) we need to perform on lists of articles.
 
 ### Responsibility:
-
 - Return a list that is sorted by date
 - Return a list that is filtered by search term
 - Return a list that is filtered by date
 
 ### Collaborators:
-
 - UI elements
 - Article
 
@@ -141,12 +121,12 @@ A class that contains all of the operations (like sorting, searching, etc) we ne
 
 #  Clean Architecture Group: Frameworks and Drivers
 
-## Class CmdUI
+## Class CommandLineInterface
 
 ### Responsibility
-- Displays received Feeds 
-- Displays received Articles
-- Displays the current user data 
+- Displays received Feeds to the command line
+- Displays received Articles to the command line
+- Displays the current user data to the command line
 
 ### Collaborators
 - UserDataReader
