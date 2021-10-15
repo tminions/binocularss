@@ -10,17 +10,17 @@ You can choose to run the code on a physical Android device or an Android emulat
 
 ### Physical Device
 
-Ensure that ADB is installed. This is so that Android Studio can communicate with your phone. You will need to activate developer mode. 
+Ensure that ADB is installed. This is so that Android Studio can communicate with your phone. You will need to activate developer mode. For instructions on how to install ADB, see the following [article](https://www.xda-developers.com/install-adb-windows-macos-linux/#adbsetup).
 
 1. Enable developer mode:
    - Go into `About this Phone`.
    - Find the `Build Number` heading, and click on it until a toast message pops up saying something along the lines of `You are a developer`.
-2. Go into devleoper settings (location varries by device), and enable `USB Debugging`.
+2. Go into developer settings (location varies by device), and enable `USB Debugging`.
 3. In Android Studio select the `APP` build configuration, select your device from the device drop down, and press the run button.
 
 ### Emulator
 
-Ensure that ADB is installed. This is so that Android Studio can communicate with the emulator.
+Ensure that ADB is installed. This is so that Android Studio can communicate with the emulator. For instructions on how to install ADB, see the following [article](https://www.xda-developers.com/install-adb-windows-macos-linux/#adbsetup).
 
 1. Open the `AVD Manager` (Android Virtual Device Manager)
 2. Click `Create Virtual Device`

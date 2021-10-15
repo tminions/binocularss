@@ -8,7 +8,7 @@ import org.junit.Test;
  * Local unit tests, which will execute on the development machine (host).
  *
  */
-public class ExampleUnitTest {
+public class UnitTest {
     /**
      * Test for url http appending
      */
