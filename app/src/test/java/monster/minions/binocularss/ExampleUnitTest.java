@@ -1,17 +1,29 @@
 package monster.minions.binocularss;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
- * Example local unit test, which will execute on the development machine (host).
+ * Local unit tests, which will execute on the development machine (host).
  *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 public class ExampleUnitTest {
+    /**
+     * Test for url http appending
+     */
     @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
+    public void feedHttpTest() {
+        Feed feed = new Feed("rss.cbc.ca/lineup/topstories.xml");
+        assertEquals("http://rss.cbc.ca/lineup/topstories.xml", feed.getUrl());
+    }
+
+    /**
+     * Test that https is not overwritten with http
+     */
+    @Test
+    public void feedHttpsHttpTest() {
+        Feed feed = new Feed("https://rss.cbc.ca/lineup/topstories.xml");
+        assertEquals("https://rss.cbc.ca/lineup/topstories.xml", feed.getUrl());
     }
 }
