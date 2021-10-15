@@ -23,7 +23,7 @@ Our CRC Model is based around 3 main entities: "Article", "Feed", and "FeedGroup
 
 Our scenario walk-through focuses on reading and addings RSS feeds and how one would go about doing so.
 
-[Click here for our scenario walk-through](https://github.com/tminions/binocularss/blob/main/phase0/walk-throuh.md)
+[Click here for our scenario walk-through](https://github.com/tminions/binocularss/blob/main/phase0/walk-through.md)
 
 ## Skeleton program:
 
