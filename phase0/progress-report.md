@@ -17,11 +17,13 @@ We wanted to prioritize useful features that traditional readers have such as bo
 ## CRC Model Summary:
 Our CRC Model is based around 3 main entities: "Article", "Feed", and "FeedGroup". The rest of our classes follow SOLID principles and Clean Architecture, modifying these data structures using controllers, as well as use cases/user interface. 
 
+We kept the CRC Model in a single Markdown file so one could easily view the different classes and dependencies, and how they integrate together.
+
 [Click here for our CRC cards](https://github.com/tminions/binocularss/blob/main/phase0/crc.md)
 
 ## Scenario Walk-through:
 
-Our scenario walk-through focuses on reading and addings RSS feeds and how one would go about doing so.
+Our scenario walk-through focuses on reading and addings RSS feeds and how one would go about doing so. It utilizes our skeleton program to highlight how we implemented Clean Architecture to have the controllers interact with the entities, creating our feed groups, feeds, and articles and their use cases.
 
 [Click here for our scenario walk-through](https://github.com/tminions/binocularss/blob/main/phase0/walk-through.md)
 
@@ -67,5 +69,9 @@ The skeleton program is written in the context of an Android application. We cur
 ## What Has Worked Well:
 One thing that has worked really well is breaking down the RSS feed app structure into Clean Architecture Classes. The problem domain very naturally falls into different entity objects like Article, Feed, and FeedGroup as well as controllers that change the properties of the various entities.
 
+Another thing that has worked well is division of work. Some group members are more experienced with Android, while others are more proficient in writing and the design of the CRC cards. By having different responsibilities and having open channels for communication, we got a lot more accomplished than we would individually.
+
 ## Open Questions:
 - One question we have is a possible change in the development stack we are using. We wish to switch to Kotlin, mainly due to the declarative UI library, JetBrains Compose. Additionally, Kotlin offers cleaner and easier to understand code. Prof. Calver mentioned that this was okay as long as our TA did not have any objections.
+
+- Another open question we had was about
