@@ -1,10 +1,33 @@
-# BinocularRSS
+# BinoculaRSS
 
 This is an Android RSS reader application.
 
 ## Installation
 
-Install Android Studio, clone the project, and open the project.
+Install Android Studio, clone the project, and open the project. Follow any prompts that Android Studio gives you about installing a JDK or Android SDK.
+
+You can choose to run the code on a physical Android device or an Android emulator.
+
+### Physical Device
+
+Ensure that ADB is installed. This is so that Android Studio can communicate with your phone. You will need to activate developer mode. 
+
+1. Enable developer mode:
+   - Go into `About this Phone`.
+   - Find the `Build Number` heading, and click on it until a toast message pops up saying something along the lines of `You are a developer`.
+2. Go into devleoper settings (location varries by device), and enable `USB Debugging`.
+3. In Android Studio select the `APP` build configuration, select your device from the device drop down, and press the run button.
+
+### Emulator
+
+Ensure that ADB is installed. This is so that Android Studio can communicate with the emulator.
+
+1. Open the `AVD Manager` (Android Virtual Device Manager)
+2. Click `Create Virtual Device`
+3. Select any phone model and click `Next`
+4. Click `Download` next to an Android System image from the `Recommended` tab. We recommend Android R. Press `Finish`. Wait for the download to complete and click `Next`.
+5. Press `Finish`.
+3. In Android Studio select the `APP` build configuration on the top right, select your device from the device drop down, and press the run button.
 
 ## Contribution
 
