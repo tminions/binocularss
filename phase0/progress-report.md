@@ -74,4 +74,3 @@ Another thing that has worked well is division of work. Some group members are m
 ## Open Questions:
 - One question we have is a possible change in the development stack we are using. We wish to switch to Kotlin, mainly due to the declarative UI library, JetBrains Compose. Additionally, Kotlin offers cleaner and easier to understand code. Prof. Calver mentioned that this was okay as long as our TA did not have any objections.
 
-- Another open question we had was about
