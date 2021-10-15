@@ -1,10 +1,11 @@
 package monster.minions.binocularss;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Xml;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -15,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 feedUrl = "https://rss.cbc.ca/lineup/topstories.xml";
             }
             feed = new Feed(feedUrl);
-            new PullFeedTask().execute(feed);
+            new PullFeedTask(this.getApplicationContext()).execute(feed);
         });
 
         mSwipeLayout.setOnRefreshListener(() -> {
@@ -77,11 +77,17 @@ public class MainActivity extends AppCompatActivity {
                 feedUrl = "https://rss.cbc.ca/lineup/topstories.xml";
             }
             feed = new Feed(feedUrl);
-            new PullFeedTask().execute(feed);
+            new PullFeedTask(this.getApplicationContext()).execute(feed);
         });
     }
 
     public static class PullFeedTask extends AsyncTask<Feed, Void, List<Feed>> {
+        @SuppressLint("StaticFieldLeak")
+        private final Context context;
+
+        public PullFeedTask(Context context) {
+            this.context = context;
+        }
 
         @Override
         protected List<Feed> doInBackground(Feed... feeds) {
@@ -173,8 +179,12 @@ public class MainActivity extends AppCompatActivity {
                             isItem = false;
                         }
                     }
-                } catch (XmlPullParserException | IOException e) {
+                } catch (IllegalArgumentException e) {
+                    // Toast.makeText(this.context, "URL is Invalid", Toast.LENGTH_SHORT).show();
+                } catch (Throwable e) {
                     e.printStackTrace();
+                    // Toast.makeText(this.context, "URL is Invalid", Toast.LENGTH_SHORT).show();
+                    // Log.d("exception", "Test");
                 }
 
                 feed.setArticles(items);

@@ -1,5 +1,7 @@
 package monster.minions.binocularss;
 
+import android.webkit.URLUtil;
+
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ public class Feed {
     private List<String> tags;
     int priority;
     List<Article> articles = new ArrayList<Article>();
+    private Exception IllegalArgumentException;
 
     public Feed(String url) {
         // If the url does not already contain an http(s) at the beginning, add one.
@@ -58,12 +61,16 @@ public class Feed {
         this.title = title;
     }
 
-    public void setUrl(String url) {
+    public void setUrl(String url) throws Throwable {
         // If the url does not already contain an http(s) at the beginning, add one.
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             url = "http://" + url;
         }
         this.url = url;
+
+        if (!URLUtil.isValidUrl(url)) {
+            throw IllegalArgumentException;
+        }
     }
 
     public void setDescription(String description) {
