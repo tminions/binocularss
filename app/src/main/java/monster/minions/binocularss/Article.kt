@@ -1,11 +1,13 @@
 package monster.minions.binocularss
 
+import java.net.URL
+
 data class Article(
-    var title:String,
-    var date:String,
-    var url:String,
-    var publisher:String,
-    var author:String,
-    var text:String,
-    var description:String,
+    var title:String = "",
+    var date:String = "",
+    var url:URL = URL(""),
+    var publisher:String = "",
+    var author:String = "",
+    var text:String = "",
+    var description:String = "",
 )
