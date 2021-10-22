@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        var feed: Feed = Feed(url = URL("https://rss.cbc.ca/lineup/topstories.xml"))
+        val feed: Feed = Feed(link = "https://rss.cbc.ca/lineup/topstories.xml")
         val task = PullFeedTask(this)
         task.execute(feed)
         // PullFeedTask.execute(feed)

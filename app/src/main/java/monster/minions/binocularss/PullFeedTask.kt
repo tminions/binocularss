@@ -7,10 +7,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.WeakReference
 import java.net.HttpURLConnection
+import java.net.URL
 
-class PullFeedTask(@SuppressLint("StaticFieldLeak") val context: Context) : AsyncTask<Feed, Void, List<Feed>>() {
+class PullFeedTask(@SuppressLint("StaticFieldLeak") val context: Context) :
+    AsyncTask<Feed, Void, List<Feed>>() {
     val reference = WeakReference(context)
-    private var stream: InputStream ?= null
+    private var stream: InputStream? = null
 
     /**
      * Asynchronous execution class that runs XML parser code off of the main thread to not
@@ -20,18 +22,18 @@ class PullFeedTask(@SuppressLint("StaticFieldLeak") val context: Context) : Asyn
      * @return A list of updated feeds
      */
     override fun doInBackground(vararg params: Feed?): List<Feed> {
-        var feeds = mutableListOf<Feed>()
+        val feeds = mutableListOf<Feed>()
 
         for (feed in params) {
             // Connect to url
-            val connect = feed?.url?.openConnection() as HttpURLConnection
+            val connect = URL(feed?.link).openConnection() as HttpURLConnection
             connect.readTimeout = 8000;
             connect.connectTimeout = 8000;
             connect.requestMethod = "GET"
             connect.connect()
 
             val responseCode: Int = connect.responseCode
-            var rssItems: List<Article> = mutableListOf<Article>()
+            var pulledFeed = Feed()
 
             // If the connection is successful, continue processing
             if (responseCode == 200) {
@@ -41,22 +43,29 @@ class PullFeedTask(@SuppressLint("StaticFieldLeak") val context: Context) : Asyn
                 try {
                     // Send the input stream to be parsed
                     val parser = RssParser()
-                    rssItems = parser.parse(stream!!)
+                    pulledFeed = parser.parse(stream!!)
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
             }
 
-            // TODO: replace this assignment with something that checks for
-            //  duplacates and doesn't replace them to perserve bookmarks,
-            //  read flags, and other things
-            //-----------------------------+
-            var articles = rssItems   //   |
-            //-----------------------------+
+            // TODO: Don't remove old ones articles, if something has been updated (check link)
+            //  then overwrite that and add new ones to the list
+            // for (pulledArticle in pulledFeed.articles) {
+            //     for (article in feed.articles) {
+            //         if (pulledArticle.link == article.link) continue;
+            //     }
+            // }
+            // for (pulledArticle in pulledFeed.articles) {
+            //     if (feed.articles.contains(pulledArticle)) {
+            //
+            //     }
+            // }
 
-            feed.articles = articles
-
-            feeds.add(feed)
+            if (feed != null) {
+                feed.articles = pulledFeed.articles
+                feeds.add(feed)
+            }
         }
         return feeds
     }
