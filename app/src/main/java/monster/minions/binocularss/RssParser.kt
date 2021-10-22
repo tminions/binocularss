@@ -35,16 +35,19 @@ class RssParser {
                 // Case statement on xml parser output
                 when (eventType) {
                     // If it's the start of an item tag, reset variables
-                    XmlPullParser.START_TAG ->
+                    XmlPullParser.START_TAG -> {
                         if (tagName.equals("item", ignoreCase = true)) {
                             isItem = true
                             rssItem = Article()
                         }
+                    }
                     // If it's text, save the text to a variable
-                    XmlPullParser.TEXT ->
+                    XmlPullParser.TEXT -> {
+                        Log.d("parser", text)
                         text = parser.text
+                    }
                     // If the tag is ending, save the text to the appropriate variable in Article
-                    XmlPullParser.END_TAG ->
+                    XmlPullParser.END_TAG -> {
                         if (tagName.equals("item", ignoreCase = true)) {
                             rssItem.let { rssItems.add(it) }
                             isItem = false
@@ -55,12 +58,12 @@ class RssParser {
                         } else if (isItem && tagName.equals("pubDate", ignoreCase = true)) {
                             rssItem.date = text
                         // } else if (isItem && tagName.equals("category", ignoreCase = true)) {
-                        //     rssItem= text.toString()
+                        //     rssItem = text
                         } else if (isItem && tagName.equals("description", ignoreCase = true)) {
                             rssItem.description = text
                         }
+                    }
                 }
-                Log.d("parser", text)
 
                 // Go to next line
                 eventType = parser.next()
@@ -73,4 +76,5 @@ class RssParser {
 
         return rssItems
     }
+
 }
