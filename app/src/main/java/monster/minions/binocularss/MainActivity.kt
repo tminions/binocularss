@@ -1,5 +1,6 @@
 package monster.minions.binocularss
 
+import android.os.AsyncTask.execute
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +10,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import monster.minions.binocularss.ui.theme.BinoculaRSSTheme
+import java.net.URL
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,6 +23,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        var feed: Feed = Feed(url = URL("https://rss.cbc.ca/lineup/topstories.xml"))
+        val task = PullFeedTask(this)
+        task.execute(feed)
+        // PullFeedTask.execute(feed)
     }
 }
 

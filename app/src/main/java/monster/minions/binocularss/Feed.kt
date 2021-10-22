@@ -4,7 +4,7 @@ import java.net.URL
 
 data class Feed(
     var title:String = "",
-    var url:URL = URL(""),
+    var url:URL,
     var description:String = "",
     var copyright:String = "",
     var date:String = "",
