@@ -3,6 +3,7 @@ package monster.minions.binocularss
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.AsyncTask
+import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.lang.ref.WeakReference
@@ -49,25 +50,62 @@ class PullFeedTask(@SuppressLint("StaticFieldLeak") val context: Context) :
                 }
             }
 
-            // TODO: Don't remove old ones articles, if something has been updated (check link)
-            //  then overwrite that and add new ones to the list
-            // for (pulledArticle in pulledFeed.articles) {
-            //     for (article in feed.articles) {
-            //         if (pulledArticle.link == article.link) continue;
-            //     }
-            // }
-            // for (pulledArticle in pulledFeed.articles) {
-            //     if (feed.articles.contains(pulledArticle)) {
-            //
-            //     }
-            // }
-
             if (feed != null) {
-                feed.articles = pulledFeed.articles
-                feeds.add(feed)
+                // Add a union of the pulled feed and the pre-existing feed to the set of feeds
+                feeds.add(mergeFeeds(feed, pulledFeed))
             }
         }
+
+        // DEBUG
+        // for (feed in feeds) {
+        //     for(article in feed.articles) {
+        //         val title = article.title
+        //         val desc = article.description
+        //         Log.d("test", "test")
+        //         Log.d("test", "article: title: $title, description: $desc")
+        //     }
+        // }
+
         return feeds
+    }
+
+    /**
+     * Update feed information based on the pulledFeed with the following criteria:
+     * 1. Any element in newFeed will be added to the new list
+     * 2. Any element in oldFeed that is not in newFeed will be added to the list
+     * 3. The user set properties like tags and priority of oldFeed will be transferred to newFeed
+     *
+     * @param oldFeed The feed passed in by the program to be updated
+     * @param newFeed The feed pulled down from the RSS
+     * @return The merge of oldFeed and newFeed as described above
+     */
+    private fun mergeFeeds(oldFeed: Feed, newFeed: Feed): Feed {
+        val unionArticles = mutableListOf<Article>()
+
+        // Satisfy property 2 from the docstring
+        for (article in oldFeed.articles) {
+            var anyEquals = false;
+
+            for (pulledArticle in newFeed.articles) {
+                if (article == pulledArticle) {
+                    anyEquals = true
+                }
+            }
+
+            if (!anyEquals) {
+                unionArticles.add(article)
+            }
+        }
+
+        // Satisfy property 1 from the docstring
+        unionArticles.addAll(newFeed.articles)
+
+        // Transfer the user-set flags
+        newFeed.tags = oldFeed.tags
+        newFeed.priority = oldFeed.priority
+        newFeed.articles = unionArticles
+
+        return newFeed
     }
 
     /**

@@ -2,6 +2,7 @@ package monster.minions.binocularss
 
 import android.os.AsyncTask.execute
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
@@ -27,7 +28,6 @@ class MainActivity : ComponentActivity() {
         val feed: Feed = Feed(link = "https://rss.cbc.ca/lineup/topstories.xml")
         val task = PullFeedTask(this)
         task.execute(feed)
-        // PullFeedTask.execute(feed)
     }
 }
 

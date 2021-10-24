@@ -49,7 +49,7 @@ class RssParser {
                     }
                     // If it's text, save the text to a variable
                     XmlPullParser.TEXT -> {
-                        Log.d("parser", text)
+//                        Log.d("parser", text)
                         text = parser.text
                     }
                     // If the tag is ending, save the text to the appropriate variable in Article
