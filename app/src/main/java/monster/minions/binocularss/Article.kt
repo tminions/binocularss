@@ -17,4 +17,15 @@ data class Article(
     var guid: String = "", // A string that uniquely identifies the item.
     var pubDate: String = "", // Indicates when the item was published.
     var source: String = "", // The RSS channel that the item came from.
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is Article -> {
+                this.link == other.link
+            }
+            else -> {
+                false
+            }
+        }
+    }
+}
