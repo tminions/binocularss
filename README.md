@@ -34,7 +34,7 @@ Ensure that ADB is installed. This is so that Android Studio can communicate wit
 ### Naming Convention
 
 - Variables should be named in `camelCase`.
-- Functions should be named with `PascalCase`.
+- Functions should be named with `camelCase`.
 - Classes should be named with `PascalCase`.
 
 <!-- - Kotlin variables that reference Android UI elements (defined in XML) should be prefixed with `m` so a variable for a `TextView` should be called `mTextView` or similar. -->
