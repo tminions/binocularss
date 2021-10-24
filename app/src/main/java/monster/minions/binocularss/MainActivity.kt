@@ -25,9 +25,12 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val feed: Feed = Feed(link = "https://rss.cbc.ca/lineup/topstories.xml")
+        val feedGroup: FeedGroup = FeedGroup()
+        feedGroup.feeds.add(Feed(link = "https://rss.cbc.ca/lineup/topstories.xml"))
         val task = PullFeedTask(this)
-        task.execute(feed)
+        for (feed in feedGroup.feeds) {
+            task.execute(feed)
+        }
     }
 }
 
