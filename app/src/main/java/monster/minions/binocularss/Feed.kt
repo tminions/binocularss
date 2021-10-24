@@ -24,5 +24,5 @@ data class Feed(
     var skipDays: String = "", // A hint for aggregators telling them which days they can skip.
     var tags: List<String> = mutableListOf<String>(),
     var priority: Int = 0,
-    var articles: List<Article> = mutableListOf<Article>()
+    var articles: MutableList<Article> = mutableListOf<Article>()
 )

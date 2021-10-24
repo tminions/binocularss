@@ -1,5 +1,5 @@
 package monster.minions.binocularss
 
 data class FeedGroup(
-    var feeds:List<Feed> = mutableListOf<Feed>()
+    var feeds: MutableList<Feed> = mutableListOf<Feed>(),
 )
