@@ -48,7 +48,6 @@ The main group of RSS feeds. This contains and saves any feeds that the user add
 
 ### Responsibility:
 - Create Feed objects
-- Read Feed object
 - Delete Feed objects
 - Filter feeds by tag
 - Filter articles in feeds by date
