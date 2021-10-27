@@ -47,8 +47,8 @@ class MainActivity : ComponentActivity() {
         // Setup parser
         val parser = Parser.Builder()
             .context(this)
-            .charset(Charset.forName("ISO-8859-7"))
-            .cacheExpirationMillis(24L * 60L * 60L * 100L) // one day
+            // .charset(Charset.forName("ISO-8859-7")) // Default is UTF-8
+            .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
             .build()
 
         // Update Rss
