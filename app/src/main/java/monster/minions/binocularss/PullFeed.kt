@@ -10,9 +10,6 @@ import androidx.lifecycle.viewModelScope
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
-import kotlinx.coroutines.Dispatchers.Main
-import monster.minions.binocularss.ui.theme.BinoculaRSSTheme
-import kotlin.system.measureTimeMillis
 
 /**
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
