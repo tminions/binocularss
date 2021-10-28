@@ -1,36 +1,43 @@
 package monster.minions.binocularss
 
-import java.net.URL
+import android.os.Parcel
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
 /**
- * from https://validator.w3.org/feed/docs/rss2.html
+ * A dataclass object representing an Article that is part of an RSS Feed.
+ *
+ * Info on possible tags from https://validator.w3.org/feed/docs/rss2.html
+ *
+ * @param title The title of the item.
+ * @param author Email address of the author of the item.
+ * @param link The URL of the item.
+ * @param pubDate Indicates when the item was published.
+ * @param description The item synopsis.
+ * @param content The content of an item, also known as enclosure.
+ * @param image An href to a header image.
+ * @param audio An href to companion audio.
+ * @param video An href to companion video.
+ * @param sourceName The source name (name of the feed it came from).
+ * @param sourceUrl The source URL (url of the feed it came from).
+ * @param categories A list of the appropriate categories (defined by RSS).
+ * @param guid A string that uniquely identifies the item.
+ * @param source The RSS channel that the item came from.
  */
-
+@Parcelize
 data class Article(
-    var title: String = "", // The title of the item.
-    var author: String = "", // Email address of the author of the item.
-    var link: String = "", // The URL of the item.
-    var pubDate: String = "", // Indicates when the item was published.
-    var description: String = "", // The item synopsis.
-    var content: String = "", // The content of an item, also known as enclosure
-    var image: String = "", // An href to a header image
-    var audio: String = "", // An href to companion audio
-    var video: String = "", // An href to companion video
-    var sourceName: String = "", // The source name (name of the feed it came from)
-    var sourceUrl: String = "", // The source URL (url of the feed it came from)
-    var categories: MutableList<String> = mutableListOf<String>(), // A list of the appropriate categories (predefiend)
-    var guid: String = "", // A string that uniquely identifies the item.
-    var source: String = "", // The RSS channel that the item came from.
-) {
-
-    override fun equals(other: Any?): Boolean {
-        return when (other) {
-            is Article -> {
-                this.link == other.link
-            }
-            else -> {
-                false
-            }
-        }
-    }
-}
+    var title: String? = "",
+    var author: String? = "",
+    var link: String? = "",
+    var pubDate: String? = "",
+    var description: String? = "",
+    var content: String? = "",
+    var image: String? = "",
+    var audio: String? = "",
+    var video: String? = "",
+    var sourceName: String? = "",
+    var sourceUrl: String? = "",
+    var categories: MutableList<String>? = mutableListOf<String>(),
+    var guid: String? = "",
+    var source: String? = "",
+) : Parcelable
