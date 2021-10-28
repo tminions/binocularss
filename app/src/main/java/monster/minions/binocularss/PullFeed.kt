@@ -1,10 +1,7 @@
 package monster.minions.binocularss
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prof.rssparser.Channel
@@ -36,9 +33,13 @@ class PullFeed(context: Context) : ViewModel() {
                 Log.d("Pull Feed", "Pulling: " + feed.link)
                 try {
                     // Get channel from RSS parser and convert it to feed
-                    val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.link)))
+                    val pulledFeed = feed.link?.let {
+                        parser.getChannel(it)
+                    }?.let { channelToFeed(it) }?.let { mergeFeeds(feed, it) }
                     // Add the updated feed to a aggregator list
-                    feedList.add(pulledFeed)
+                    if (pulledFeed != null) {
+                        feedList.add(pulledFeed)
+                    }
                 } catch (e: Exception) {
                     // TODO tell user that url is invalid. This is the most common exception cause.
                     //  Another one may be intrnet access. Figure out which exception is which and
