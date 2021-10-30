@@ -1,23 +1,16 @@
 package monster.minions.binocularss
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
-import kotlinx.coroutines.*
+import kotlinx.coroutines.withContext
 
 /**
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
  */
-class PullFeed(context: Context) : ViewModel() {
-
-//    @SuppressLint("StaticFieldLeak")
-//    private val context: Context = context
+class PullFeed : ViewModel() {
 
     /**
      * Get the RSS feeds in feedGroup from the internet or cache.
@@ -33,16 +26,17 @@ class PullFeed(context: Context) : ViewModel() {
         for (feed in feedGroup.feeds) {
             // Launch the async task
             withContext(viewModelScope.coroutineContext) {
-                Log.d("Pull Feed", "Pulling: " + feed.link)
+                Log.d("PullFeed", "Pulling: " + feed.link)
                 try {
-                    // Get channel from RSS parser and convert it to feed
+                    // Get channel from RSS parser and convert it to feed then merge that with
+                    // the current feed
                     val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.link)))
                     // Add the updated feed to a aggregator list
                     feedList.add(pulledFeed)
                 } catch (e: Exception) {
                     // TODO tell user that url is invalid. This is the most common exception cause.
-                    //  Another one may be intrnet access. Figure out which exception is which and
-                    //  inform the user accordingly.
+                    //  others may be internet access or malformed XML. Figure out which exception
+                    //  is which and inform the user accordingly.
                     e.printStackTrace()
                 }
             }
@@ -71,7 +65,7 @@ class PullFeed(context: Context) : ViewModel() {
         val title = channel.title.toString()
         val link = channel.link.toString()
         val description = channel.description.toString()
-        val image = channel.image
+        val image = channel.image?.url.toString()
         val lastBuildDate = channel.lastBuildDate.toString()
         val updatePeriod = channel.updatePeriod.toString()
 
@@ -102,6 +96,7 @@ class PullFeed(context: Context) : ViewModel() {
         val image = oldArticle.image.toString()
         val audio = oldArticle.audio.toString()
         val video = oldArticle.video.toString()
+        val guid = oldArticle.guid.toString()
         val sourceName = oldArticle.sourceName.toString()
         val sourceUrl = oldArticle.sourceUrl.toString()
         val categories = oldArticle.categories
@@ -116,6 +111,7 @@ class PullFeed(context: Context) : ViewModel() {
             image,
             audio,
             video,
+            guid,
             sourceName,
             sourceUrl,
             categories
@@ -139,7 +135,7 @@ class PullFeed(context: Context) : ViewModel() {
 
         // Satisfy property 2 from the docstring
         for (article in oldFeed.articles) {
-            var anyEquals = false;
+            var anyEquals = false
 
             for (pulledArticle in newFeed.articles) {
                 if (article == pulledArticle) {

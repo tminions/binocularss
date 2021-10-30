@@ -1,10 +1,12 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'kotlin-kapt'
 }
 
 android {
-    compileSdk 30
+    compileSdk 31
 
     defaultConfig {
         applicationId "monster.minions.binocularss"
@@ -64,4 +66,17 @@ dependencies {
 
     // RSS parser library
     implementation 'com.prof18.rssparser:rssparser:3.1.5'
+
+    // GSON
+    implementation 'com.google.code.gson:gson:2.8.9'
+
+    // Room
+    def room_version = "2.3.0"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+//    implementation "androidx.room:room-rxjava2:$room_version" // optional - RxJava2 support for Room
+//    implementation "androidx.room:room-rxjava3:$room_version" // optional - RxJava3 support for Room
+//    implementation "androidx.room:room-guava:$room_version" // optional - Guava support for Room, including Optional and ListenableFuture
+    testImplementation "androidx.room:room-testing:$room_version" // optional - Test helpers
+//    implementation "androidx.room:room-paging:2.4.0-beta01" // optional - Paging 3 Integration
 }
