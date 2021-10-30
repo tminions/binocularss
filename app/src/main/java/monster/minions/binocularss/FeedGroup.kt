@@ -8,5 +8,5 @@ import kotlinx.parcelize.Parcelize
  */
 @Parcelize
 data class FeedGroup(
-    var feeds: MutableList<Feed> = mutableListOf<Feed>()
+    var feeds: MutableList<Feed> = mutableListOf()
 ): Parcelable

@@ -1,7 +1,8 @@
 package monster.minions.binocularss
 
 import android.os.Parcelable
-import com.prof.rssparser.Image
+import androidx.annotation.NonNull
+import androidx.room.*
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -13,21 +14,25 @@ import kotlinx.parcelize.Parcelize
  * @param link The URL to the HTML website corresponding to the channel.
  * @param description Phrase or sentence describing the channel.
  * @param lastBuildDate The last time the content of the channel changed.
- * @param image Specifies a GIF, JPEG or PNG image that can be displayed with the channel.
+ * @param image Specifies the url for a GIF, JPEG or PNG image that can be displayed with the channel.
  * @param updatePeriod Specifies the amount of time between updates for RSS aggregators.
  * @param articles A list of articles that the feed contains.
  * @param tags The user assigned tags on a feed.
  * @param priority The computed priority score of a feed.
  */
 @Parcelize
+@Entity(tableName = "feeds")
+@TypeConverters(ArticleListConverter::class, TagsListConverter::class)
 data class Feed(
     var title: String? = "",
-    var link: String? = "",
+    @NonNull
+    @PrimaryKey
+    var link: String = "",
     var description: String? = "",
     var lastBuildDate: String? = "",
-    var image: Image? = null,
+    var image: String = "",
     var updatePeriod: String? = "",
-    var articles: MutableList<Article> = mutableListOf<Article>(),
-    var tags: MutableList<String> = mutableListOf<String>(),
+    var articles: MutableList<Article> = mutableListOf(),
+    var tags: MutableList<String> = mutableListOf(),
     var priority: Int = 0,
 ) : Parcelable
