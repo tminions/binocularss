@@ -14,7 +14,7 @@
         android:theme="@style/Theme.BinoculaRSS"
         android:usesCleartextTraffic="true"
         android:fullBackupContent="true">
-        android:usesCleartextTraffic="true">
+
         <activity
             android:name=".BookmarksActivity"
             android:exported="false" />
