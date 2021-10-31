@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">BinoculaRSS</string>
+    <string-array name="views_array">
+        <item>Title-Only View</item>
+        <item>Magazine View</item>
+        <item>Cards View</item>
+        <item>Article View</item>
+    </string-array>
 </resources>
