@@ -2,6 +2,8 @@ package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import java.util.Date
+import java.text.SimpleDateFormat
 
 /**
  * A dataclass object representing an Article that is part of an RSS Feed.
@@ -36,8 +38,8 @@ data class Article(
     var guid: String? = "",
     var sourceName: String? = "",
     var sourceUrl: String? = "",
-    var categories: MutableList<String>? = mutableListOf(),
-) : Parcelable {
+    var categories: MutableList<String>? = mutableListOf()
+) : Parcelable, Comparable<Article>{
     /**
      * Check if an article is equal to another by checking the
      * link, which usually does not change
@@ -73,5 +75,36 @@ data class Article(
         result = 31 * result + (sourceUrl?.hashCode() ?: 0)
         result = 31 * result + (categories?.hashCode() ?: 0)
         return result
+    }
+    /**
+     * Compares it's date with another Article object.
+     *
+     * Returns a negative integer, zero, or a positive integer
+     * as the date of this object is less than, equal to, or greater
+     * than the specified object.
+     *
+     *
+     *
+     * @param other the Article to be compared
+     * @return a negative integer, zero, or a positive integer
+     * as the date of this object is less than, equal to, or greater
+     * than the specified object.
+     */
+    override fun compareTo(other: Article): Int {
+        val articleDateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm z")
+        val currentDate: Date = articleDateFormat.parse(this.pubDate)
+        val otherDate: Date = articleDateFormat.parse(other.pubDate)
+        if (currentDate.after(otherDate)) {
+            // This date is after other date
+            return 1;
+        }
+        else if (otherDate.after(currentDate)) {
+            // This date is before other date
+            return -1;
+        }
+        else {
+            // They're the same date
+            return 0;
+        }
     }
 }
