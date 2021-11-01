@@ -95,17 +95,5 @@ data class Article(
         val currentDate: Date = articleDateFormat.parse(this.pubDate)
         val otherDate: Date = articleDateFormat.parse(other.pubDate)
         return currentDate.compareTo(otherDate)
-//        if (currentDate.after(otherDate)) {
-//            // This date is after other date
-//            return 1;
-//        }
-//        else if (otherDate.after(currentDate)) {
-//            // This date is before other date
-//            return -1;
-//        }
-//        else {
-//            // They're the same date
-//            return 0;
-//        }
     }
 }
