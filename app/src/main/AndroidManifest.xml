@@ -16,7 +16,7 @@
         android:fullBackupContent="true">
 
         <activity
-            android:name=".BookmarksActivity"
+            android:name=".activities.BookmarksActivity"
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
