@@ -2,6 +2,7 @@ package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import androidx.annotation.NonNull
+import androidx.compose.ui.text.toLowerCase
 import androidx.room.*
 import kotlinx.parcelize.Parcelize
 import monster.minions.binocularss.room.ArticleListConverter
@@ -37,4 +38,23 @@ data class Feed(
     var articles: MutableList<Article> = mutableListOf(),
     var tags: MutableList<String> = mutableListOf(),
     var priority: Int = 0,
-) : Parcelable
+) : Parcelable, Comparable<Feed>{
+
+    /**
+     * Compares it's title with another Feed object.
+     *
+     * Returns a negative integer, zero, or a positive integer
+     * as the title of this object is alphabetically before, the same, or after
+     * the specified object.
+     *
+     * Precondition: The title of these feeds are not null.
+     *
+     * @param other the Feed to be compared
+     * @return a negative integer, zero, or a positive integer
+     * as the title of this object is alphabetically before, the same, or after
+     * the specified object.
+     */
+    override fun compareTo(other: Feed): Int {
+        return this.title!!.lowercase().compareTo(other.title!!.lowercase())
+    }
+}
