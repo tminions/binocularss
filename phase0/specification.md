@@ -31,11 +31,13 @@ A mobile, feature rich, RSS reader. RSS stands for Really Simply Syndication. RS
 - Search function
 - Incognito RSS feeds or hidden mode (either one time or password protected)
 - Bookmarking (requiring saving the position so we need a position somewhere in some class. Maybe by line number?)
-- Share function with a QR code or copy or share sheet
+- Share function copy or share sheet
 - Export/Import save files. Maybe saving which RSS feeds you are subscribed to (local, google drive, etc). This will require some form of mechanism to input the save file as well
 
 ## Secondary Features
 
+- Share via QR code
+- Preview (hold to open or something)
 - Track twitter user or subreddit or youtube channel, etc. (inside the app and generates the RSS feed).
 - Reading history
 - Tabs
