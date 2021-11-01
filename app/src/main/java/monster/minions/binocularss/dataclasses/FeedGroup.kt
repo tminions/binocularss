@@ -1,4 +1,4 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

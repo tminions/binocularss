@@ -1,4 +1,4 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
@@ -36,7 +36,7 @@ data class Article(
     var guid: String? = "",
     var sourceName: String? = "",
     var sourceUrl: String? = "",
-    var categories: MutableList<String>? = mutableListOf()
+    var categories: MutableList<String>? = mutableListOf(),
 ) : Parcelable {
     /**
      * Check if an article is equal to another by checking the

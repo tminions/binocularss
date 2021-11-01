@@ -1,4 +1,4 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.room
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson

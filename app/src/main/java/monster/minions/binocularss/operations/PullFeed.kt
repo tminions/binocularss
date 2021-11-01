@@ -1,4 +1,4 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.operations
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.withContext
+import monster.minions.binocularss.dataclasses.Article
+import monster.minions.binocularss.dataclasses.Feed
+import monster.minions.binocularss.dataclasses.FeedGroup
 
 /**
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
@@ -79,7 +82,7 @@ class PullFeed : ViewModel() {
     }
 
     /**
-     * Convert com.prof.rssparser.Article to monster.minions.binocularss.Article.
+     * Convert com.prof.rssparser.Article to monster.minions.binocularss.dataclasses.Article.
      *
      * @param oldArticle Article to be converted.
      * @return Converted Article.

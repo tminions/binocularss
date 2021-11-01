@@ -1,9 +1,11 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import androidx.annotation.NonNull
 import androidx.room.*
 import kotlinx.parcelize.Parcelize
+import monster.minions.binocularss.room.ArticleListConverter
+import monster.minions.binocularss.room.TagsListConverter
 
 /**
  * A dataclass object representing an RSS Feed.

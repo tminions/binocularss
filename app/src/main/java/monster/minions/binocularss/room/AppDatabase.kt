@@ -1,7 +1,8 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import monster.minions.binocularss.dataclasses.Feed
 
 /**
  * A class to call on the database

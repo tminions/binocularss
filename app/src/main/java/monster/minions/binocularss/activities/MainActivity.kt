@@ -1,4 +1,4 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.activities
 
 import android.content.Context
 import android.os.Bundle
@@ -23,6 +23,11 @@ import androidx.room.RoomDatabase
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import monster.minions.binocularss.dataclasses.Feed
+import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.PullFeed
+import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.theme.BinoculaRSSTheme
 
 class MainActivity : ComponentActivity() {

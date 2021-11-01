@@ -1,8 +1,9 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.room
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import monster.minions.binocularss.dataclasses.Article
 
 /**
  * A object to convert between a list of articles and JSON for Room database storage requirements.

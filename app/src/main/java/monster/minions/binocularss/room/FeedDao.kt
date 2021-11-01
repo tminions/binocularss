@@ -1,10 +1,11 @@
-package monster.minions.binocularss
+package monster.minions.binocularss.room
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import monster.minions.binocularss.dataclasses.Feed
 
 /**
  * Interface to translate from Kotlin function calls to SQLite queries
