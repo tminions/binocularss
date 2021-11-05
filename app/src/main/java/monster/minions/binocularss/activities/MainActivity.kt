@@ -1,15 +1,12 @@
 package monster.minions.binocularss.activities
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -36,18 +34,22 @@ class MainActivity : ComponentActivity() {
     companion object {
         // Global FeedGroup object
         var feedGroup: FeedGroup = FeedGroup()
+
         // Parser variable using lateinit because we want to get the context
-        private lateinit var parser: Parser
+        lateinit var parser: Parser
+
         // Setup parser
         private fun setParser(context: Context) {
             parser = Parser.Builder()
                 .context(context)
                 // .charset(Charset.forName("ISO-8859-7")) // Default is UTF-8
-                .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
+//                .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
+                // .cacheExpirationMillis(0)
                 .build()
 
 
         }
+
         // Setup Room database
         private lateinit var db: RoomDatabase
         private lateinit var feedDao: FeedDao
@@ -59,12 +61,11 @@ class MainActivity : ComponentActivity() {
             feedDao = (db as AppDatabase).feedDao()
         }
 
+        // Local variables
+        var feedGroupText = MutableStateFlow("Empty\n")
         // Key for accessing feed group in onSaveInstanceState
         // const val FEED_GROUP_KEY = "feedGroup"
     }
-
-    // Local variables
-    private val feedGroupText = MutableStateFlow("Empty\n")
 
     /**
      * The function that is run when the activity is created. This is on app launch in this case.
@@ -86,18 +87,10 @@ class MainActivity : ComponentActivity() {
             BinoculaRSSTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        FeedTitles()
-                        UpdateFeedButton()
-                    }
+                    UI()
                 }
             }
         }
-
 
         // Set feed-db in companion object
         setDb(applicationContext)
@@ -120,13 +113,19 @@ class MainActivity : ComponentActivity() {
             // for (feed in MainActivity.feedGroup.feeds) {
             //     Toast.makeText(context, "Pulled: ${feed.title}", Toast.LENGTH_SHORT).show()
             // }
-            var text = ""
-            for (feed in feedGroup.feeds) {
-                text += feed.title
-                text += "\n"
-            }
-            feedGroupText.value = text
+            updateText()
         }
+    }
+
+    private fun updateText() {
+        var text = ""
+
+        for (feed in feedGroup.feeds) {
+            text += feed.title
+            text += "\n"
+        }
+
+        feedGroupText.value = text
     }
 
     // /**
@@ -171,12 +170,12 @@ class MainActivity : ComponentActivity() {
      *
      * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
      *
-     * This function is called before `onStop` and `onDestroy` or any time a "pause" happens. This
+     * This function is called before `onStop` and `onDestroy` or any time a "stop" happens. This
      * includes when an app is exited but not closed.
      */
-    override fun onPause() {
-        super.onPause()
-        Log.d("MainActivity", "onPause called")
+    override fun onStop() {
+        super.onStop()
+        Log.d("MainActivity", "onStop called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
     }
 
@@ -198,27 +197,22 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-        if (feedGroup.feeds.isNullOrEmpty()) {
-            // Add some feeds to the feedGroup
-            feedGroup.feeds.add(Feed(link = "https://rss.cbc.ca/lineup/topstories.xml"))
-            feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
-            // TODO This feed is malformed according to the exception that the xml parser throws.
-            //  We can use this to develop a bad formatting indication to the user
-            //  feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
-
-            // Tell the user that this change happened
-            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-                .show()
-        }
+//        if (feedGroup.feeds.isNullOrEmpty()) {
+//            // Add some feeds to the feedGroup
+//            feedGroup.feeds.add(Feed(link = "https://rss.cbc.ca/lineup/topstories.xml"))
+//            feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
+//            // TODO This feed is malformed according to the exception that the xml parser throws.
+//            //  We can use this to develop a bad formatting indication to the user
+//            //  feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
+//            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+//
+//            // Tell the user that this change happened
+//            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
+//                .show()
+//        }
         ///////////////////////////////////////////////////////////////////////////////////////////
 
-        var text = ""
-        for (feed in feedGroup.feeds) {
-            text += feed.title
-            text += "\n"
-        }
-        feedGroupText.value = text
+        updateText()
     }
 
     @Composable
@@ -236,14 +230,36 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    fun AddFeedButton() {
+        Button(
+            onClick = {
+                val intent = Intent(this, AddFeedActivity::class.java).apply {}
+                startActivity(intent)
+                Log.d("AddFeed", "this")
+                feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+            }
+        ) {
+            Text("Add Feed")
+        }
+    }
+
     @Preview(showBackground = true)
     @Composable
-    fun DefaultPreview() {
-        BinoculaRSSTheme {
-            Column {
-                FeedTitles()
-                UpdateFeedButton()
-            }
+    fun UI() {
+        val padding = 16.dp
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxHeight()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            FeedTitles()
+            UpdateFeedButton()
+            Spacer(Modifier.size(padding))
+            AddFeedButton()
         }
     }
 }

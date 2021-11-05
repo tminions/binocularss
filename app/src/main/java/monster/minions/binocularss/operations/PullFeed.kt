@@ -31,15 +31,13 @@ class PullFeed : ViewModel() {
             withContext(viewModelScope.coroutineContext) {
                 Log.d("PullFeed", "Pulling: " + feed.link)
                 try {
-                    // Get channel from RSS parser and convert it to feed then merge that with
-                    // the current feed
-                    val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.link)))
-                    // Add the updated feed to a aggregator list
-                    feedList.add(pulledFeed)
+                    // Get channel from RSS parser and convert it to feed then merge that with the
+                    //  feed that we already have
+                    feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.link))))
                 } catch (e: Exception) {
-                    // TODO tell user that url is invalid. This is the most common exception cause.
-                    //  others may be internet access or malformed XML. Figure out which exception
-                    //  is which and inform the user accordingly.
+                    // TODO this try catch is only causing errors on the second run. The first
+                    //  time it is run on a given feed, nothing happens. I think that this breaking out
+                    //  is what's causing only one feed to be added (the new feed)
                     e.printStackTrace()
                 }
             }
