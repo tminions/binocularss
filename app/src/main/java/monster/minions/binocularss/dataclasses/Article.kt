@@ -39,7 +39,7 @@ data class Article(
     var sourceName: String? = "",
     var sourceUrl: String? = "",
     var categories: MutableList<String>? = mutableListOf()
-) : Parcelable, Comparable<Article>{
+) : Parcelable{
     /**
      * Check if an article is equal to another by checking the
      * link, which usually does not change
@@ -75,25 +75,5 @@ data class Article(
         result = 31 * result + (sourceUrl?.hashCode() ?: 0)
         result = 31 * result + (categories?.hashCode() ?: 0)
         return result
-    }
-    /**
-     * Compares it's date with another Article object.
-     *
-     * Returns a negative integer, zero, or a positive integer
-     * as the date of this object is less than, equal to, or greater
-     * than the specified object.
-     *
-     *
-     *
-     * @param other the Article to be compared
-     * @return a negative integer, zero, or a positive integer
-     * as the date of this object is less than, equal to, or greater
-     * than the specified object.
-     */
-    override fun compareTo(other: Article): Int {
-        val articleDateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm z")
-        val currentDate: Date = articleDateFormat.parse(this.pubDate)
-        val otherDate: Date = articleDateFormat.parse(other.pubDate)
-        return currentDate.compareTo(otherDate)
     }
 }
