@@ -15,11 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.prof.rssparser.Parser
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.operations.PullFeed
@@ -29,32 +24,8 @@ class AddFeedActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BinoculaRSSTheme {
-                // A surface container using the 'background' color from the theme
                 UI()
             }
-        }
-    }
-
-    // TODO write about clean architecture problem of having duplicate code
-    /**
-     * Call the required functions to update the Rss feed.
-     *
-     * @param parser A parser with preconfigured settings.
-     */
-    @DelicateCoroutinesApi
-    private fun updateRss(parser: Parser) {
-        val viewModel = PullFeed()
-
-        GlobalScope.launch(Dispatchers.Main) {
-            MainActivity.feedGroup = viewModel.pullRss(MainActivity.feedGroup, parser)
-
-            var text = ""
-            println(MainActivity.feedGroup.feeds.size)
-            for (feed in MainActivity.feedGroup.feeds) {
-                text += feed.title
-                text += "\n"
-            }
-            MainActivity.feedGroupText.value = text
         }
     }
 
@@ -78,6 +49,7 @@ class AddFeedActivity : ComponentActivity() {
         val textState = remember { mutableStateOf(TextFieldValue()) }
         OutlinedTextField(
             value = textState.value,
+            placeholder = { Text("Enter Feed URL") },
             onValueChange = {
                 textState.value = it; text = mutableStateOf(textState.value.text)
             },
@@ -91,12 +63,11 @@ class AddFeedActivity : ComponentActivity() {
         Button(
             modifier = Modifier.requiredWidth(70.dp),
             onClick = {
+                // Add https:// or http:// to the front of the url if not present
                 val url = addHttps(text.value)
 
-                println(url)
-
+                // If the url is valid ...
                 if (Patterns.WEB_URL.matcher(url).matches()) {
-
                     // Check if the feed is already in the feedGroup
                     val feedToAdd = Feed(source = url)
                     var inFeedGroup = false
@@ -113,7 +84,8 @@ class AddFeedActivity : ComponentActivity() {
                     // Add feed and update feeds if the feed is not in the feedGroup
                     if (!inFeedGroup) {
                         MainActivity.feedGroup.feeds.add(Feed(source = url))
-                        updateRss(MainActivity.parser)
+                        val viewModel = PullFeed()
+                        viewModel.updateRss(MainActivity.parser)
                         finish()
                     }
 
@@ -128,7 +100,6 @@ class AddFeedActivity : ComponentActivity() {
 
     // TODO fix scale of button and text box to be maybe 80/20 or 90/10 and figure out how
     //  to do fractional scaling with this
-    @Preview(showBackground = true)
     @Composable
     fun UI() {
         Surface(color = MaterialTheme.colors.background) {
@@ -141,6 +112,14 @@ class AddFeedActivity : ComponentActivity() {
                 Spacer(Modifier.size(padding))
                 SubmitButton()
             }
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun Preview() {
+        BinoculaRSSTheme {
+            UI()
         }
     }
 }

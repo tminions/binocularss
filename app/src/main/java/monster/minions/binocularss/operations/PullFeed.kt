@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import monster.minions.binocularss.activities.MainActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
@@ -14,6 +15,28 @@ import monster.minions.binocularss.dataclasses.FeedGroup
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
  */
 class PullFeed : ViewModel() {
+    /**
+     * Call the required functions to update the Rss feed.
+     *
+     * @param parser A parser with preconfigured settings.
+     */
+    @DelicateCoroutinesApi
+    fun updateRss(parser: Parser) {
+        GlobalScope.launch(Dispatchers.Main) {
+            // Update feedGroup variable
+            MainActivity.feedGroup = pullRss(MainActivity.feedGroup, parser)
+
+            // Update DB with updated feeds
+            MainActivity.feedDao.insertAll(*(MainActivity.feedGroup.feeds.toTypedArray()))
+
+            var text = ""
+            for (feed in MainActivity.feedGroup.feeds) {
+                text += feed.title
+                text += "\n"
+            }
+            MainActivity.feedGroupText.value = text
+        }
+    }
 
     /**
      * Get the RSS feeds in feedGroup from the internet or cache.
@@ -22,7 +45,7 @@ class PullFeed : ViewModel() {
      * @param parser A parser with preconfigured settings.
      * @return An updated FeedGroup object.
      */
-    suspend fun pullRss(feedGroup: FeedGroup, parser: Parser): FeedGroup {
+    private suspend fun pullRss(feedGroup: FeedGroup, parser: Parser): FeedGroup {
         val feedList: MutableList<Feed> = mutableListOf()
 
         // Loop through all the feeds

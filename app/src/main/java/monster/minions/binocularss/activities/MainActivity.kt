@@ -22,12 +22,12 @@ import androidx.room.RoomDatabase
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
-import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -53,8 +53,8 @@ class MainActivity : ComponentActivity() {
         }
 
         // Setup Room database
-        private lateinit var db: RoomDatabase
-        private lateinit var feedDao: FeedDao
+        lateinit var db: RoomDatabase
+        lateinit var feedDao: FeedDao
         private fun setDb(context: Context) {
             db = Room.databaseBuilder(
                 context,
@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
 
         // Local variables
         var feedGroupText = MutableStateFlow("Empty\n")
+
         // Key for accessing feed group in onSaveInstanceState
         // const val FEED_GROUP_KEY = "feedGroup"
     }
@@ -98,36 +99,6 @@ class MainActivity : ComponentActivity() {
         setDb(applicationContext)
         // Set parser in companion object
         setParser(this@MainActivity)
-    }
-
-    /**
-     * Call the required functions to update the Rss feed.
-     *
-     * @param parser A parser with preconfigured settings.
-     */
-    @DelicateCoroutinesApi
-    private fun updateRss(parser: Parser) {
-        val viewModel = PullFeed()
-
-        GlobalScope.launch(Dispatchers.Main) {
-            feedGroup = viewModel.pullRss(feedGroup, parser)
-            // Debug toast to confirm that the data has come back to the MainActivity variable.
-            // for (feed in MainActivity.feedGroup.feeds) {
-            //     Toast.makeText(context, "Pulled: ${feed.title}", Toast.LENGTH_SHORT).show()
-            // }
-            updateText()
-        }
-    }
-
-    private fun updateText() {
-        var text = ""
-
-        for (feed in feedGroup.feeds) {
-            text += feed.title
-            text += "\n"
-        }
-
-        feedGroupText.value = text
     }
 
     // /**
@@ -199,6 +170,7 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
+        // TODO maybe suggest some? This sounds like a phase 2 idea.
         if (feedGroup.feeds.isNullOrEmpty()) {
             // Add some feeds to the feedGroup
             feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
@@ -206,13 +178,29 @@ class MainActivity : ComponentActivity() {
             feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
             feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
 
-            // Tell the user that this change happened
+            // Inform the user of this
             Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
                 .show()
         }
         ///////////////////////////////////////////////////////////////////////////////////////////
 
         updateText()
+    }
+
+    /**
+     * Update the text for UI elements
+     *
+     * TODO this function can be modified to update other UI elements after the
+     *  feeds have been fetched as well at which point it should be named updateUI
+     *  or something along those lines.
+     */
+    private fun updateText() {
+        var text = ""
+        for (feed in feedGroup.feeds) {
+            text += feed.title
+            text += "\n"
+        }
+        feedGroupText.value = text
     }
 
     @Composable
@@ -224,7 +212,11 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun UpdateFeedButton() {
         Button(
-            onClick = { updateRss(parser) }
+            onClick = {
+                val viewModel = PullFeed()
+                viewModel.updateRss(parser)
+                // updateText()
+            }
         ) {
             Text("Update RSS Feeds")
         }
@@ -236,7 +228,6 @@ class MainActivity : ComponentActivity() {
             onClick = {
                 val intent = Intent(this, AddFeedActivity::class.java).apply {}
                 startActivity(intent)
-                Log.d("AddFeed", "this")
                 feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
             }
         ) {
@@ -244,15 +235,26 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true)
+    @Composable
+    fun ClearFeeds() {
+        Button(
+            onClick = {
+                for (feed in feedGroup.feeds) {
+                    feedDao.deleteBySource(feed.source)
+                }
+                feedGroup.feeds = mutableListOf()
+                updateText()
+            }
+        ) {
+            Text("Clear DB")
+        }
+    }
+
     @Composable
     fun UI() {
         val padding = 16.dp
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxHeight()
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -260,6 +262,16 @@ class MainActivity : ComponentActivity() {
             UpdateFeedButton()
             Spacer(Modifier.size(padding))
             AddFeedButton()
+            Spacer(modifier = Modifier.size(padding))
+            ClearFeeds()
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun Preview() {
+        Surface(color = MaterialTheme.colors.background) {
+            UI()
         }
     }
 }
