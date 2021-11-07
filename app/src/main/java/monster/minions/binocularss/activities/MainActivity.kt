@@ -1,6 +1,7 @@
 package monster.minions.binocularss.activities
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -16,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.*
 import androidx.room.Room
@@ -93,6 +95,7 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally) {
                         FeedTitles()
                         UpdateFeedButton()
+                        BookmarksButton()
                     }
                 }
             }
@@ -233,6 +236,19 @@ class MainActivity : ComponentActivity() {
             onClick = { updateRss(parser) }
         ) {
             Text("Update RSS Feeds")
+        }
+    }
+
+    @Composable
+    fun BookmarksButton(){
+        val context = LocalContext.current
+        Button(
+            onClick = {
+                val intent = Intent(context, BookmarksActivity::class.java)
+                context.startActivity(intent)
+            }
+        ) {
+           Text("Go to Bookmarks")
         }
     }
 
