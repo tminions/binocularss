@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -26,7 +27,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
-import monster.minions.binocularss.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -44,6 +45,7 @@ class MainActivity : ComponentActivity() {
                 .context(context)
                 // .charset(Charset.forName("ISO-8859-7")) // Default is UTF-8
 //                .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
+                .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
                 // .cacheExpirationMillis(0)
                 .build()
 
@@ -197,19 +199,17 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-//        if (feedGroup.feeds.isNullOrEmpty()) {
-//            // Add some feeds to the feedGroup
-//            feedGroup.feeds.add(Feed(link = "https://rss.cbc.ca/lineup/topstories.xml"))
-//            feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
-//            // TODO This feed is malformed according to the exception that the xml parser throws.
-//            //  We can use this to develop a bad formatting indication to the user
-//            //  feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-//            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
-//
-//            // Tell the user that this change happened
-//            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-//                .show()
-//        }
+        if (feedGroup.feeds.isNullOrEmpty()) {
+            // Add some feeds to the feedGroup
+            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
+            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
+            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
+            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+
+            // Tell the user that this change happened
+            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
+                .show()
+        }
         ///////////////////////////////////////////////////////////////////////////////////////////
 
         updateText()

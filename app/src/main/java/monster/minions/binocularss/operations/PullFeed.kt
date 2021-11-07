@@ -31,13 +31,10 @@ class PullFeed : ViewModel() {
             withContext(viewModelScope.coroutineContext) {
                 Log.d("PullFeed", "Pulling: " + feed.link)
                 try {
-                    // Get channel from RSS parser and convert it to feed then merge that with the
-                    //  feed that we already have
-                    feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.link))))
+                    feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source))))
                 } catch (e: Exception) {
-                    // TODO this try catch is only causing errors on the second run. The first
-                    //  time it is run on a given feed, nothing happens. I think that this breaking out
-                    //  is what's causing only one feed to be added (the new feed)
+                    Log.e("PullFeed",
+                        "Feed ${feed.title} ignored as there is an error with the source")
                     e.printStackTrace()
                 }
             }
@@ -74,7 +71,7 @@ class PullFeed : ViewModel() {
             articles.add(articleToArticle(article))
         }
 
-        feed = Feed(title, link, description, lastBuildDate, image, updatePeriod, articles)
+        feed = Feed("", title, link, description, lastBuildDate, image, updatePeriod, articles)
 
         return feed
     }
@@ -153,6 +150,7 @@ class PullFeed : ViewModel() {
         unionArticles.addAll(newFeed.articles)
 
         // Transfer the user-set flags
+        newFeed.source = oldFeed.source
         newFeed.tags = oldFeed.tags
         newFeed.priority = oldFeed.priority
         newFeed.articles = unionArticles
