@@ -6,23 +6,23 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.*
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.unit.dp
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
@@ -45,8 +45,6 @@ class MainActivity : ComponentActivity() {
                 // .charset(Charset.forName("ISO-8859-7")) // Default is UTF-8
                 .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
                 .build()
-
-
         }
         // Setup Room database
         private lateinit var db: RoomDatabase
@@ -199,8 +197,9 @@ class MainActivity : ComponentActivity() {
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
         if (feedGroup.feeds.isNullOrEmpty()) {
-            // Add some feeds to the feedGroup
-            feedGroup.feeds.add(Feed(link = "https://rss.cbc.ca/lineup/topstories.xml"))
+            for (i in 1..100) {
+                feedGroup.feeds.add(Feed(title = i.toString(),link = "https://rss.cbc.ca/lineup/topstories.xml"))
+            }
             feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
             // TODO This feed is malformed according to the exception that the xml parser throws.
             //  We can use this to develop a bad formatting indication to the user
@@ -212,7 +211,6 @@ class MainActivity : ComponentActivity() {
                 .show()
         }
         ///////////////////////////////////////////////////////////////////////////////////////////
-
         var text = ""
         for (feed in feedGroup.feeds) {
             text += feed.title
@@ -223,8 +221,54 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun FeedTitles() {
-        val text by feedGroupText.collectAsState()
-        Text(text = text)
+        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+            items(items = MainActivity.feedGroup.feeds) { feed ->
+                displayFeed(feed = feed)
+            }
+        }
+    }
+
+    @Composable
+    private fun displayFeed(feed: Feed) {
+        Surface(color = MaterialTheme.colors.primary) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                // TODO: Search for a better way to do null detection
+                val feedTitle = if (feed.title != null) feed.title else "Placeholder"
+                if (feedTitle != null) {
+                    // No idea what selected is for
+                    Text(text = feedTitle, modifier = Modifier.selectable(selected = false,
+                        onClick = ArticleTitles(feed = feed)
+                    ))
+                } else {
+                    Text(text = "Cannot Find Title")
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ArticleTitles(feed: Feed) {
+        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+            items(items = feed.articles) { article ->
+                displayArticle(article = article)
+            }
+        }
+    }
+
+    @Composable
+    fun displayArticle(article: Article){
+        Surface(color = MaterialTheme.colors.primary) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                // TODO: Search for a better way to do null detection
+                val articleTitle = if (article.title != null) article.title else "Placeholder"
+                if (articleTitle != null) {
+                    // No idea what selected is for
+                    Text(text = articleTitle)
+                } else {
+                    Text(text = "Cannot Find Title")
+                }
+            }
+        }
     }
 
     @Composable
