@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -19,6 +20,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,19 +86,24 @@ class MainActivity : ComponentActivity() {
         // }
 
         setContent {
-            BinoculaRSSTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        FeedTitles()
-                        UpdateFeedButton()
-                    }
-                }
+            val navController = rememberNavController()
+            NavHost(navController, startDestination = "FeedTitles"){
+                composable("FeedTitles") {DefaultPreview(navController)}
+                composable("ArticleTitles") {ArticleTitles()}
             }
+//            BinoculaRSSTheme {
+//                // A surface container using the 'background' color from the theme
+//                Surface(color = MaterialTheme.colors.background) {
+//                    Column(modifier = Modifier
+//                        .fillMaxWidth()
+//                        .fillMaxHeight(),
+//                        verticalArrangement = Arrangement.Center,
+//                        horizontalAlignment = Alignment.CenterHorizontally) {
+//                        FeedTitles()
+//                        UpdateFeedButton()
+//                    }
+//                }
+//            }
         }
 
 
@@ -220,16 +230,16 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun FeedTitles() {
+    fun FeedTitles(navController: NavController) {
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = MainActivity.feedGroup.feeds) { feed ->
-                displayFeed(feed = feed)
+                displayFeed(feed = feed, navController)
             }
         }
     }
 
     @Composable
-    private fun displayFeed(feed: Feed) {
+    private fun displayFeed(feed: Feed, navController: NavController) {
         Surface(color = MaterialTheme.colors.primary) {
             Column(modifier = Modifier.padding(24.dp)) {
                 // TODO: Search for a better way to do null detection
@@ -237,7 +247,7 @@ class MainActivity : ComponentActivity() {
                 if (feedTitle != null) {
                     // No idea what selected is for
                     Text(text = feedTitle, modifier = Modifier.selectable(selected = false,
-                        onClick = ArticleTitles(feed = feed)
+                        onClick = {navController.navigate("ArticleTitles")}
                     ))
                 } else {
                     Text(text = "Cannot Find Title")
@@ -247,12 +257,13 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ArticleTitles(feed: Feed) {
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = feed.articles) { article ->
-                displayArticle(article = article)
-            }
-        }
+    fun ArticleTitles(){ //feed: Feed) {
+//        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+//            items(items = feed.articles) { article ->
+//                displayArticle(article = article)
+//            }
+//        }
+        Text(text = "ugh")
     }
 
     @Composable
@@ -280,15 +291,44 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true)
+   // @Preview(showBackground = true)
     @Composable
-    fun DefaultPreview() {
+    fun DefaultPreview(navController: NavController) {
         BinoculaRSSTheme {
             Column {
-                FeedTitles()
+                FeedTitles(navController)
                 UpdateFeedButton()
             }
         }
     }
 }
+
+
+
+// Reference for navigation
+//class MainActivity : ComponentActivity() {
+//    override fun onCreate(savedInstanceState: Bundle?){
+//        super.onCreate(savedInstanceState)
+//        setContent{
+//            val navController = rememberNavController()
+//            NavHost(navController, startDestination = "welcome"){
+//                composable("welcome"){WelcomeScreen(navController)}
+//                composable("secondScreen") { SecondScreen() }
+//            }
+//        }
+//    }
+//}
+//@Composable
+//fun WelcomeScreen(navController: NavController){
+//    Column{
+//        Text(text = "Welcome!")
+//        Button(onClick = {navController.navigate("secondScreen")}) {
+//            Text(text = "continue")
+//        }
+//    }
+//}
+//@Composable
+//fun SecondScreen(){
+//    Text(text = "second screen")
+//}
 
