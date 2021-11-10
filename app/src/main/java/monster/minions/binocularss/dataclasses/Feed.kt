@@ -42,7 +42,7 @@ data class Feed(
     /**
      * Check if a feed is equal to another by checking the source, which usually does not change
      *
-     * @param other Another object. If it is not an article, return false immediately.
+     * @param other Another object. If it is not a feed, return false immediately.
      */
     override fun equals(other: Any?): Boolean {
         return when (other) {
