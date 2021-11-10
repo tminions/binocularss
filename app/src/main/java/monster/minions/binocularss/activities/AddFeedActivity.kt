@@ -1,11 +1,13 @@
 package monster.minions.binocularss.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +21,10 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.operations.PullFeed
 
+// TODO make sure to check that this is an RSS feed (probably in pull feed or something of
+//  the sort and send a toast to the user if it is not. Try and check this when initially
+//  adding maybe? Basically deeper checking than just is this a URL so we don't encounter
+//  errors later.
 class AddFeedActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +32,17 @@ class AddFeedActivity : ComponentActivity() {
             BinoculaRSSTheme {
                 UI()
             }
+        }
+
+        // Handle a link being shared to the application
+        if (intent?.action == Intent.ACTION_SEND && "text/uri-list" == intent.type) {
+            setTextView(intent)
+        }
+    }
+
+    private fun setTextView(intent: Intent) {
+        intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
+            text.value = it
         }
     }
 
@@ -48,69 +65,68 @@ class AddFeedActivity : ComponentActivity() {
     fun FeedTextField() {
         val textState = remember { mutableStateOf(TextFieldValue()) }
         OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
             value = textState.value,
             placeholder = { Text("Enter Feed URL") },
             onValueChange = {
-                textState.value = it; text = mutableStateOf(textState.value.text)
+                textState.value = it
+                text = mutableStateOf(textState.value.text)
             },
             singleLine = true,
-            maxLines = 1
+            maxLines = 1,
+            keyboardActions = KeyboardActions(
+                onDone = { submit() }
+            )
         )
     }
 
-    @Composable
-    fun SubmitButton() {
-        Button(
-            modifier = Modifier.requiredWidth(70.dp),
-            onClick = {
-                // Add https:// or http:// to the front of the url if not present
-                val url = addHttps(text.value)
+    /**
+     * Run when the user presses enter in the text field
+     */
+    private fun submit() {
+        // Add https:// or http:// to the front of the url if not present
+        val url = addHttps(text.value)
 
-                // If the url is valid ...
-                if (Patterns.WEB_URL.matcher(url).matches()) {
-                    // Check if the feed is already in the feedGroup
-                    val feedToAdd = Feed(source = url)
-                    var inFeedGroup = false
-                    for (feed in MainActivity.feedGroup.feeds) {
-                        if (feedToAdd == feed) {
-                            inFeedGroup = true
-                            Toast.makeText(this@AddFeedActivity,
-                                "You've already added that RSS feed",
-                                Toast.LENGTH_SHORT).show()
-                            continue
-                        }
-                    }
-
-                    // Add feed and update feeds if the feed is not in the feedGroup
-                    if (!inFeedGroup) {
-                        MainActivity.feedGroup.feeds.add(Feed(source = url))
-                        val viewModel = PullFeed()
-                        viewModel.updateRss(MainActivity.parser)
-                        finish()
-                    }
-
-                } else {
-                    Toast.makeText(this@AddFeedActivity, "Invalid URL", Toast.LENGTH_SHORT).show()
+        // If the url is valid ...
+        if (Patterns.WEB_URL.matcher(url).matches()) {
+            // Check if the feed is already in the feedGroup
+            val feedToAdd = Feed(source = url)
+            var inFeedGroup = false
+            for (feed in MainActivity.feedGroup.feeds) {
+                if (feedToAdd == feed) {
+                    inFeedGroup = true
+                    Toast.makeText(
+                        this@AddFeedActivity,
+                        "You've already added that RSS feed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    continue
                 }
             }
-        ) {
-            Text("Add")
+
+            // Add feed and update feeds if the feed is not in the feedGroup
+            if (!inFeedGroup) {
+                MainActivity.feedGroup.feeds.add(Feed(source = url))
+                val viewModel = PullFeed()
+                viewModel.updateRss(MainActivity.parser)
+                finish()
+            }
+
+        } else {
+            Toast.makeText(this@AddFeedActivity, "Invalid URL", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // TODO fix scale of button and text box to be maybe 80/20 or 90/10 and figure out how
-    //  to do fractional scaling with this
     @Composable
     fun UI() {
         Surface(color = MaterialTheme.colors.background) {
             val padding = 16.dp
-            Row(
+
+            Column(
                 modifier = Modifier.padding(padding),
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalAlignment = Alignment.Start,
             ) {
                 FeedTextField()
-                Spacer(Modifier.size(padding))
-                SubmitButton()
             }
         }
     }
