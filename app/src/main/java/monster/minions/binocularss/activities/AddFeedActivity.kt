@@ -24,8 +24,18 @@ import monster.minions.binocularss.operations.PullFeed
 // TODO make sure to check that this is an RSS feed (probably in pull feed or something of
 //  the sort and send a toast to the user if it is not. Try and check this when initially
 //  adding maybe? Basically deeper checking than just is this a URL so we don't encounter
-//  errors later.
+//  errors later. Or we could leave it and have PullFeed silently remove a feed if it is
+//  invalid like it currently does.
 class AddFeedActivity : ComponentActivity() {
+    private var text = mutableStateOf("")
+
+    /**
+     * The function that is run when the activity is created. This is on app launch in this case.
+     * It is also called when the activity is destroyed then recreated. It initializes the main
+     * functionality of the application (UI, companion variables, etc.)
+     *
+     * @param savedInstanceState A bundle of parcelable information that was previously saved.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -40,6 +50,11 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Set the value of the text view from an extra stored in the intent
+     *
+     * @param intent The intent passed to the activity upon launch.
+     */
     private fun setTextView(intent: Intent) {
         intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
             text.value = it
@@ -59,29 +74,8 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
-    private var text = mutableStateOf("")
-
-    @Composable
-    fun FeedTextField() {
-        val textState = remember { mutableStateOf(TextFieldValue()) }
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = textState.value,
-            placeholder = { Text("Enter Feed URL") },
-            onValueChange = {
-                textState.value = it
-                text = mutableStateOf(textState.value.text)
-            },
-            singleLine = true,
-            maxLines = 1,
-            keyboardActions = KeyboardActions(
-                onDone = { submit() }
-            )
-        )
-    }
-
     /**
-     * Run when the user presses enter in the text field
+     * Add a feed with the given source url to the feedGroup if the source url is valid.
      */
     private fun submit() {
         // Add https:// or http:// to the front of the url if not present
@@ -111,10 +105,28 @@ class AddFeedActivity : ComponentActivity() {
                 viewModel.updateRss(MainActivity.parser)
                 finish()
             }
-
         } else {
             Toast.makeText(this@AddFeedActivity, "Invalid URL", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    @Composable
+    fun FeedTextField() {
+        val textState = remember { mutableStateOf(TextFieldValue()) }
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = textState.value,
+            placeholder = { Text("Enter Feed URL") },
+            onValueChange = {
+                textState.value = it
+                text = mutableStateOf(textState.value.text)
+            },
+            singleLine = true,
+            maxLines = 1,
+            keyboardActions = KeyboardActions(
+                onDone = { submit() }
+            )
+        )
     }
 
     @Composable
