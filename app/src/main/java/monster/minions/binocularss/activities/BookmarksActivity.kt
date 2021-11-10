@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark as FilledBookmarkIcon
+import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIcon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,7 +106,7 @@ class BookmarksActivity : AppCompatActivity() {
     @Composable
     fun CardContent(article: Article){
 
-        var expanded by remember { mutableStateOf(true) }
+        var expanded by remember { mutableStateOf(false) }
 
         Row(
             modifier = Modifier
@@ -137,7 +139,8 @@ class BookmarksActivity : AppCompatActivity() {
                     Text(
                         text = article.title.toString(),
                         textAlign = TextAlign.Left,
-                        modifier = Modifier.width(120.dp)
+                        modifier = Modifier
+                            .width(120.dp)
                             .paddingFromBaseline(bottom = topBaselinePadding),
                         onTextLayout = ::updateMaxBaseline
                     )
@@ -159,11 +162,30 @@ class BookmarksActivity : AppCompatActivity() {
                        text = article.link.toString()
                    )
                 }
+                BookmarkButton(isBookmarked = false, onClick = {})
             }
 
 
 
 
+        }
+
+    }
+
+    @Composable
+    fun BookmarkButton(
+        isBookmarked: Boolean,
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier
+    ){
+        IconToggleButton(
+            checked = isBookmarked,
+            onCheckedChange = { onClick() },
+        ) {
+            Icon(
+                imageVector = if (isBookmarked) Icons.Filled.FilledBookmarkIcon else Icons.Filled.EmptyBookmarkIcon,
+                contentDescription = null
+            )
         }
 
     }
