@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         }
         // Setup Room database
         private lateinit var db: RoomDatabase
-        private lateinit var feedDao: FeedDao
+        lateinit var feedDao: FeedDao
         private fun setDb(context: Context) {
             db = Room.databaseBuilder(
                 context,
