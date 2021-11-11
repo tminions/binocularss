@@ -1,8 +1,11 @@
 package monster.minions.binocularss.operations
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
@@ -10,11 +13,24 @@ import monster.minions.binocularss.activities.MainActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.FeedDao
 
 /**
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
  */
-class PullFeed : ViewModel() {
+class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
+
+    // FeedGroup object
+    private var localFeedGroup: FeedGroup = feedGroup
+
+    // Room database variables
+    private var db: RoomDatabase = Room
+        .databaseBuilder(context, AppDatabase::class.java, "feed-db")
+        .allowMainThreadQueries()
+        .build()
+    private var feedDao: FeedDao = (db as AppDatabase).feedDao()
+
     /**
      * Call the required functions to update the Rss feed.
      *
@@ -24,13 +40,13 @@ class PullFeed : ViewModel() {
     fun updateRss(parser: Parser) {
         GlobalScope.launch(Dispatchers.Main) {
             // Update feedGroup variable
-            MainActivity.feedGroup = pullRss(MainActivity.feedGroup, parser)
+            localFeedGroup = pullRss(localFeedGroup, parser)
 
             // Update DB with updated feeds
-            MainActivity.feedDao.insertAll(*(MainActivity.feedGroup.feeds.toTypedArray()))
+            feedDao.insertAll(*(localFeedGroup.feeds.toTypedArray()))
 
             var text = ""
-            for (feed in MainActivity.feedGroup.feeds) {
+            for (feed in localFeedGroup.feeds) {
                 text += feed.title
                 text += "\n"
             }
@@ -56,8 +72,10 @@ class PullFeed : ViewModel() {
                 try {
                     feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source))))
                 } catch (e: Exception) {
-                    Log.e("PullFeed",
-                        "Feed ${feed.title} ignored as there is an error with the source")
+                    Log.e(
+                        "PullFeed",
+                        "Feed ${feed.title} ignored as there is an error with the source"
+                    )
                     e.printStackTrace()
                 }
             }
@@ -136,7 +154,7 @@ class PullFeed : ViewModel() {
             sourceName,
             sourceUrl,
             categories,
-           true
+            true
         )
 
         return article
