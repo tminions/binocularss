@@ -7,14 +7,18 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BinoculaRSS"
-        android:usesCleartextTraffic="true"
-        android:fullBackupContent="true">
-
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".activities.AddFeedActivity"
+            android:exported="false"
+            android:label="@string/title_activity_add_feed"
+            android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
         <activity
             android:name=".activities.BookmarksActivity"
             android:exported="false" />

@@ -1,10 +1,6 @@
 package monster.minions.binocularss.room
 
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
+import androidx.room.*
 import monster.minions.binocularss.dataclasses.Feed
 
 /**
@@ -33,8 +29,8 @@ interface FeedDao {
      *
      * @param feed A feed object.
      */
-    @Delete
-    fun delete(feed: Feed)
+    @Query("DELETE FROM feeds WHERE source = :source")
+    fun deleteBySource(source: String)
 
     /**
      * Get a mutable list of all the feeds from the database.
