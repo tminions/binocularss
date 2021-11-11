@@ -19,6 +19,7 @@ Our code fell into three camps. The first was good, "clean", code. This did not 
 <!-- is this in solid design principles or clean architecture or code smells? -->
 One such violation of clean architecture that we knew how to fix was duplication of code within our project. An example of this was our `updateRss()` function. This funciton called a series of other functions that needed to be called in a specific order with specific arguments, and in many different places. Hence, we though it a good idea to pull that code into a function, but even though we were trying to reduce duplication, there were still multiple `updateRss()` functions accross multiple classes where the RSS feeds needed to be updated from. There were two solutions to this. The first, the one that we did not do, we could have only called this function from the main task and simply returned a signal from other tasks telling this function to be called. While this would have arugably been more "clean," it is not as efficient and for an integral part of our program that is run many, many times, efficiency is of the utmost importance. The second, the way that we chose to do it, is to extract this function into another class and simply call it through an instance of that class whenever necessary. This eliminates the need for code duplication and allows all the classes to communicate with one common class that will handle all the data transmission.
 
+Another violation of clean architecture that we found within our code was accessing variables from one class in others. We initially had a global `feedGroup` variable (commit: [Merge pull request #7 from tminions/bookmarking](https://github.com/tminions/binocularss/commit/d83a9d3ee2c00b7249960b67bbaeedc00978c381)). We would access and update this in other classes like `AddFeedActivity` in order to change the state of the feeds in the application. We realized that this was bad practice so we tasked each activity with communicating with the database layer to retrieve the feeds on startup and write the feeds on change/exit. This meant that we were no longer "reaching" accross class borders to access variables that should be private. There is one exception to this, however, that we were not able to do the same with. There is a variable `feedGroupText` that represents the text of a UI element that we need to update upon completion of an asynchronous funciton. Since this asynchronous function is in another class (`PullFeed`), we need to allow that funciton access to this variable. We could not work out a way of going around this as attempting to update this text after the asynchronous function completes but on the main thread leads to timing complications as the asynchronous function can take an arbitrary amount of time to complete.
 
 ## Solid Design Principles
 
@@ -44,6 +45,14 @@ parser = Parser.Builder()
     .build()
 ```
 
+```kotlin
+db = Room
+    .databaseBuilder(this, AppDatabase::class.java, "feed-db")
+    .allowMainThreadQueries()
+    .build()
+
+```
+
 ## Progress report
 
 ### Open Questions
@@ -65,7 +74,9 @@ parser = Parser.Builder()
 
 - RSS parser
 - Data persistence 
-- Add, remove and organize feeds
+- Add feeds
+- Fix direct access to `MainActivity.feedGroup`
+- Settings page
 
 #### Ismail Ahmed
 
