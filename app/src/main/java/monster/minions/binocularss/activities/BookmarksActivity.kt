@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,20 +18,41 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import monster.minions.binocularss.R
 import monster.minions.binocularss.dataclasses.Article
+import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.ui.theme.BookmarkFlag
 
 class BookmarksActivity : AppCompatActivity() {
+
+    /**
+     * Set up room database for this specific activity
+     */
+    private lateinit var db: RoomDatabase
+    private lateinit var feedDao: FeedDao
+
+    private var feedGroup = FeedGroup()
+
+
+
+    
     @ExperimentalMaterialApi
     @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        db = Room.databaseBuilder(
+            this,
+            AppDatabase::class.java, "feed-db"
+        ).allowMainThreadQueries().build()
+        feedDao = (db as AppDatabase).feedDao()
         setContent {
             BinoculaRSSTheme() {
                 Surface(
@@ -40,7 +60,6 @@ class BookmarksActivity : AppCompatActivity() {
                 ){
                     Bookmarks(getAllBookmarks())
                 }
-
 
             }
         }
@@ -68,16 +87,42 @@ class BookmarksActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        println("onStop: update article")
-        MainActivity.feedDao.insertAll(*(MainActivity.feedGroup.feeds.toTypedArray()))
+
+    /**
+     * Save the list of user feeds to the Room database (feed-db) for data persistence.
+     *
+     * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
+     *
+     * This function is called before `onStop` and `onDestroy` or any time a "stop" happens. This
+     * includes when an app is exited but not closed.
+     */
+    override fun onPause() {
+        super.onPause()
+        Log.d("BookmarksActivity", "onStop called")
+        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+    }
+
+    /**
+     * Gets the list of user feeds from the Room database (feed-db).
+     *
+     * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
+     *
+     * This function is called after `onCreate` or any time a "resume" happens. This includes
+     * the app being opened after the app is exited but not closed.
+     */
+    override fun onResume() {
+        super.onResume()
+        Log.d("BookmarksActivity", "onResume called")
+
+
+        feedGroup.feeds = feedDao.getAll()
+
     }
 
     /**
      * Composable function representing a single bookmarked article
      *
-     * @param article
+     * @param article Current Article being displayed
      */
     @ExperimentalMaterialApi
     @ExperimentalCoilApi
@@ -107,7 +152,7 @@ class BookmarksActivity : AppCompatActivity() {
      * Composable for actual content of the bookmarked
      * article
      *
-     * @param article
+     * @param article Current Article being displayed
      */
     @ExperimentalCoilApi
     @Composable
@@ -160,7 +205,7 @@ class BookmarksActivity : AppCompatActivity() {
      */
     private fun getAllBookmarks(): MutableList<Article> {
 
-        val feeds = MainActivity.feedGroup.feeds
+        val feeds = feedGroup.feeds
         var articles: List<Article>
         val bookmarkedArticles: MutableList<Article> = mutableListOf()
 
