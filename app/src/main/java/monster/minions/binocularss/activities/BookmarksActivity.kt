@@ -2,20 +2,18 @@ package monster.minions.binocularss.activities
 
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,12 +22,12 @@ import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import monster.minions.binocularss.R
+import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
-import monster.minions.binocularss.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.ui.theme.BookmarkFlag
+import monster.minions.binocularss.ui.BookmarkFlag
 
 class BookmarksActivity : AppCompatActivity() {
 
@@ -41,9 +39,6 @@ class BookmarksActivity : AppCompatActivity() {
 
     private var feedGroup = FeedGroup()
 
-
-
-    
     @ExperimentalMaterialApi
     @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,14 +52,12 @@ class BookmarksActivity : AppCompatActivity() {
             BinoculaRSSTheme() {
                 Surface(
                     color = MaterialTheme.colors.background
-                ){
+                ) {
                     Bookmarks(getAllBookmarks())
                 }
 
             }
         }
-
-
     }
 
     /**
@@ -77,16 +70,15 @@ class BookmarksActivity : AppCompatActivity() {
     @ExperimentalMaterialApi
     @ExperimentalCoilApi
     @Composable
-    fun Bookmarks(bookmarked_articles: MutableList<Article>){
+    fun Bookmarks(bookmarked_articles: MutableList<Article>) {
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-           items(items = bookmarked_articles){ article ->
-               Bookmark(article = article)
-           }
+            items(items = bookmarked_articles) { article ->
+                Bookmark(article = article)
+            }
 
         }
     }
-
 
     /**
      * Save the list of user feeds to the Room database (feed-db) for data persistence.
@@ -96,14 +88,14 @@ class BookmarksActivity : AppCompatActivity() {
      * This function is called before `onStop` and `onDestroy` or any time a "stop" happens. This
      * includes when an app is exited but not closed.
      */
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
         Log.d("BookmarksActivity", "onStop called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
     }
 
     /**
-     * Gets the list of user feeds from the Room database (feed-db).
+     * Get the list of user feeds from the Room database (feed-db).
      *
      * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
      *
@@ -113,10 +105,7 @@ class BookmarksActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("BookmarksActivity", "onResume called")
-
-
         feedGroup.feeds = feedDao.getAll()
-
     }
 
     /**
@@ -127,8 +116,7 @@ class BookmarksActivity : AppCompatActivity() {
     @ExperimentalMaterialApi
     @ExperimentalCoilApi
     @Composable
-    fun Bookmark(article: Article){
-
+    fun Bookmark(article: Article) {
         Card(
             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
             onClick = {
@@ -140,13 +128,8 @@ class BookmarksActivity : AppCompatActivity() {
             CardContent(
                 article
             )
-
         }
-
     }
-
-
-
 
     /**
      * Composable for actual content of the bookmarked
@@ -156,8 +139,7 @@ class BookmarksActivity : AppCompatActivity() {
      */
     @ExperimentalCoilApi
     @Composable
-    fun CardContent(article: Article){
-
+    fun CardContent(article: Article) {
         Column(
             modifier = Modifier
                 .padding(12.dp)
@@ -167,7 +149,6 @@ class BookmarksActivity : AppCompatActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-
                 Text(
                     text = article.title.toString(),
                     textAlign = TextAlign.Left,
@@ -192,32 +173,23 @@ class BookmarksActivity : AppCompatActivity() {
             )
             BookmarkFlag(article)
         }
-
     }
-
-
-
-
 
     /**
      * Returns a list of bookmarked articles within the feedgroup
      * stored within MainActivity
      */
     private fun getAllBookmarks(): MutableList<Article> {
-
-        val feeds = feedGroup.feeds
-        var articles: List<Article>
         val bookmarkedArticles: MutableList<Article> = mutableListOf()
 
-        for (feed in feeds){
-            articles = feed.articles
-            for (article in articles){
-                if (article.bookmarked){
+        for (feed in feedGroup.feeds) {
+            for (article in feed.articles) {
+                if (article.bookmarked) {
                     bookmarkedArticles.add(article)
                 }
             }
-
         }
+
         return bookmarkedArticles
     }
 }

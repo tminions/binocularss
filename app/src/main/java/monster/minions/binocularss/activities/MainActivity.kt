@@ -32,43 +32,19 @@ import monster.minions.binocularss.room.FeedDao
 
 class MainActivity : ComponentActivity() {
 
-    // Variables that can be accessed from other classes by calling `MainActivity.<variable>`.
+    // FeedGroup object
+    private var feedGroup: FeedGroup = FeedGroup()
+
+    // Parser variable
+    private lateinit var parser: Parser
+
+    // Room database variables
+    private lateinit var db: RoomDatabase
+    private lateinit var feedDao: FeedDao
+
+    // Companion object as this variable needs to be updated from other asynchronous classes.
     companion object {
-        // Global FeedGroup object
-        var feedGroup: FeedGroup = FeedGroup()
-
-        // Parser variable using lateinit because we want to get the context
-        lateinit var parser: Parser
-
-        // Setup parser
-        private fun setParser(context: Context) {
-            parser = Parser.Builder()
-                .context(context)
-                // .charset(Charset.forName("ISO-8859-7")) // Default is UTF-8
-//                .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
-                .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
-                // .cacheExpirationMillis(0)
-                .build()
-
-
-        }
-
-        // Setup Room database
-        private lateinit var db: RoomDatabase
-        lateinit var feedDao: FeedDao
-        private fun setDb(context: Context) {
-            db = Room.databaseBuilder(
-                context,
-                AppDatabase::class.java, "feed-db"
-            ).allowMainThreadQueries().build()
-            feedDao = (db as AppDatabase).feedDao()
-        }
-
-        // Local variables
         var feedGroupText = MutableStateFlow("Empty\n")
-
-        // Key for accessing feed group in onSaveInstanceState
-        // const val FEED_GROUP_KEY = "feedGroup"
     }
 
     /**
@@ -96,10 +72,20 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Set feed-db in companion object
-        setDb(applicationContext)
-        // Set parser in companion object
-        setParser(this@MainActivity)
+        // Set private variables. This is done here as we cannot initialize objects that require context
+        //  before we have context (generated during onCreate)
+        db = Room
+            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
+            .allowMainThreadQueries()
+            .build()
+        feedDao = (db as AppDatabase).feedDao()
+        parser = Parser.Builder()
+            .context(this)
+            .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
+            // Different options for cacheExpiration
+            // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
+            // .cacheExpirationMillis(0)
+            .build()
     }
 
     // /**
@@ -144,7 +130,7 @@ class MainActivity : ComponentActivity() {
      *
      * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
      *
-     * This function is called before `onStop` and `onDestroy` or any time a "stop" happens. This
+     * This function is called before `onDestroy` or any time a "stop" happens. This
      * includes when an app is exited but not closed.
      */
     override fun onStop() {
@@ -214,9 +200,8 @@ class MainActivity : ComponentActivity() {
     fun UpdateFeedButton() {
         Button(
             onClick = {
-                val viewModel = PullFeed()
+                val viewModel = PullFeed(this, feedGroup)
                 viewModel.updateRss(parser)
-                // updateText()
             }
         ) {
             Text("Update RSS Feeds")
@@ -250,9 +235,9 @@ class MainActivity : ComponentActivity() {
             Text("Clear DB")
         }
     }
-   
+
     @Composable
-    fun BookmarksButton(){
+    fun BookmarksButton() {
         val context = LocalContext.current
         Button(
             onClick = {
@@ -260,7 +245,7 @@ class MainActivity : ComponentActivity() {
                 context.startActivity(intent)
             }
         ) {
-           Text("Go to Bookmarks")
+            Text("Go to Bookmarks")
         }
     }
 

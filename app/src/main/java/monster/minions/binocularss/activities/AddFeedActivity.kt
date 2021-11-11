@@ -2,6 +2,7 @@ package monster.minions.binocularss.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -17,9 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
+import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
+import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.FeedDao
 
 // TODO make sure to check that this is an RSS feed (probably in pull feed or something of
 //  the sort and send a toast to the user if it is not. Try and check this when initially
@@ -27,6 +34,17 @@ import monster.minions.binocularss.operations.PullFeed
 //  errors later. Or we could leave it and have PullFeed silently remove a feed if it is
 //  invalid like it currently does.
 class AddFeedActivity : ComponentActivity() {
+
+    // FeedGroup object
+    private var feedGroup: FeedGroup = FeedGroup()
+
+    // Parser variable
+    private lateinit var parser: Parser
+
+    // Room database variables
+    private lateinit var db: RoomDatabase
+    private lateinit var feedDao: FeedDao
+
     private var text = mutableStateOf("")
 
     /**
@@ -44,10 +62,53 @@ class AddFeedActivity : ComponentActivity() {
             }
         }
 
+        // Set private variables. This is done here as we cannot initialize objects that require context
+        //  before we have context (generated during onCreate)
+        db = Room
+            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
+            .allowMainThreadQueries()
+            .build()
+        feedDao = (db as AppDatabase).feedDao()
+        parser = Parser.Builder()
+            .context(this)
+            .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
+            // Different options for cacheExpiration
+            // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
+            // .cacheExpirationMillis(0)
+            .build()
+
         // Handle a link being shared to the application
-        if (intent?.action == Intent.ACTION_SEND && "text/uri-list" == intent.type) {
+        if (intent?.action == Intent.ACTION_SEND && "text/plain" == intent.type) {
             setTextView(intent)
         }
+    }
+
+    /**
+     * Save the list of user feeds to the Room database (feed-db) for data persistence.
+     *
+     * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
+     *
+     * This function is called before `onDestroy` or any time a "stop" happens. This
+     * includes when an app is exited but not closed.
+     */
+    override fun onStop() {
+        super.onStop()
+        Log.d("AddFeedActivity", "onStop called")
+        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+    }
+
+    /**
+     * Gets the list of user feeds from the Room database (feed-db).
+     *
+     * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
+     *
+     * This function is called after `onCreate` or any time a "resume" happens. This includes
+     * the app being opened after the app is exited but not closed.
+     */
+    override fun onResume() {
+        super.onResume()
+        Log.d("AddFeedActivity", "onResume called")
+        feedGroup.feeds = feedDao.getAll()
     }
 
     /**
@@ -86,7 +147,7 @@ class AddFeedActivity : ComponentActivity() {
             // Check if the feed is already in the feedGroup
             val feedToAdd = Feed(source = url)
             var inFeedGroup = false
-            for (feed in MainActivity.feedGroup.feeds) {
+            for (feed in feedGroup.feeds) {
                 if (feedToAdd == feed) {
                     inFeedGroup = true
                     Toast.makeText(
@@ -100,9 +161,9 @@ class AddFeedActivity : ComponentActivity() {
 
             // Add feed and update feeds if the feed is not in the feedGroup
             if (!inFeedGroup) {
-                MainActivity.feedGroup.feeds.add(Feed(source = url))
-                val viewModel = PullFeed()
-                viewModel.updateRss(MainActivity.parser)
+                feedGroup.feeds.add(Feed(source = url))
+                val viewModel = PullFeed(this, feedGroup)
+                viewModel.updateRss(parser)
                 finish()
             }
         } else {

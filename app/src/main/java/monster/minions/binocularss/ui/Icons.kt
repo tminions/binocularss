@@ -1,4 +1,4 @@
-package monster.minions.binocularss.ui.theme
+package monster.minions.binocularss.ui
 
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIco
  */
 @Composable
 fun BookmarkFlag(article: Article) {
-
     var isBookmarked by remember { mutableStateOf(article.bookmarked) }
 
     IconButton(
@@ -30,11 +29,10 @@ fun BookmarkFlag(article: Article) {
             isBookmarked = !isBookmarked
             article.bookmarked = !article.bookmarked
         }
-        ) {
+    ) {
         Icon(
             imageVector = if (isBookmarked) Icons.Filled.FilledBookmarkIcon else Icons.Filled.EmptyBookmarkIcon,
             contentDescription = null
         )
     }
-
 }
