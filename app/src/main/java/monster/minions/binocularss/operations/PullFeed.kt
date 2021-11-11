@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import monster.minions.binocularss.activities.MainActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
@@ -14,6 +15,28 @@ import monster.minions.binocularss.dataclasses.FeedGroup
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
  */
 class PullFeed : ViewModel() {
+    /**
+     * Call the required functions to update the Rss feed.
+     *
+     * @param parser A parser with preconfigured settings.
+     */
+    @DelicateCoroutinesApi
+    fun updateRss(parser: Parser) {
+        GlobalScope.launch(Dispatchers.Main) {
+            // Update feedGroup variable
+            MainActivity.feedGroup = pullRss(MainActivity.feedGroup, parser)
+
+            // Update DB with updated feeds
+            MainActivity.feedDao.insertAll(*(MainActivity.feedGroup.feeds.toTypedArray()))
+
+            var text = ""
+            for (feed in MainActivity.feedGroup.feeds) {
+                text += feed.title
+                text += "\n"
+            }
+            MainActivity.feedGroupText.value = text
+        }
+    }
 
     /**
      * Get the RSS feeds in feedGroup from the internet or cache.
@@ -22,7 +45,7 @@ class PullFeed : ViewModel() {
      * @param parser A parser with preconfigured settings.
      * @return An updated FeedGroup object.
      */
-    suspend fun pullRss(feedGroup: FeedGroup, parser: Parser): FeedGroup {
+    private suspend fun pullRss(feedGroup: FeedGroup, parser: Parser): FeedGroup {
         val feedList: MutableList<Feed> = mutableListOf()
 
         // Loop through all the feeds
@@ -31,15 +54,10 @@ class PullFeed : ViewModel() {
             withContext(viewModelScope.coroutineContext) {
                 Log.d("PullFeed", "Pulling: " + feed.link)
                 try {
-                    // Get channel from RSS parser and convert it to feed then merge that with
-                    // the current feed
-                    val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.link)))
-                    // Add the updated feed to a aggregator list
-                    feedList.add(pulledFeed)
+                    feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source))))
                 } catch (e: Exception) {
-                    // TODO tell user that url is invalid. This is the most common exception cause.
-                    //  others may be internet access or malformed XML. Figure out which exception
-                    //  is which and inform the user accordingly.
+                    Log.e("PullFeed",
+                        "Feed ${feed.title} ignored as there is an error with the source")
                     e.printStackTrace()
                 }
             }
@@ -76,7 +94,7 @@ class PullFeed : ViewModel() {
             articles.add(articleToArticle(article))
         }
 
-        feed = Feed(title, link, description, lastBuildDate, image, updatePeriod, articles)
+        feed = Feed("", title, link, description, lastBuildDate, image, updatePeriod, articles)
 
         return feed
     }
@@ -155,6 +173,7 @@ class PullFeed : ViewModel() {
         unionArticles.addAll(newFeed.articles)
 
         // Transfer the user-set flags
+        newFeed.source = oldFeed.source
         newFeed.tags = oldFeed.tags
         newFeed.priority = oldFeed.priority
         newFeed.articles = unionArticles
