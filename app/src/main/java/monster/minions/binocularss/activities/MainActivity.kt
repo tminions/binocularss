@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
         }
 
         // Setup Room database
-        lateinit var db: RoomDatabase
+        private lateinit var db: RoomDatabase
         lateinit var feedDao: FeedDao
         private fun setDb(context: Context) {
             db = Room.databaseBuilder(
@@ -249,6 +250,19 @@ class MainActivity : ComponentActivity() {
             Text("Clear DB")
         }
     }
+   
+    @Composable
+    fun BookmarksButton(){
+        val context = LocalContext.current
+        Button(
+            onClick = {
+                val intent = Intent(context, BookmarksActivity::class.java)
+                context.startActivity(intent)
+            }
+        ) {
+           Text("Go to Bookmarks")
+        }
+    }
 
     @Composable
     fun UI() {
@@ -264,6 +278,8 @@ class MainActivity : ComponentActivity() {
             AddFeedButton()
             Spacer(modifier = Modifier.size(padding))
             ClearFeeds()
+            Spacer(modifier = Modifier.size(padding))
+            BookmarksButton()
         }
     }
 

@@ -135,7 +135,8 @@ class PullFeed : ViewModel() {
             guid,
             sourceName,
             sourceUrl,
-            categories
+            categories,
+           true
         )
 
         return article
