@@ -2,6 +2,7 @@ package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import androidx.annotation.NonNull
+import androidx.compose.ui.text.toLowerCase
 import androidx.room.*
 import kotlinx.parcelize.Parcelize
 import monster.minions.binocularss.room.ArticleListConverter

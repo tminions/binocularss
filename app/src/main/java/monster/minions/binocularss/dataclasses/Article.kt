@@ -2,6 +2,8 @@ package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import java.util.Date
+import java.text.SimpleDateFormat
 
 /**
  * A dataclass object representing an Article that is part of an RSS Feed.
