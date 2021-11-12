@@ -213,8 +213,8 @@ class MainActivity : ComponentActivity() {
         Button(
             onClick = {
                 val intent = Intent(this, AddFeedActivity::class.java).apply {}
-                startActivity(intent)
                 feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                startActivity(intent)
             }
         ) {
             Text("Add Feed")
@@ -249,6 +249,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+    @Composable
+    fun SettingsButton() {
+        Button(
+            onClick = {
+                val intent = Intent(this, SettingsActivity::class.java).apply {}
+                startActivity(intent)
+            }
+        ) {
+            Text("Settings")
+        }
+    }
+
     @Composable
     fun UI() {
         val padding = 16.dp
@@ -265,6 +278,8 @@ class MainActivity : ComponentActivity() {
             ClearFeeds()
             Spacer(modifier = Modifier.size(padding))
             BookmarksButton()
+            Spacer(modifier = Modifier.size(padding))
+            SettingsButton()
         }
     }
 
