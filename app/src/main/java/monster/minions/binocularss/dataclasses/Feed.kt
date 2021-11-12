@@ -27,10 +27,11 @@ import monster.minions.binocularss.room.TagsListConverter
 @Entity(tableName = "feeds")
 @TypeConverters(ArticleListConverter::class, TagsListConverter::class)
 data class Feed(
-    var title: String? = "",
     @NonNull
     @PrimaryKey
-    var link: String = "",
+    var source: String = "",
+    var title: String? = "",
+    var link: String? = "",
     var description: String? = "",
     var lastBuildDate: String? = "",
     var image: String = "",
@@ -38,4 +39,34 @@ data class Feed(
     var articles: MutableList<Article> = mutableListOf(),
     var tags: MutableList<String> = mutableListOf(),
     var priority: Int = 0,
-) : Parcelable{}
+) : Parcelable {
+    /**
+     * Check if a feed is equal to another by checking the source, which usually does not change
+     *
+     * @param other Another object. If it is not a feed, return false immediately.
+     */
+    override fun equals(other: Any?): Boolean {
+        return when (other) {
+            is Feed -> {
+                this.source == other.source
+            }
+            else -> {
+                false
+            }
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = source.hashCode()
+        result = 31 * result + (title?.hashCode() ?: 0)
+        result = 31 * result + (link?.hashCode() ?: 0)
+        result = 31 * result + (description?.hashCode() ?: 0)
+        result = 31 * result + (lastBuildDate?.hashCode() ?: 0)
+        result = 31 * result + image.hashCode()
+        result = 31 * result + (updatePeriod?.hashCode() ?: 0)
+        result = 31 * result + articles.hashCode()
+        result = 31 * result + tags.hashCode()
+        result = 31 * result + priority
+        return result
+    }
+}

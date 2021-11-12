@@ -1,4 +1,4 @@
-package monster.minions.binocularss.ui.theme
+package monster.minions.binocularss.activities.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle
