@@ -9,7 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +18,7 @@ import androidx.room.RoomDatabase
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -41,6 +41,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         // Global FeedGroup object
         var feedGroup: FeedGroup = FeedGroup()
+        // Trying something to get navigation to work
+        var currentFeed: Feed? = null
         // Parser variable using lateinit because we want to get the context
         private lateinit var parser: Parser
         // Setup parser
@@ -206,19 +208,25 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-        if (feedGroup.feeds.isNullOrEmpty()) {
-            for (i in 1..100) {
+       // if (feedGroup.feeds.isNullOrEmpty()) {
+            for (i in 1..5) {
                 feedGroup.feeds.add(Feed(title = i.toString(),link = "https://rss.cbc.ca/lineup/topstories.xml"))
             }
-            feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
+  //          feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
             // TODO This feed is malformed according to the exception that the xml parser throws.
             //  We can use this to develop a bad formatting indication to the user
             //  feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+//            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
 
             // Tell the user that this change happened
             Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
                 .show()
+       // }
+        // Adding sample articles for testing
+        for(feed in feedGroup.feeds){
+            for (i in 1..5){
+                feed.articles.add(Article(title = i.toString().plus("th article of ").plus(feed.title.toString())))
+            }
         }
         ///////////////////////////////////////////////////////////////////////////////////////////
         var text = ""
@@ -241,13 +249,16 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun displayFeed(feed: Feed, navController: NavController) {
         Surface(color = MaterialTheme.colors.primary) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
                 // TODO: Search for a better way to do null detection
                 val feedTitle = if (feed.title != null) feed.title else "Placeholder"
                 if (feedTitle != null) {
                     // No idea what selected is for
                     Text(text = feedTitle, modifier = Modifier.selectable(selected = false,
-                        onClick = {navController.navigate("ArticleTitles")}
+                        onClick = {
+                            MainActivity.currentFeed = feed
+                            navController.navigate("ArticleTitles")
+                        }
                     ))
                 } else {
                     Text(text = "Cannot Find Title")
@@ -258,18 +269,19 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun ArticleTitles(){ //feed: Feed) {
-//        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-//            items(items = feed.articles) { article ->
-//                displayArticle(article = article)
-//            }
-//        }
-        Text(text = "ugh")
+        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+            MainActivity.currentFeed?.let {
+                items(items = it.articles) { article ->
+                    displayArticle(article = article)
+                }
+            }
+        }
     }
 
     @Composable
     fun displayArticle(article: Article){
         Surface(color = MaterialTheme.colors.primary) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
                 // TODO: Search for a better way to do null detection
                 val articleTitle = if (article.title != null) article.title else "Placeholder"
                 if (articleTitle != null) {
@@ -285,22 +297,52 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun UpdateFeedButton() {
         Button(
-            onClick = { updateRss(parser) }
+            onClick = { updateRss(parser) },
         ) {
             Text("Update RSS Feeds")
         }
     }
 
-   // @Preview(showBackground = true)
+    @Composable
+    fun SwitchViewButton(onClicked: () -> Unit) {
+        Button(
+            onClick = onClicked
+        ) {
+            Text(text = "Switch View")
+        }
+    }
+
+    // @Preview(showBackground = true)
     @Composable
     fun DefaultPreview(navController: NavController) {
+        var showFeedView by remember { mutableStateOf(true) }
+
         BinoculaRSSTheme {
-            Column {
-                FeedTitles(navController)
-                UpdateFeedButton()
+            if (showFeedView) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row {
+                        UpdateFeedButton()
+                        SwitchViewButton(onClicked = { showFeedView = !showFeedView })
+                    }
+                    FeedTitles(navController)
+                }
+                } else {
+                Column {
+                    Row {
+                        UpdateFeedButton()
+                        SwitchViewButton(onClicked = { showFeedView = !showFeedView })
+                    }
+                    reverseChronologicalArticles()
+                }
+                }
             }
         }
     }
+    @Composable
+    private fun reverseChronologicalArticles() {
+        Text(text = "To Be Implemented")
 }
 
 
