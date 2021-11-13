@@ -70,7 +70,14 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             withContext(viewModelScope.coroutineContext) {
                 Log.d("PullFeed", "Pulling: " + feed.link)
                 try {
-                    feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source))))
+                    val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source)))
+
+                    // Set article sourceTitle to be the same as feed.title
+                    for (article in feed.articles) {
+                        article.sourceTitle = feed.title.toString()
+                    }
+
+                    feedList.add(pulledFeed)
                 } catch (e: Exception) {
                     Log.e(
                         "PullFeed",
@@ -138,6 +145,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val guid = oldArticle.guid.toString()
         val sourceName = oldArticle.sourceName.toString()
         val sourceUrl = oldArticle.sourceUrl.toString()
+        val sourceTitle = ""
         val categories = oldArticle.categories
 
         article = Article(
@@ -153,6 +161,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             guid,
             sourceName,
             sourceUrl,
+            sourceTitle,
             categories,
             true
         )
