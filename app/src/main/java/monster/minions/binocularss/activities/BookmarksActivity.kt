@@ -27,6 +27,7 @@ import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.ui.ArticleCard
 import monster.minions.binocularss.ui.BookmarkFlag
 
 class BookmarksActivity : AppCompatActivity() {
@@ -71,10 +72,9 @@ class BookmarksActivity : AppCompatActivity() {
     @ExperimentalCoilApi
     @Composable
     fun Bookmarks(bookmarked_articles: MutableList<Article>) {
-
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = bookmarked_articles) { article ->
-                Bookmark(article = article)
+                ArticleCard(this@BookmarksActivity, article = article)
             }
 
         }
@@ -88,9 +88,9 @@ class BookmarksActivity : AppCompatActivity() {
      * This function is called before `onStop` and `onDestroy` or any time a "stop" happens. This
      * includes when an app is exited but not closed.
      */
-    override fun onStop() {
-        super.onStop()
-        Log.d("BookmarksActivity", "onStop called")
+    override fun onPause() {
+        super.onPause()
+        Log.d("BookmarksActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
     }
 

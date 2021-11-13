@@ -83,6 +83,8 @@ dependencies {
     // GSON
     implementation 'com.google.code.gson:gson:2.8.9'
 
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.21.2-beta"
+
     // Room
     def room_version = "2.3.0"
     implementation "androidx.room:room-runtime:$room_version"

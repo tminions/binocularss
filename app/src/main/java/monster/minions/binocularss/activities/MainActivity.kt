@@ -1,29 +1,24 @@
 package monster.minions.binocularss.activities
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
 import androidx.navigation.NavController
@@ -33,12 +28,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
@@ -46,10 +40,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
-import monster.minions.binocularss.ui.BookmarkFlag
-import monster.minions.binocularss.ui.NavigationItem
-import java.text.DateFormat
-import java.text.SimpleDateFormat
+import monster.minions.binocularss.ui.*
 import java.util.*
 
 class MainActivity : ComponentActivity() {
@@ -160,9 +151,9 @@ class MainActivity : ComponentActivity() {
      * This function is called before `onDestroy` or any time a "stop" happens. This
      * includes when an app is exited but not closed.
      */
-    override fun onStop() {
-        super.onStop()
-        Log.d("MainActivity", "onStop called")
+    override fun onPause() {
+        super.onPause()
+        Log.d("MainActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
     }
 
@@ -184,19 +175,19 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-        if (feedGroup.feeds.isNullOrEmpty()) {
-            // Add some feeds to the feedGroup
-            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
-            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
-            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
-
-            // Inform the user of this
-            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-                .show()
-        }
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        updateText()
+//        if (feedGroup.feeds.isNullOrEmpty()) {
+//            // Add some feeds to the feedGroup
+//            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
+//            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
+//            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
+//            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+//
+//            // Inform the user of this
+//            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
+//                .show()
+//        }
+//        ///////////////////////////////////////////////////////////////////////////////////////////
+//        updateText()
     }
 
     /**
@@ -215,45 +206,16 @@ class MainActivity : ComponentActivity() {
         feedGroupText.value = text
     }
 
-//    /**
-//     * Configures the navigation controller for use
-//     *
-//     * @param startDestination Designates what state to start the app in. Default in the list of
-//     * feeds state.
-//     */
-//    @Composable
-//    // TODO: Add an enumeration for the UI state names
-//    fun configureNavhost(startDestination: String = "FeedTitles"): NavHostController {
-//        val navController = rememberNavController()
-//        NavHost(navController, startDestination = startDestination) {
-//            composable("FeedTitles") { UI(navController) }
-//            composable("ArticleTitles") { ArticleTitles(navController) }
-////            composable("Article") { ArticleView() } // Add article view panel here
-//            composable("sortedArticles") { SortedArticleView(navController) } // Add article view panel here
-//            composable("Article") { ArticleTitles(navController = navController) }
-//            composable("Feed") { FeedTitles(navController = navController) }
-//        }
-//        return navController
-//    }
-
-    /**
-     * Displays the contents of a given article
-     */
-    // TODO: Add actual article view from Eamon
-    @Composable
-    fun ArticleView() {
-        Text(text = "Reading Article: ".plus(currentArticle.title))
-    }
-
     /**
      * Displays the list of feeds saved
-     *
-     * @param navController The controller used to navigate between the app
+     * TODO sort feeds alphabetically
      */
     @Composable
-    fun FeedTitles(navController: NavController) {
+    fun FeedTitles() {
         if (feedGroup.feeds.isNullOrEmpty()) {
+            // Sad minion no feeds found
             Text(text = "No Feeds Found")
+            AddFeedButton()
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -261,47 +223,7 @@ class MainActivity : ComponentActivity() {
                     .border(1.dp, Color.Black)
             ) {
                 items(items = feedGroup.feeds) { feed ->
-                    DisplayFeed(feed = feed, navController)
-                }
-            }
-        }
-    }
-
-    /**
-     * Displays a single feed in a card view format
-     *
-     * @param feed The feed to be displayed
-     * @param navController The controller used to navigate between states of the UI
-     */
-    @Composable
-    private fun DisplayFeed(feed: Feed, navController: NavController) {
-        Surface(
-            color = MaterialTheme.colors.primary,
-            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth()
-            ) {
-                val feedTitle = if (feed.title != null) feed.title else "Placeholder"
-                var title = "Cannot Find Title"
-                if (feedTitle != null) {
-                    title = feedTitle
-                }
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                ) {
-                    Text(text = title)
-                }
-                OutlinedButton(
-                    onClick = {
-                        currentFeed = feed
-                        navController.navigate("ArticleTitles")
-                    }
-                ) {
-                    Text("Read")
+                    FeedCard(context = this@MainActivity, feed = feed)
                 }
             }
         }
@@ -310,13 +232,13 @@ class MainActivity : ComponentActivity() {
     /**
      * Displays the list of articles associated with a given feed
      *
-     * @param navController The controller used to nagivate between states of the app
+     * @param navController The controller used to navigate between states of the app
      */
     @Composable
-    fun ArticleFromFeed(navController: NavHostController) {
+    fun ArticlesFromFeed() {
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = currentFeed.articles) { article ->
-                ArticleCard(article = article)
+                ArticleCard(context = this@MainActivity, article = article)
             }
         }
     }
@@ -333,139 +255,22 @@ class MainActivity : ComponentActivity() {
         return articles
     }
 
-    // TODO: Get from Salman/Ben
     /**
-     * Displays a list of articles in reverse chronological order
-     *
-     * @param navController The controller used to navigate between states of the app
+     * Displays a list of articles in the order given by the currently selected sorting method
      */
     @Composable
-    fun SortedArticleView(navController: NavController) {
-        val articles = getAllArticles()
+    fun SortedArticleView(getArticles: () -> MutableList<Article>) {
+        val articles = getArticles()
+
+        // TODO sort articles based on criteria
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = articles) { article ->
-                ArticleCard(article = article)
+                ArticleCard(context = this@MainActivity, article = article)
             }
         }
     }
-//    Text(text = "To be implemented")
-
-
-    /**
-     * Displays a single article in a card view format
-     *
-     * @param article The article to be displayed
-     */
-    @SuppressLint("SimpleDateFormat")
-    @ExperimentalCoilApi
-    @Composable
-    fun ArticleCard(article: Article) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-                .clickable {
-                    // TODO temporary until article view
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse(article.link)
-                    startActivity(intent)
-                },
-            elevation = 4.dp
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(
-                        modifier = Modifier.width(200.dp)
-                    ) {
-                        article.title?.let { title ->
-                            Text(text = title, fontWeight = FontWeight.SemiBold)
-                        }
-                        Text(text = article.sourceTitle)
-                        // TODO time since publishing
-                        val formatter: DateFormat =
-                            SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-                        val date =
-                            if (article.pubDate != null) formatter.parse(article.pubDate!!)
-                            else formatter.parse("Mon, 01 Jan 1970 00:00:00 GMT")
-
-                        val diff: Long = Date().time - date!!.time
-
-                        var time = ""
-                        when {
-                            diff < 1000L * 60L * 60L -> {
-                                time = "${diff / (1000L * 60L)}m"
-                            }
-                            diff < 1000L * 60L * 60L * 24L -> {
-                                time = "${diff / (1000L * 60L * 60L)}h"
-                            }
-                            diff < 1000L * 60L * 60L * 24L * 30L -> {
-                                time = "${diff / (1000L * 60L * 60L * 24L)}d"
-                            }
-                        }
-                        Text(text = time)
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(150.dp, 150.dp)
-                            .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
-                    ) {
-                        // TODO rounded corners
-                        Image(
-                            painter = rememberImagePainter(
-                                data = if (article.image != null) article.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
-                                builder = {
-                                    placeholder(R.drawable.ic_launcher_foreground)
-                                }
-                            ),
-                            contentScale = ContentScale.Crop,
-                            contentDescription = article.description,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    BookmarkFlag(article = article)
-                }
-            }
-        }
-    }
-
-//            Row(
-//                modifier = Modifier
-//                    .padding(24.dp)
-//                    .fillMaxWidth()
-//            ) {
-//                val articleTitle = if (article.title != null) article.title else "Placeholder"
-//                var title = "Cannot Find Title"
-//                if (articleTitle != null) {
-//                    title = articleTitle
-//                }
-//                Column(
-//                    modifier = Modifier
-//                        .weight(1f)
-//                ) {
-//                    Text(text = title)
-//                }
-//                OutlinedButton(
-//                    onClick = {
-//                        currentArticle = article
-////                        navController.navigate("Article")
-//                    }
-//                ) {
-//                    Text("Read")
-//                }
+    // Text(text = "To be implemented")
 
     /**
      * A button used to update the RSS feeds
@@ -483,38 +288,26 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * A button used to switch the UI state from the feed view to sorted article view
-     *
-     * @param onClicked The function called when the button is clicked
-     */
-    @Composable
-    fun SwitchViewButton(onClicked: () -> Unit) {
-        Button(
-            onClick = onClicked
-        ) {
-            Text(text = "Switch View")
-        }
-    }
-
-    /**
      * The default UI state of the app.
      */
     @Composable
     fun UI() {
         val navController = rememberNavController()
-
+        val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
+        val isRefreshing by remember { mutableStateOf(viewModel.isRefreshing) }
 
         Scaffold(
+            topBar = { TopBar() },
             bottomBar = { BottomNavigationBar(navController = navController) }
         ) {
-            Navigation(navController)
-//            if (showFeedView) {
-//                // Replace with new card view
-//                FeedTitles(navController)
-//            } else {
-//                // Replace with new card view
-//                SortedArticleView(navController)
-//            }
+            SwipeRefresh(
+                state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
+                onRefresh = {
+                    viewModel.updateRss(parser)
+                }
+            ) {
+                Navigation(navController)
+            }
         }
     }
 
@@ -522,12 +315,54 @@ class MainActivity : ComponentActivity() {
     fun Navigation(navController: NavHostController) {
         NavHost(navController, startDestination = NavigationItem.Article.route) {
             composable(NavigationItem.Article.route) {
-                SortedArticleView(navController = navController)
+                // TODO either do this or just call getAll articles then sort them
+                SortedArticleView { getAllArticles() }
             }
             composable(NavigationItem.Feed.route) {
-                FeedTitles(navController = navController)
+                FeedTitles()
             }
         }
+    }
+
+    @Composable
+    fun TopBar() {
+        TopAppBar(title = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("BinoculaRSS")
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Bookmarks Activity Button
+                    IconButton(onClick = {
+                        val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
+                        startActivity(intent)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Bookmark,
+                            contentDescription = "Bookmarks Activity"
+                        )
+                    }
+
+                    // Add Feed Activity Button
+                    IconButton(onClick = {
+                        val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                        startActivity(intent)
+                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add Feed Activity"
+                        )
+                    }
+                }
+            }
+        })
     }
 
     @Composable
@@ -575,25 +410,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-// @Composable
-// fun UI() {
-//     val padding = 16.dp
-//     Column(
-//         modifier = Modifier.fillMaxSize(),
-//         verticalArrangement = Arrangement.Center,
-//         horizontalAlignment = Alignment.CenterHorizontally
-//     ) {
-//         FeedTitles()
-//         UpdateFeedButton()
-//         Spacer(Modifier.size(padding))
-//         AddFeedButton()
-//         Spacer(modifier = Modifier.size(padding))
-//         ClearFeeds()
-//         Spacer(modifier = Modifier.size(padding))
-//         BookmarksButton()
-//     }
-// }
-
     @Composable
     fun AddFeedButton() {
         Button(
@@ -622,23 +438,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun BookmarksButton() {
-        val context = LocalContext.current
-        Button(
-            onClick = {
-                val intent = Intent(context, BookmarksActivity::class.java)
-                context.startActivity(intent)
-            }) {
-            Text("Bookmarks")
-        }
-    }
-
-//    // @Preview(showBackground = true)
-//    @Composable
-//    fun Preview() {
-//        Surface(color = MaterialTheme.colors.background) {
-//            UI()
-//        }
-//    }
 }

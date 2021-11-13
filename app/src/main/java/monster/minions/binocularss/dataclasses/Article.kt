@@ -41,6 +41,7 @@ data class Article(
     var sourceTitle: String = "",
     var categories: MutableList<String>? = mutableListOf(),
     var bookmarked: Boolean = false,
+    var read: Boolean = false,
 ) : Parcelable {
     /**
      * Check if an article is equal to another by checking the
