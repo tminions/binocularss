@@ -1,6 +1,5 @@
 package monster.minions.binocularss.activities
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -13,7 +12,6 @@ import androidx.compose.material.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
 import androidx.room.Room
@@ -22,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -40,8 +37,6 @@ import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 
 class MainActivity : ComponentActivity() {
-
-
     // FeedGroup object
     private var feedGroup: FeedGroup = FeedGroup()
 
@@ -78,11 +73,11 @@ class MainActivity : ComponentActivity() {
         // }
 
         setContent {
-            // val navController = configureNavhost()
+             val navController = configureNavhost()
             BinoculaRSSTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    UI()
+                    UI(navController = navController)
                 }
             }
         }
@@ -185,16 +180,6 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
                 .show()
         }
-        // Adding sample articles for testing
-        for (feed in feedGroup.feeds) {
-            for (i in 1..5) {
-                feed.articles.add(
-                    Article(
-                        title = i.toString().plus("th article of ").plus(feed.title.toString())
-                    )
-                )
-            }
-        }
 
         // Tell the user that this change happened
         Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
@@ -227,14 +212,14 @@ class MainActivity : ComponentActivity() {
      * feeds state.
      */
     @Composable
-    // TODO: Add an enumaration for the UI state names
+    // TODO: Add an enumeration for the UI state names
     fun configureNavhost(startDestination: String = "FeedTitles"): NavHostController {
         val navController = rememberNavController()
         NavHost(navController, startDestination = startDestination) {
-            composable("FeedTitles") { DefaultPreview(navController) }
+            composable("FeedTitles") { UI(navController) }
             composable("ArticleTitles") { ArticleTitles(navController) }
             composable("Article") { ArticleView() } // Add article view panel here
-            composable("sortedArticles") { sortedArticleView(navController) } // Add article view panel here
+            composable("sortedArticles") { SortedArticleView(navController) } // Add article view panel here
         }
         return navController
     }
@@ -255,7 +240,7 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun FeedTitles(navController: NavController) {
-        if (MainActivity.feedGroup.feeds.isNullOrEmpty()){
+        if (feedGroup.feeds.isNullOrEmpty()){
             Text(text = "No Feeds Found")
         } else {
             LazyColumn(
@@ -263,8 +248,8 @@ class MainActivity : ComponentActivity() {
                     .padding(vertical = 4.dp)
                     .border(1.dp, Color.Black)
             ) {
-                items(items = MainActivity.feedGroup.feeds) { feed ->
-                    displayFeed(feed = feed, navController)
+                items(items = feedGroup.feeds) { feed ->
+                    DisplayFeed(feed = feed, navController)
                 }
             }
         }
@@ -277,7 +262,7 @@ class MainActivity : ComponentActivity() {
      * @param navController The controller used to navigate between states of the UI
      */
     @Composable
-    private fun displayFeed(feed: Feed, navController: NavController) {
+    private fun DisplayFeed(feed: Feed, navController: NavController) {
         Surface(
             color = MaterialTheme.colors.primary,
             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
@@ -318,23 +303,20 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun ArticleTitles(navController: NavHostController) {
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            currentFeed?.let {
-                items(items = it.articles) { article ->
-                    displayArticle(article = article, navController = navController)
-                }
+            items(items = currentFeed.articles) { article ->
+                DisplayArticle(article = article, navController = navController)
             }
         }
     }
-
 
     // TODO: Get from Salman/Ben
     /**
      * Displays a list of articles in reverse chronological order
      *
-     * @param navController The controller used to nagivate between states of the app
+     * @param navController The controller used to navigate between states of the app
      */
     @Composable
-    fun sortedArticleView(navController: NavController) {
+    fun SortedArticleView(navController: NavController) {
 //        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {\
 //        }
 //            var sortedArticles = getSortedArticles()
@@ -350,10 +332,10 @@ class MainActivity : ComponentActivity() {
      * Displays a single article in a card view format
      *
      * @param article The article to be displayed
-     * @param navController The controller used to nagivate between states of the app
+     * @param navController The controller used to navigate between states of the app
      */
     @Composable
-    fun displayArticle(article: Article, navController: NavController) {
+    fun DisplayArticle(article: Article, navController: NavController) {
         Surface(
             color = MaterialTheme.colors.primary,
             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
@@ -417,22 +399,19 @@ class MainActivity : ComponentActivity() {
 
     /**
      * The default UI state of the app.
-     *
-     * @param navController The controller used to switch between UI states
      */
     @Composable
     fun UI(navController: NavController){
-        val navController = configureNavhost()
         var showFeedView by remember { mutableStateOf(true) }
 
-      
         if (showFeedView) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row {end with t
+                Row {
                     UpdateFeedButton()
                     SwitchViewButton(onClicked = { showFeedView = !showFeedView })
+                    BookmarksButton()
                 }
                 FeedTitles(navController)
             }
@@ -441,8 +420,9 @@ class MainActivity : ComponentActivity() {
                 Row {
                     UpdateFeedButton()
                     SwitchViewButton(onClicked = { showFeedView = !showFeedView })
+                    BookmarksButton()
                 }
-                sortedArticleView(navController)
+                SortedArticleView(navController)
             }
         }
     }
@@ -465,8 +445,7 @@ class MainActivity : ComponentActivity() {
     //         BookmarksButton()
     //     }
     // }
-    
-                
+
     @Composable
     fun AddFeedButton() {
         Button(
@@ -507,13 +486,13 @@ class MainActivity : ComponentActivity() {
         }
      }
 
-    // @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        Surface(color = MaterialTheme.colors.background) {
-            UI()
-        }
-    }
+//    // @Preview(showBackground = true)
+//    @Composable
+//    fun Preview() {
+//        Surface(color = MaterialTheme.colors.background) {
+//            UI()
+//        }
+//    }
 }
 
 
