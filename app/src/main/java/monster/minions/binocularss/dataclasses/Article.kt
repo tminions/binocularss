@@ -2,6 +2,8 @@ package monster.minions.binocularss.dataclasses
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import java.util.Date
+import java.text.SimpleDateFormat
 
 /**
  * A dataclass object representing an Article that is part of an RSS Feed.
@@ -37,6 +39,7 @@ data class Article(
     var sourceName: String? = "",
     var sourceUrl: String? = "",
     var categories: MutableList<String>? = mutableListOf(),
+    var bookmarked: Boolean,
 ) : Parcelable {
     /**
      * Check if an article is equal to another by checking the
