@@ -1,40 +1,56 @@
 package monster.minions.binocularss.activities
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.*
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import monster.minions.binocularss.dataclasses.Article
+import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.ui.BookmarkFlag
+import monster.minions.binocularss.ui.NavigationItem
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     // FeedGroup object
@@ -73,13 +89,14 @@ class MainActivity : ComponentActivity() {
         // }
 
         setContent {
-             val navController = configureNavhost()
             BinoculaRSSTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    UI(navController = navController)
+                    UI()
                 }
             }
+
+            currentFeed = Feed("default")
         }
 
         // Set private variables. This is done here as we cannot initialize objects that require context
@@ -167,8 +184,6 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-
-        // TODO maybe suggest some? This sounds like a phase 2 idea.
         if (feedGroup.feeds.isNullOrEmpty()) {
             // Add some feeds to the feedGroup
             feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
@@ -180,11 +195,6 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
                 .show()
         }
-
-        // Tell the user that this change happened
-        Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-            .show()
-        // }
         ///////////////////////////////////////////////////////////////////////////////////////////
         updateText()
     }
@@ -205,24 +215,26 @@ class MainActivity : ComponentActivity() {
         feedGroupText.value = text
     }
 
-    /**
-     * Configures the navigation controller for use
-     *
-     * @param startDestination Designates what state to start the app in. Default in the list of
-     * feeds state.
-     */
-    @Composable
-    // TODO: Add an enumeration for the UI state names
-    fun configureNavhost(startDestination: String = "FeedTitles"): NavHostController {
-        val navController = rememberNavController()
-        NavHost(navController, startDestination = startDestination) {
-            composable("FeedTitles") { UI(navController) }
-            composable("ArticleTitles") { ArticleTitles(navController) }
-            composable("Article") { ArticleView() } // Add article view panel here
-            composable("sortedArticles") { SortedArticleView(navController) } // Add article view panel here
-        }
-        return navController
-    }
+//    /**
+//     * Configures the navigation controller for use
+//     *
+//     * @param startDestination Designates what state to start the app in. Default in the list of
+//     * feeds state.
+//     */
+//    @Composable
+//    // TODO: Add an enumeration for the UI state names
+//    fun configureNavhost(startDestination: String = "FeedTitles"): NavHostController {
+//        val navController = rememberNavController()
+//        NavHost(navController, startDestination = startDestination) {
+//            composable("FeedTitles") { UI(navController) }
+//            composable("ArticleTitles") { ArticleTitles(navController) }
+////            composable("Article") { ArticleView() } // Add article view panel here
+//            composable("sortedArticles") { SortedArticleView(navController) } // Add article view panel here
+//            composable("Article") { ArticleTitles(navController = navController) }
+//            composable("Feed") { FeedTitles(navController = navController) }
+//        }
+//        return navController
+//    }
 
     /**
      * Displays the contents of a given article
@@ -240,7 +252,7 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun FeedTitles(navController: NavController) {
-        if (feedGroup.feeds.isNullOrEmpty()){
+        if (feedGroup.feeds.isNullOrEmpty()) {
             Text(text = "No Feeds Found")
         } else {
             LazyColumn(
@@ -301,12 +313,24 @@ class MainActivity : ComponentActivity() {
      * @param navController The controller used to nagivate between states of the app
      */
     @Composable
-    fun ArticleTitles(navController: NavHostController) {
+    fun ArticleFromFeed(navController: NavHostController) {
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = currentFeed.articles) { article ->
-                DisplayArticle(article = article, navController = navController)
+                ArticleCard(article = article)
             }
         }
+    }
+
+    private fun getAllArticles(): MutableList<Article> {
+        val articles: MutableList<Article> = mutableListOf()
+
+        for (feed in feedGroup.feeds) {
+            for (article in feed.articles) {
+                articles.add(article)
+            }
+        }
+
+        return articles
     }
 
     // TODO: Get from Salman/Ben
@@ -317,56 +341,131 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun SortedArticleView(navController: NavController) {
-//        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {\
-//        }
-//            var sortedArticles = getSortedArticles()
-//            items(items = sortedArticles) { article ->
-//                    displayArticle(article = article)
-//            }
-//        }
-        Text(text = "To be implemented")
+        val articles = getAllArticles()
+
+        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+            items(items = articles) { article ->
+                ArticleCard(article = article)
+            }
+        }
     }
+//    Text(text = "To be implemented")
 
 
     /**
      * Displays a single article in a card view format
      *
      * @param article The article to be displayed
-     * @param navController The controller used to navigate between states of the app
      */
+    @SuppressLint("SimpleDateFormat")
+    @ExperimentalCoilApi
     @Composable
-    fun DisplayArticle(article: Article, navController: NavController) {
-        Surface(
-            color = MaterialTheme.colors.primary,
-            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+    fun ArticleCard(article: Article) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable {
+                    // TODO temporary until article view
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = Uri.parse(article.link)
+                    startActivity(intent)
+                },
+            elevation = 4.dp
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth()
-            ) {
-                val articleTitle = if (article.title != null) article.title else "Placeholder"
-                var title = "Cannot Find Title"
-                if (articleTitle != null) {
-                    title = articleTitle
-                }
-                Column(
+            Column {
+                Row(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = title)
-                }
-                OutlinedButton(
-                    onClick = {
-                        currentArticle = article
-                        navController.navigate("Article")
+                    Column(
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        article.title?.let { title ->
+                            Text(text = title, fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(text = article.sourceTitle)
+                        // TODO time since publishing
+                        val formatter: DateFormat =
+                            SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+                        val date =
+                            if (article.pubDate != null) formatter.parse(article.pubDate!!)
+                            else formatter.parse("Mon, 01 Jan 1970 00:00:00 GMT")
+
+                        val diff: Long = Date().time - date!!.time
+
+                        var time = ""
+                        when {
+                            diff < 1000L * 60L * 60L -> {
+                                time = "${diff / (1000L * 60L)}m"
+                            }
+                            diff < 1000L * 60L * 60L * 24L -> {
+                                time = "${diff / (1000L * 60L * 60L)}h"
+                            }
+                            diff < 1000L * 60L * 60L * 24L * 30L -> {
+                                time = "${diff / (1000L * 60L * 60L * 24L)}d"
+                            }
+                        }
+                        Text(text = time)
                     }
+
+                    Box(
+                        modifier = Modifier
+                            .size(150.dp, 150.dp)
+                            .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
+                    ) {
+                        // TODO rounded corners
+                        Image(
+                            painter = rememberImagePainter(
+                                data = if (article.image != null) article.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                                builder = {
+                                    placeholder(R.drawable.ic_launcher_foreground)
+                                }
+                            ),
+                            contentScale = ContentScale.Crop,
+                            contentDescription = article.description,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
-                    Text("Read")
+                    BookmarkFlag(article = article)
                 }
             }
         }
     }
+
+//            Row(
+//                modifier = Modifier
+//                    .padding(24.dp)
+//                    .fillMaxWidth()
+//            ) {
+//                val articleTitle = if (article.title != null) article.title else "Placeholder"
+//                var title = "Cannot Find Title"
+//                if (articleTitle != null) {
+//                    title = articleTitle
+//                }
+//                Column(
+//                    modifier = Modifier
+//                        .weight(1f)
+//                ) {
+//                    Text(text = title)
+//                }
+//                OutlinedButton(
+//                    onClick = {
+//                        currentArticle = article
+////                        navController.navigate("Article")
+//                    }
+//                ) {
+//                    Text("Read")
+//                }
 
     /**
      * A button used to update the RSS feeds
@@ -401,50 +500,99 @@ class MainActivity : ComponentActivity() {
      * The default UI state of the app.
      */
     @Composable
-    fun UI(navController: NavController){
-        var showFeedView by remember { mutableStateOf(true) }
+    fun UI() {
+        val navController = rememberNavController()
 
-        if (showFeedView) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row {
-                    UpdateFeedButton()
-                    SwitchViewButton(onClicked = { showFeedView = !showFeedView })
-                    BookmarksButton()
-                }
-                FeedTitles(navController)
+
+        Scaffold(
+            bottomBar = { BottomNavigationBar(navController = navController) }
+        ) {
+            Navigation(navController)
+//            if (showFeedView) {
+//                // Replace with new card view
+//                FeedTitles(navController)
+//            } else {
+//                // Replace with new card view
+//                SortedArticleView(navController)
+//            }
+        }
+    }
+
+    @Composable
+    fun Navigation(navController: NavHostController) {
+        NavHost(navController, startDestination = NavigationItem.Article.route) {
+            composable(NavigationItem.Article.route) {
+                SortedArticleView(navController = navController)
             }
-        } else {
-            Column {
-                Row {
-                    UpdateFeedButton()
-                    SwitchViewButton(onClicked = { showFeedView = !showFeedView })
-                    BookmarksButton()
-                }
-                SortedArticleView(navController)
+            composable(NavigationItem.Feed.route) {
+                FeedTitles(navController = navController)
             }
         }
     }
 
-    // @Composable
-    // fun UI() {
-    //     val padding = 16.dp
-    //     Column(
-    //         modifier = Modifier.fillMaxSize(),
-    //         verticalArrangement = Arrangement.Center,
-    //         horizontalAlignment = Alignment.CenterHorizontally
-    //     ) {
-    //         FeedTitles()
-    //         UpdateFeedButton()
-    //         Spacer(Modifier.size(padding))
-    //         AddFeedButton()
-    //         Spacer(modifier = Modifier.size(padding))
-    //         ClearFeeds()
-    //         Spacer(modifier = Modifier.size(padding))
-    //         BookmarksButton()
-    //     }
-    // }
+    @Composable
+    fun BottomNavigationBar(navController: NavController) {
+        val items = listOf(
+            NavigationItem.Article,
+            NavigationItem.Feed,
+        )
+        BottomNavigation(
+            backgroundColor = MaterialTheme.colors.background,
+            contentColor = MaterialTheme.colors.onBackground
+        ) {
+            items.forEach { item ->
+                BottomNavigationItem(
+                    icon = {
+                        Icon(
+                            painterResource(id = item.icon),
+                            contentDescription = item.title
+                        )
+                    },
+                    label = { Text(text = item.title) },
+                    selectedContentColor = Color.White,
+                    unselectedContentColor = Color.White.copy(0.4f),
+                    alwaysShowLabel = true,
+                    selected = false,
+                    onClick = {
+                        navController.navigate(item.route) {
+                            navController.graph.startDestinationRoute?.let { route ->
+                                // Pop up to the start destination of the graph to avoid building up
+                                //  a large stack of destinations on the back stack as users select
+                                //  items
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when re-selecting the
+                            //  same item
+                            launchSingleTop = true
+                            // Restore state when re-selecting a previously selected item
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+// @Composable
+// fun UI() {
+//     val padding = 16.dp
+//     Column(
+//         modifier = Modifier.fillMaxSize(),
+//         verticalArrangement = Arrangement.Center,
+//         horizontalAlignment = Alignment.CenterHorizontally
+//     ) {
+//         FeedTitles()
+//         UpdateFeedButton()
+//         Spacer(Modifier.size(padding))
+//         AddFeedButton()
+//         Spacer(modifier = Modifier.size(padding))
+//         ClearFeeds()
+//         Spacer(modifier = Modifier.size(padding))
+//         BookmarksButton()
+//     }
+// }
 
     @Composable
     fun AddFeedButton() {
@@ -481,10 +629,10 @@ class MainActivity : ComponentActivity() {
             onClick = {
                 val intent = Intent(context, BookmarksActivity::class.java)
                 context.startActivity(intent)
-            }){
-          Text("Bookmarks")
+            }) {
+            Text("Bookmarks")
         }
-     }
+    }
 
 //    // @Preview(showBackground = true)
 //    @Composable
@@ -494,5 +642,3 @@ class MainActivity : ComponentActivity() {
 //        }
 //    }
 }
-
-
