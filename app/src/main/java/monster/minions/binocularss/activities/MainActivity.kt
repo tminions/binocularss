@@ -6,21 +6,21 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.*
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -39,12 +39,12 @@ class MainActivity : ComponentActivity() {
 
     // Variables that can be accessed from other classes by calling `MainActivity.<variable>`.
     companion object {
+
         // Global FeedGroup object
         var feedGroup: FeedGroup = FeedGroup()
-        // Trying something to get navigation to work
-        var currentFeed: Feed? = null
         // Parser variable using lateinit because we want to get the context
         private lateinit var parser: Parser
+
         // Setup parser
         private fun setParser(context: Context) {
             parser = Parser.Builder()
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
                 .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
                 .build()
         }
+
         // Setup Room database
         private lateinit var db: RoomDatabase
         private lateinit var feedDao: FeedDao
@@ -69,7 +70,10 @@ class MainActivity : ComponentActivity() {
     }
 
     // Local variables
+    private lateinit var currentFeed: Feed
+    private lateinit var currentArticle: Article
     private val feedGroupText = MutableStateFlow("Empty\n")
+
 
     /**
      * The function that is run when the activity is created. This is on app launch in this case.
@@ -88,24 +92,7 @@ class MainActivity : ComponentActivity() {
         // }
 
         setContent {
-            val navController = rememberNavController()
-            NavHost(navController, startDestination = "FeedTitles"){
-                composable("FeedTitles") {DefaultPreview(navController)}
-                composable("ArticleTitles") {ArticleTitles()}
-            }
-//            BinoculaRSSTheme {
-//                // A surface container using the 'background' color from the theme
-//                Surface(color = MaterialTheme.colors.background) {
-//                    Column(modifier = Modifier
-//                        .fillMaxWidth()
-//                        .fillMaxHeight(),
-//                        verticalArrangement = Arrangement.Center,
-//                        horizontalAlignment = Alignment.CenterHorizontally) {
-//                        FeedTitles()
-//                        UpdateFeedButton()
-//                    }
-//                }
-//            }
+            val navController = configureNavhost()
         }
 
 
@@ -208,26 +195,39 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-       // if (feedGroup.feeds.isNullOrEmpty()) {
-            for (i in 1..5) {
-                feedGroup.feeds.add(Feed(title = i.toString(),link = "https://rss.cbc.ca/lineup/topstories.xml"))
-            }
-  //          feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
-            // TODO This feed is malformed according to the exception that the xml parser throws.
-            //  We can use this to develop a bad formatting indication to the user
-            //  feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-//            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+        // if (feedGroup.feeds.isNullOrEmpty()) {
 
-            // Tell the user that this change happened
-            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-                .show()
-       // }
+        // Adding test feeds and articles
+        for (i in 1..5) {
+            feedGroup.feeds.add(
+                Feed(
+                    title = i.toString(),
+                    link = "https://rss.cbc.ca/lineup/topstories.xml"
+                )
+            )
+        }
         // Adding sample articles for testing
-        for(feed in feedGroup.feeds){
-            for (i in 1..5){
-                feed.articles.add(Article(title = i.toString().plus("th article of ").plus(feed.title.toString())))
+        for (feed in feedGroup.feeds) {
+            for (i in 1..5) {
+                feed.articles.add(
+                    Article(
+                        title = i.toString().plus("th article of ").plus(feed.title.toString())
+                    )
+                )
             }
         }
+
+
+        //          feedGroup.feeds.add(Feed(link = "https://androidauthority.com/feed"))
+        // TODO This feed is malformed according to the exception that the xml parser throws.
+        //  We can use this to develop a bad formatting indication to the user
+        //  feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
+//            feedGroup.feeds.add(Feed(link = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+
+        // Tell the user that this change happened
+        Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
+            .show()
+        // }
         ///////////////////////////////////////////////////////////////////////////////////////////
         var text = ""
         for (feed in feedGroup.feeds) {
@@ -237,63 +237,175 @@ class MainActivity : ComponentActivity() {
         feedGroupText.value = text
     }
 
+    /**
+     * Configures the navigation controller for use
+     *
+     * @param startDestination Designates what state to start the app in. Default in the list of
+     * feeds state.
+     */
+    @Composable
+    // TODO: Add an enumaration for the UI state names
+    fun configureNavhost(startDestination: String = "FeedTitles"): NavHostController {
+        val navController = rememberNavController()
+        NavHost(navController, startDestination = startDestination) {
+            composable("FeedTitles") { DefaultPreview(navController) }
+            composable("ArticleTitles") { ArticleTitles(navController) }
+            composable("Article") { ArticleView() } // Add article view panel here
+            composable("sortedArticles") { sortedArticleView(navController) } // Add article view panel here
+        }
+        return navController
+    }
+
+    /**
+     * Displays the contents of a given article
+     */
+    // TODO: Add actual article view from Eamon
+    @Composable
+    fun ArticleView() {
+        Text(text = "Reading Article: ".plus(currentArticle.title))
+    }
+
+    /**
+     * Displays the list of feeds saved
+     *
+     * @param navController The controller used to navigate between the app
+     */
     @Composable
     fun FeedTitles(navController: NavController) {
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = MainActivity.feedGroup.feeds) { feed ->
-                displayFeed(feed = feed, navController)
+        if (MainActivity.feedGroup.feeds.isNullOrEmpty()){
+            Text(text = "No Feeds Found")
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .border(1.dp, Color.Black)
+            ) {
+                items(items = MainActivity.feedGroup.feeds) { feed ->
+                    displayFeed(feed = feed, navController)
+                }
             }
         }
     }
 
+    /**
+     * Displays a single feed in a card view format
+     *
+     * @param feed The feed to be displayed
+     * @param navController The controller used to navigate between states of the UI
+     */
     @Composable
     private fun displayFeed(feed: Feed, navController: NavController) {
-        Surface(color = MaterialTheme.colors.primary) {
-            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
-                // TODO: Search for a better way to do null detection
+        Surface(
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth()
+            ) {
                 val feedTitle = if (feed.title != null) feed.title else "Placeholder"
+                var title = "Cannot Find Title"
                 if (feedTitle != null) {
-                    // No idea what selected is for
-                    Text(text = feedTitle, modifier = Modifier.selectable(selected = false,
-                        onClick = {
-                            MainActivity.currentFeed = feed
-                            navController.navigate("ArticleTitles")
-                        }
-                    ))
-                } else {
-                    Text(text = "Cannot Find Title")
+                    title = feedTitle
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Text(text = title)
+                }
+                OutlinedButton(
+                    onClick = {
+                        currentFeed = feed
+                        navController.navigate("ArticleTitles")
+                    }
+                ) {
+                    Text("Read")
                 }
             }
         }
     }
 
+    /**
+     * Displays the list of articles associated with a given feed
+     *
+     * @param navController The controller used to nagivate between states of the app
+     */
     @Composable
-    fun ArticleTitles(){ //feed: Feed) {
+    fun ArticleTitles(navController: NavHostController) {
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            MainActivity.currentFeed?.let {
+            currentFeed?.let {
                 items(items = it.articles) { article ->
-                    displayArticle(article = article)
+                    displayArticle(article = article, navController = navController)
                 }
             }
         }
     }
 
+
+    // TODO: Get from Salman/Ben
+    /**
+     * Displays a list of articles in reverse chronological order
+     *
+     * @param navController The controller used to nagivate between states of the app
+     */
     @Composable
-    fun displayArticle(article: Article){
-        Surface(color = MaterialTheme.colors.primary) {
-            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
-                // TODO: Search for a better way to do null detection
+    fun sortedArticleView(navController: NavController) {
+//        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {\
+//        }
+//            var sortedArticles = getSortedArticles()
+//            items(items = sortedArticles) { article ->
+//                    displayArticle(article = article)
+//            }
+//        }
+        Text(text = "To be implemented")
+    }
+
+
+    /**
+     * Displays a single article in a card view format
+     *
+     * @param article The article to be displayed
+     * @param navController The controller used to nagivate between states of the app
+     */
+    @Composable
+    fun displayArticle(article: Article, navController: NavController) {
+        Surface(
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth()
+            ) {
                 val articleTitle = if (article.title != null) article.title else "Placeholder"
+                var title = "Cannot Find Title"
                 if (articleTitle != null) {
-                    // No idea what selected is for
-                    Text(text = articleTitle)
-                } else {
-                    Text(text = "Cannot Find Title")
+                    title = articleTitle
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Text(text = title)
+                }
+                OutlinedButton(
+                    onClick = {
+                        currentArticle = article
+                        navController.navigate("Article")
+                    }
+                ) {
+                    Text("Read")
                 }
             }
         }
     }
 
+    /**
+     * A button used to update the RSS feeds
+     */
     @Composable
     fun UpdateFeedButton() {
         Button(
@@ -303,6 +415,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * A button used to switch the UI state from the feed view to sorted article view
+     *
+     * @param onClicked The function called when the button is clicked
+     */
     @Composable
     fun SwitchViewButton(onClicked: () -> Unit) {
         Button(
@@ -312,9 +429,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // @Preview(showBackground = true)
+    /**
+     * The default UI state of the app.
+     *
+     * @param navController The controller used to switch between UI states
+     */
     @Composable
-    fun DefaultPreview(navController: NavController) {
+    fun myApp(navController: NavController){
         var showFeedView by remember { mutableStateOf(true) }
 
         BinoculaRSSTheme {
@@ -328,49 +449,23 @@ class MainActivity : ComponentActivity() {
                     }
                     FeedTitles(navController)
                 }
-                } else {
+            } else {
                 Column {
                     Row {
                         UpdateFeedButton()
                         SwitchViewButton(onClicked = { showFeedView = !showFeedView })
                     }
-                    reverseChronologicalArticles()
-                }
+                    sortedArticleView(navController)
                 }
             }
         }
     }
+    
+    // @Preview(showBackground = true)
     @Composable
-    private fun reverseChronologicalArticles() {
-        Text(text = "To Be Implemented")
+    fun DefaultPreview(navController: NavController) {
+        myApp(navController = navController)
+    }
 }
 
-
-
-// Reference for navigation
-//class MainActivity : ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?){
-//        super.onCreate(savedInstanceState)
-//        setContent{
-//            val navController = rememberNavController()
-//            NavHost(navController, startDestination = "welcome"){
-//                composable("welcome"){WelcomeScreen(navController)}
-//                composable("secondScreen") { SecondScreen() }
-//            }
-//        }
-//    }
-//}
-//@Composable
-//fun WelcomeScreen(navController: NavController){
-//    Column{
-//        Text(text = "Welcome!")
-//        Button(onClick = {navController.navigate("secondScreen")}) {
-//            Text(text = "continue")
-//        }
-//    }
-//}
-//@Composable
-//fun SecondScreen(){
-//    Text(text = "second screen")
-//}
 
