@@ -118,6 +118,123 @@ board with our initials so that other members could easily see who was working o
 
 ### Issues
 
+## Refactoring
+
+### Java to Kotlin conversion
+
+One major refactoring that we made early on was the migration from Java to Kotlin for
+our Entity dataclasses. From pull request #2
+
+
+<table>
+<tr>
+<th>Java</th>
+<th>Kotlin</th>
+</tr>
+<tr>
+<td>
+<pre>
+package monster.minions.binocularss;
+
+public class Article {
+private String title;
+private String date;
+private String url;
+private String source;
+private String author;
+private String text;
+private String description;
+
+    public Article(String title, String date, String url, String source, String author, String text, String description) {
+        this.title = title;
+        this.date = date;
+        this.url = url;
+        this.source = source;
+        this.author = author;
+        this.text = text;
+        this.description = description;
+    }
+
+    public Article(String title, String url, String description) {
+        this.title = title;
+        this.url = url;
+        this.description = description;
+    }
+
+</pre>
+</td>
+<td>
+
+```kotlin
+package monster.minions.binocularss
+
+data class Article(
+  var title:String,
+  var date:String,
+  var url:String,
+  var publisher:String,
+  var author:String,
+  var text:String,
+  var description:String,
+)
+```
+
+</td>
+</tr>
+</table>
+
+This refactoring greatly reduces the amount of code that we would have to read through
+when looking through these dataclasses due to Kotlin classes not needing getters and setters.
+This is because Kotlin implements direct access to fields in a safe manner.
+
+
+### Code smells
+
+One Code smell that we found falls under the Bloaters category. Specifically, we had a long
+method in our branch that was implementing a settings page.
+
+Here is the following code for our long method.
+
+```kotlin
+
+@Composable
+    fun MultipleOptionItem(title: String, subtitle: String = "", radioOptions: List<String>) {
+        var showPopup by remember { mutableStateOf(false) }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { showPopup = true }
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp)) {
+            Column {
+                Text(title)
+                if (subtitle != "") {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontWeight = FontWeight.Light,
+                                    fontSize = 12.sp
+                                )
+                            ) {
+                                append(subtitle)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        // A lot more lines of code...
+    }
+
+
+
+```
+This composable is for selecting from multiple themes in our settings page. Obviously
+this code spans far more than 10 lines. One way that we could fix this is by extracting some of the
+inner Composables and placing them in different functions. This would make each Composable function
+easier to read and debug.
+
+
 ## Progress report
 
 ### Open Questions
