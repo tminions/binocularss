@@ -42,41 +42,113 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    private fun openLink(link: String) {
+        if (link != "") {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse(link)
+            startActivity(intent)
+        }
+    }
+
     @Composable
-    fun InformationPopupItem(title: String, subtitle: String = "") {
-        Column {
-            Text(title)
-            if (subtitle != "") {
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Light,
-                                fontSize = 12.sp
-                            )
-                        ) {
-                            append(subtitle)
+    fun InformationPopupItem(
+        title: String,
+        subtitle: String = "",
+        content: @Composable () -> Unit
+    ) {
+        var showPopup by remember { mutableStateOf(false) }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                .clickable { showPopup = true }
+        ) {
+            Column {
+                Text(title)
+                if (subtitle != "") {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontWeight = FontWeight.Light,
+                                    fontSize = 12.sp
+                                )
+                            ) {
+                                append(subtitle)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.padding(4.dp))
+        if (showPopup) {
+            // TODO possibly find a way to get 70% of parent width
+            val popupWidth = 300.dp
+            val popupHeight = 400.dp
+            val cornerSize = 16.dp
+
+            // Create popup
+            Popup(
+                alignment = Alignment.Center,
+                onDismissRequest = { showPopup = false }
+            ) {
+                LocalElevationOverlay.current?.let {
+                    Modifier
+                        .size(popupWidth, popupHeight)
+                        .background(
+                            it.apply(MaterialTheme.colors.background, 4.dp),
+                            RoundedCornerShape(cornerSize)
+                        )
+                        .padding(16.dp)
+                }?.let {
+                    Box(
+                        it
+                    ) {
+                        Column(modifier = Modifier.selectableGroup()) {
+                            Text(
+                                buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(title)
+                                    }
+                                }
+                            )
+                            content()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { showPopup = false }) {
+                                    Text("CLOSE", color = MaterialTheme.colors.primary)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Composable
     fun EmailItem(title: String, subtitle: String = "", email: String = "") {
         Row(
-            modifier = Modifier.clickable {
-                if (email != "") {
-                    val intent = Intent(Intent.ACTION_SEND)
-                    intent.data = Uri.parse("mailto:")
-                    intent.putExtra(Intent.EXTRA_EMAIL, listOf(email).toTypedArray())
-                    intent.putExtra(Intent.EXTRA_SUBJECT, "BinoculaRSS feedback/help")
-                    startActivity(Intent.createChooser(intent, "Select an email application"))
-                }
-            }) {
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                .clickable {
+                    if (email != "") {
+                        val intent = Intent(Intent.ACTION_SEND)
+                        intent.data = Uri.parse("mailto:")
+                        intent.putExtra(Intent.EXTRA_EMAIL, listOf(email).toTypedArray())
+                        intent.putExtra(Intent.EXTRA_SUBJECT, "BinoculaRSS feedback/help")
+                        startActivity(Intent.createChooser(intent, "Select an email application"))
+                    }
+                }) {
             Column {
                 Text(title)
                 if (subtitle != "") {
@@ -95,19 +167,16 @@ class SettingsActivity : ComponentActivity() {
                 }
             }
         }
-        Spacer(modifier = Modifier.padding(8.dp))
     }
 
     @Composable
     fun LinkItem(title: String, subtitle: String = "", link: String = "") {
         Row(
-            modifier = Modifier.clickable {
-                if (link != "") {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse(link)
-                    startActivity(intent)
-                }
-            }) {
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                .clickable { openLink(link) }
+        ) {
             Column {
                 Text(title)
                 if (subtitle != "") {
@@ -126,85 +195,122 @@ class SettingsActivity : ComponentActivity() {
                 }
             }
         }
-        Spacer(modifier = Modifier.padding(8.dp))
     }
 
     @Composable
     fun MultipleOptionItem(title: String, subtitle: String = "", radioOptions: List<String>) {
         var showPopup by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier.clickable {
-                showPopup = true
-            }
-        ) {
-            Text(title)
-            if (subtitle != "") {
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Light,
-                                fontSize = 12.sp
-                            )
-                        ) {
-                            append(subtitle)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { showPopup = true }
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp)) {
+            Column {
+                Text(title)
+                if (subtitle != "") {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontWeight = FontWeight.Light,
+                                    fontSize = 12.sp
+                                )
+                            ) {
+                                append(subtitle)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
-        Spacer(modifier = Modifier.padding(8.dp))
 
         if (showPopup) {
-            // TODO find a better way to get the popup width. 70% of parent? Use what play store did?
+            // TODO possibly find a way to get 70% of parent width
             val popupWidth = 300.dp
-            var popupHeight = 50.dp
+
+            // Get popup height based on number of elements to display
+            var popupHeight = 90.dp
             for (i in radioOptions) {
-                popupHeight += 60.dp
+                popupHeight += 56.dp
             }
             val cornerSize = 16.dp
 
-            // TODO find a way to dim the rest of the screen. Maybe another popup?
-            Popup(alignment = Alignment.Center) {
-                Box(
+            // Create popup
+            Popup(
+                alignment = Alignment.Center,
+                onDismissRequest = { showPopup = false }
+            ) {
+                LocalElevationOverlay.current?.let {
                     Modifier
                         .size(popupWidth, popupHeight)
-                        .background(MaterialTheme.colors.background, RoundedCornerShape(cornerSize))
+                        .background(
+                            it.apply(MaterialTheme.colors.background, 4.dp),
+                            RoundedCornerShape(cornerSize)
+                        )
                         .padding(16.dp)
-                ) {
-                    // TODO Maybe pass index of initial state as parameter or just the text itself
-                    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+                }?.let {
+                    Box(
+                        it
+                    ) {
+                        // TODO Maybe pass index of initial state as parameter or just the text itself
+                        val (selectedOption, onOptionSelected) = remember {
+                            mutableStateOf(
+                                radioOptions[0]
+                            )
+                        }
 
-                    Column(modifier = Modifier.selectableGroup()) {
-                        radioOptions.forEach { text ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .selectable(
+                        Column(modifier = Modifier.selectableGroup()) {
+                            Text(
+                                buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(title)
+                                    }
+                                }
+                            )
+                            radioOptions.forEach { text ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp)
+                                        .selectable(
+                                            selected = (text == selectedOption),
+                                            onClick = {
+                                                onOptionSelected(text)
+                                                // TODO make appropriate function calls here to save data
+                                                showPopup = false
+                                            },
+                                            role = Role.RadioButton
+                                        )
+                                        .padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
                                         selected = (text == selectedOption),
-                                        onClick = {
-                                            onOptionSelected(text)
-                                            // TODO make appropriate function calls here
-                                            showPopup = false
-                                        },
-                                        role = Role.RadioButton
+                                        onClick = null,
+                                        colors = radioButtonColors(
+                                            selectedColor = MaterialTheme.colors.primary
+                                        )
                                     )
-                                    .padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                    Text(
+                                        text = text,
+                                        style = MaterialTheme.typography.body1.merge(),
+                                        modifier = Modifier.padding(start = 16.dp)
+                                    )
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
                             ) {
-                                RadioButton(
-                                    selected = (text == selectedOption),
-                                    onClick = null,
-                                    colors = radioButtonColors(
-                                        selectedColor = MaterialTheme.colors.primary
-                                    )
-                                )
-                                Text(
-                                    text = text,
-                                    style = MaterialTheme.typography.body1.merge(),
-                                    modifier = Modifier.padding(start = 16.dp)
-                                )
+                                TextButton(onClick = { showPopup = false }) {
+                                    Text("CANCEL", color = MaterialTheme.colors.primary)
+                                }
                             }
                         }
                     }
@@ -215,9 +321,12 @@ class SettingsActivity : ComponentActivity() {
 
     @Composable
     fun ToggleItem(title: String, subtitle: String = "") {
+        var checkedState by remember { mutableStateOf(true) }
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .clickable { checkedState = !checkedState }
+                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
@@ -226,10 +335,9 @@ class SettingsActivity : ComponentActivity() {
                     Text(subtitle)
                 }
             }
-            val checkedState = remember { mutableStateOf(true) }
             Switch(
-                checked = checkedState.value,
-                onCheckedChange = { checkedState.value = it },
+                checked = checkedState,
+                onCheckedChange = { checkedState = it },
                 colors = switchColors(
                     checkedThumbColor = MaterialTheme.colors.primary,
                     checkedTrackColor = MaterialTheme.colors.primary,
@@ -237,13 +345,13 @@ class SettingsActivity : ComponentActivity() {
                 )
             )
         }
-        Spacer(modifier = Modifier.padding(8.dp))
     }
 
     @Composable
     fun PreferenceTitle(title: String) {
         Text(
-            buildAnnotatedString {
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+            text = buildAnnotatedString {
                 withStyle(style = ParagraphStyle(lineHeight = 30.sp)) {
                     withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
                         append(title)
@@ -252,7 +360,6 @@ class SettingsActivity : ComponentActivity() {
             },
             fontSize = 20.sp
         )
-        Spacer(modifier = Modifier.padding(8.dp))
     }
 
     @Preview(showBackground = true)
@@ -264,7 +371,7 @@ class SettingsActivity : ComponentActivity() {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .padding(padding)
+                    .padding(top = padding, bottom = padding)
                     .verticalScroll(rememberScrollState())
             ) {
                 PreferenceTitle(title = "Appearance")
@@ -274,24 +381,23 @@ class SettingsActivity : ComponentActivity() {
                     radioOptions = listOf("Light Theme", "Dark Theme", "System Default")
                 )
                 ToggleItem(title = "Material You Theme")
-                Divider()
-                Spacer(modifier = Modifier.padding(16.dp))
+                Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                 PreferenceTitle(title = "Preferences")
                 MultipleOptionItem(
                     title = "Cache Expiration Time",
                     subtitle = "1 hour",
                     radioOptions = listOf(
-                        "24 hours",
-                        "12 hours",
-                        "6 hours",
-                        "1 hour",
-                        "15 minutes",
-                        "off"
+                        "24 Hours",
+                        "12 Hours",
+                        "6 Hours",
+                        "1 Hour",
+                        "30 Minutes",
+                        "15 Minutes",
+                        "Off"
                     )
                 )
-                Divider()
-                Spacer(modifier = Modifier.padding(16.dp))
+                Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                 PreferenceTitle(title = "Support")
                 EmailItem(
@@ -306,8 +412,7 @@ class SettingsActivity : ComponentActivity() {
                     title = "Bug Report",
                     link = "https://github.com/tminions/binocularss/issues/new"
                 )
-                Divider()
-                Spacer(modifier = Modifier.padding(16.dp))
+                Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                 PreferenceTitle(title = "About")
                 LinkItem(
@@ -320,26 +425,19 @@ class SettingsActivity : ComponentActivity() {
                     subtitle = "1.0",
                     link = "https://github.com/tminions/binocularss/releases"
                 )
-                InformationPopupItem(title = "Open Source Libraries")
-
-
+                InformationPopupItem(title = "Open Source Libraries") {
+                    Text(
+                        "RSS-Parser",
+                        Modifier
+                            .padding(top = 4.dp)
+                            .clickable { openLink("https://github.com/prof18/RSS-Parser") })
+                    Text(
+                        "Coil",
+                        Modifier
+                            .padding(top = 4.dp)
+                            .clickable { openLink("https://github.com/coil-kt/coil") })
+                }
             }
         }
-
-        /*
-        _Appearance_
-        MultipleOption:     dark mode/light mode
-        Toggle:             material you mode
-        _Preferences_
-        MultipleOption:     cache invalidation time
-        _Support_
-        Information:        contact
-        Information:        feedback
-        Information:        bug report
-        _About_
-        Information:        gitHub link
-        Information:        version number
-        Information popup:  open source libraries
-         */
     }
 }
