@@ -97,6 +97,27 @@ db = Room
 
 ```
 
+## Use of Github Features
+
+### Pull Requests
+
+Pull Requests were used in the fairly traditional way that you would expect. We each created our own individual
+branches from the main branch and then once we were done working on our features, we created a pull request
+to merge our code into the main branch. We also got a bit of experience resolving merge conflicts which will
+be useful once our project starts to get larger in Phase 2.
+
+### Projects
+
+We used project boards to help us organize and prioritize our work. Our main board was
+for Phase 1 was our Features board which is where we would create new features to implement, and keep track
+features that were in progress, under review or completed. We also marked each task within the project
+board with our initials so that other members could easily see who was working on what.
+
+### Actions
+
+
+### Issues
+
 ## Progress report
 
 ### Open Questions
