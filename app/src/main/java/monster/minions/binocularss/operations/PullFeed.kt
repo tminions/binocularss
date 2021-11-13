@@ -21,6 +21,8 @@ import monster.minions.binocularss.room.FeedDao
  */
 class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
 
+    var isRefreshing: Boolean = false
+
     // FeedGroup object
     private var localFeedGroup: FeedGroup = feedGroup
 
@@ -39,6 +41,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
     @DelicateCoroutinesApi
     fun updateRss(parser: Parser) {
         GlobalScope.launch(Dispatchers.Main) {
+            isRefreshing = true
             // Update feedGroup variable
             localFeedGroup = pullRss(localFeedGroup, parser)
 
@@ -51,6 +54,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
                 text += "\n"
             }
             MainActivity.feedGroupText.value = text
+            isRefreshing = false
         }
     }
 
@@ -72,6 +76,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
                 try {
                     val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source)))
 
+                    // TODO this isn't working all the time?
                     // Set article sourceTitle to be the same as feed.title
                     for (article in feed.articles) {
                         article.sourceTitle = feed.title.toString()
@@ -111,7 +116,10 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val title = channel.title.toString()
         val link = channel.link.toString()
         val description = channel.description.toString()
-        val image = channel.image?.url.toString()
+        var image = channel.image?.url.toString()
+        if (image == "") {
+            image = "$link/favicon.ico"
+        }
         val lastBuildDate = channel.lastBuildDate.toString()
         val updatePeriod = channel.updatePeriod.toString()
 
@@ -149,21 +157,22 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val categories = oldArticle.categories
 
         article = Article(
-            title,
-            author,
-            link,
-            pubDate,
-            description,
-            content,
-            image,
-            audio,
-            video,
-            guid,
-            sourceName,
-            sourceUrl,
-            sourceTitle,
-            categories,
-            true
+            title = title,
+            author = author,
+            link = link,
+            pubDate = pubDate,
+            description = description,
+            content = content,
+            image = image,
+            audio = audio,
+            video = video,
+            guid = guid,
+            sourceName = sourceName,
+            sourceUrl = sourceUrl,
+            sourceTitle = sourceTitle,
+            categories = categories,
+            bookmarked = false,
+            read = false
         )
 
         return article
@@ -171,9 +180,10 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
 
     /**
      * Update feed information based on the pulledFeed with the following criteria:
-     * 1. Any element in newFeed will be added to the new list
-     * 2. Any element in oldFeed that is not in newFeed will be added to the list
-     * 3. The user set properties like tags and priority of oldFeed will be transferred to newFeed
+     * 1. Any element in newFeed that is not in oldFeed will be added to the list.
+     * 2. Any element in oldFeed that is not in newFeed will be added to the list.
+     * 3. Any element in newFeed and oldFeed will be merged and added to the list.
+     * 4. The user set properties like tags and priority of oldFeed will be transferred to newFeed.
      *
      * @param oldFeed The feed passed in by the program to be updated
      * @param newFeed The feed pulled down from the RSS
@@ -182,23 +192,41 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
     private fun mergeFeeds(oldFeed: Feed, newFeed: Feed): Feed {
         val unionArticles = mutableListOf<Article>()
 
-        // Satisfy property 2 from the docstring
         for (article in oldFeed.articles) {
             var anyEquals = false
 
             for (pulledArticle in newFeed.articles) {
                 if (article == pulledArticle) {
+                    // Satisfy property 3
+                    pulledArticle.sourceTitle = article.sourceTitle
+                    pulledArticle.bookmarked = article.bookmarked
+                    pulledArticle.read = article.read
+                    unionArticles.add(pulledArticle)
                     anyEquals = true
+                    break
                 }
             }
 
             if (!anyEquals) {
+                // Satisfy property 2
                 unionArticles.add(article)
             }
         }
 
-        // Satisfy property 1 from the docstring
-        unionArticles.addAll(newFeed.articles)
+        // Satisfy property 1
+        for (pulledArticle in newFeed.articles) {
+            var anyEquals = false
+            for (article in unionArticles) {
+                if (pulledArticle == article) {
+                    anyEquals = true
+                    break
+                }
+            }
+
+            if (!anyEquals) {
+                unionArticles.add(pulledArticle)
+            }
+        }
 
         // Transfer the user-set flags
         newFeed.source = oldFeed.source
