@@ -1,6 +1,10 @@
 package monster.minions.binocularss.activities
 
+import androidx.compose.material.icons.filled.Search
+
 import android.content.Context
+import android.annotation.SuppressLint
+import android.app.ListActivity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -204,6 +208,7 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun FeedTitles() {
+
         if (feedGroup.feeds.isNullOrEmpty()) {
             // Sad minion no feeds found
             Column(
@@ -225,6 +230,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 items(items = feedGroup.feeds) { feed ->
                     FeedCard(context = this@MainActivity, feed = feed)
+
                 }
             }
         }
@@ -354,6 +360,16 @@ class MainActivity : ComponentActivity() {
                     Icon(
                         imageVector = Icons.Filled.Bookmark,
                         contentDescription = "Bookmark Activity"
+                    )
+                }
+                // Bookmarks Activity Button
+                IconButton(onClick = {
+                    val intent = Intent(this@MainActivity, SearchActivity::class.java).apply {}
+                    startActivity(intent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = "Search Activity"
                     )
                 }
 

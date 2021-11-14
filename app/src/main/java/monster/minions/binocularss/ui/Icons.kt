@@ -5,12 +5,13 @@ import android.content.Intent
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PanoramaFishEye
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat.startActivity
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.tooling.preview.Preview
 import monster.minions.binocularss.dataclasses.Article
 import androidx.compose.material.icons.filled.Bookmark as FilledBookmarkIcon
 import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIcon
@@ -83,5 +84,20 @@ fun ReadFlag(article: Article) {
             imageVector = if (article.read) Icons.Filled.TaskAlt else Icons.Filled.PanoramaFishEye,
             contentDescription = if (isRead) "Mark as unread" else "Mark as read"
         )
+    }
+}
+
+@Composable
+@Preview
+fun SearchIcon(){
+
+
+    IconButton(
+        onClick = {}
+    ){
+       Icon(
+           imageVector = Icons.Filled.Search,
+           contentDescription = null
+       )
     }
 }
