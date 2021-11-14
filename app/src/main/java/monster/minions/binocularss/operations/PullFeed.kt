@@ -39,7 +39,6 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
      *
      * @param parser A parser with preconfigured settings.
      */
-    @DelicateCoroutinesApi
     fun updateRss(parser: Parser) {
         val scope = CoroutineScope(Job() + Dispatchers.IO)
         scope.launch {

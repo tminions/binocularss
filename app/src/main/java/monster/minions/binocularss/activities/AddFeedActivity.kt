@@ -1,6 +1,8 @@
 package monster.minions.binocularss.activities
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.util.Patterns
@@ -10,9 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
@@ -47,6 +48,12 @@ class AddFeedActivity : ComponentActivity() {
 
     private var text = mutableStateOf("")
 
+    private lateinit var sharedPref: SharedPreferences
+    private lateinit var sharedPrefEditor: SharedPreferences.Editor
+    private lateinit var theme: String
+    private lateinit var themeState: MutableState<String>
+    private var cacheExpiration = 0L
+
     /**
      * The function that is run when the activity is created. This is on app launch in this case.
      * It is also called when the activity is destroyed then recreated. It initializes the main
@@ -57,10 +64,22 @@ class AddFeedActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BinoculaRSSTheme {
+            themeState = remember { mutableStateOf(theme) }
+            BinoculaRSSTheme(
+                theme = themeState.value
+            ) {
                 UI()
             }
         }
+
+        sharedPref = this.getSharedPreferences(
+            SettingsActivity.PreferenceKeys.SETTINGS,
+            Context.MODE_PRIVATE
+        )
+        sharedPrefEditor = sharedPref.edit()
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
@@ -71,10 +90,7 @@ class AddFeedActivity : ComponentActivity() {
         feedDao = (db as AppDatabase).feedDao()
         parser = Parser.Builder()
             .context(this)
-            .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
-            // Different options for cacheExpiration
-            // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
-            // .cacheExpirationMillis(0)
+            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
             .build()
 
         // Handle a link being shared to the application
@@ -192,7 +208,18 @@ class AddFeedActivity : ComponentActivity() {
 
     @Composable
     fun UI() {
-        Surface(color = MaterialTheme.colors.background) {
+        // Set status bar and nav bar colours
+        val systemUiController = rememberSystemUiController()
+        val useDarkIcons = MaterialTheme.colors.isLight
+        val color = MaterialTheme.colors.background
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = color,
+                darkIcons = useDarkIcons
+            )
+        }
+
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
             val padding = 16.dp
 
             Column(

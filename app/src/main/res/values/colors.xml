@@ -5,6 +5,13 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
+
+    <color name="minionYellow"> #FFFFD361</color>
+    <color name="minionYellowAlt">#FFFFB800</color>
+    <color name="evilMinionPurple">#FFBD93F9</color>
+    <color name="evilMinionPurpleAlt">#FF6200EE</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="errorRed">#FFE06C75</color>
+    <color name="black">#FF000000</color>
+    <color name="charcoal">#FF121212</color>
 </resources>

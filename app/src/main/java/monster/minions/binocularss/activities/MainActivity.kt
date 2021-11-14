@@ -1,7 +1,8 @@
 package monster.minions.binocularss.activities
 
+import android.content.Context
 import android.content.Intent
-import android.graphics.Paint
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
 import androidx.navigation.NavController
@@ -32,6 +34,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +62,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
 
+    // User Preferences
+    private lateinit var sharedPref: SharedPreferences
+    private lateinit var sharedPrefEditor: SharedPreferences.Editor
+    private lateinit var theme: String
+    private lateinit var themeState: MutableState<String>
+    private var isFirstRun = true
+    private var cacheExpiration = 0L
+
     // Companion object as this variable needs to be updated from other asynchronous classes.
     companion object {
         var feedGroupText = MutableStateFlow("Empty\n")
@@ -80,22 +91,25 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO this code goes with onSaveInstanceState and onRestoreInstanceState
-        // if (savedInstanceState != null) {
-        // feedGroup = savedInstanceState.getParcelable<FeedGroup>("feedGroup")!!
-        //    Toast.makeText(this@MainActivity, feedGroup.feeds[0].title, Toast.LENGTH_SHORT).show()
-        // }
-
         setContent {
-            BinoculaRSSTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    UI()
-                }
+            themeState = remember { mutableStateOf(theme) }
+            BinoculaRSSTheme(
+                theme = themeState.value
+            ) {
+                UI()
             }
 
             currentFeed = Feed("default")
         }
+
+        sharedPref = getSharedPreferences(
+            SettingsActivity.PreferenceKeys.SETTINGS,
+            Context.MODE_PRIVATE
+        )
+        sharedPrefEditor = sharedPref.edit()
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
@@ -106,51 +120,11 @@ class MainActivity : ComponentActivity() {
         feedDao = (db as AppDatabase).feedDao()
         parser = Parser.Builder()
             .context(this)
-            .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
-            // Different options for cacheExpiration
-            // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
-            // .cacheExpirationMillis(0)
+            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
             .build()
 
-//        list = getAllArticles().toMutableStateList()
+        //list = getAllArticles().toMutableStateList()
     }
-
-    // /**
-    //  * Saves instance state when activity is destroyed
-    //  *
-    //  * TODO: We do not need onSaveInstanceState (goes with onRestoreInstanceState) for the current
-    //  *  use case. The room database handles
-    //  *  it all. I am leaving it here so that whoever uses it has a base for the code
-    //  *
-    //  * @param outState A bundle of instance state information stored using key-value pairs
-    //  */
-    // override fun onSaveInstanceState(outState: Bundle) {
-    //     Log.d("MainActivity", "onSaveInstanceState called")
-    //     super.onSaveInstanceState(outState)
-    //     outState.putParcelable(FEED_GROUP_KEY, feedGroup)
-    // }
-
-    // /**
-    //  * Restores instance state when activity is recreated
-    //  *
-    //  * TODO: We do not need onRestoreInstanceState (goes with onSaveInstanceState) for the current
-    //  *  use case. The room database handles it all. I am leaving it here so that whoever uses it
-    //  *  has a base for the code
-    //  *
-    //  * @param savedInstanceState A bundle of instance state information stored using key-value pairs
-    //  */
-    // override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-    //     Log.d("MainActivity", "onRestoreInstanceState called")
-    //     super.onRestoreInstanceState(savedInstanceState)
-    //     feedGroup = savedInstanceState.getParcelable<FeedGroup>(FEED_GROUP_KEY)!!
-
-    //     var text = ""
-    //     for (feed in feedGroup.feeds) {
-    //         text += feed.title
-    //         text += "\n"
-    //     }
-    //     feedGroupText.value = text
-    // }
 
     /**
      * Save the list of user feeds to the Room database (feed-db) for data persistence.
@@ -197,8 +171,15 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
                 .show()
         }
-//        ///////////////////////////////////////////////////////////////////////////////////////////
-//        updateText()
+        ///////////////////////////////////////////////////////////////////////////////////////////
+
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        if (!isFirstRun) {
+            themeState.value = theme
+        }
+        isFirstRun = false
+        updateText()
     }
 
     /**
@@ -225,16 +206,16 @@ class MainActivity : ComponentActivity() {
     fun FeedTitles() {
         if (feedGroup.feeds.isNullOrEmpty()) {
             // Sad minion no feeds found
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = "No Feeds Found")
-                    Spacer(Modifier.padding(16.dp))
-                    AddFeedButton()
-                }
-        } else  {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(text = "No Feeds Found")
+                Spacer(Modifier.padding(16.dp))
+                AddFeedButton()
+            }
+        } else {
             val feedTitleComparator = FeedTitleComparator()
             feedGroup.feeds.sortWith(comparator = feedTitleComparator)
             LazyColumn(
@@ -284,28 +265,12 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun SortedArticleView(articles: MutableList<Article>) {
-        val list = remember { articles.toMutableStateList() }
+        // val list = remember { articles.toMutableStateList() }
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = articles) { article ->
                 ArticleCard(context = this@MainActivity, article = article)
             }
-        }
-    }
-    // Text(text = "To be implemented")
-
-    /**
-     * A button used to update the RSS feeds
-     */
-    @Composable
-    fun UpdateFeedButton() {
-        Button(
-            onClick = {
-                val viewModel = PullFeed(this, feedGroup)
-                viewModel.updateRss(parser)
-            }
-        ) {
-            Text("Update RSS Feeds")
         }
     }
 
@@ -314,21 +279,41 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun UI() {
-        val navController = rememberNavController()
-        val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
-        val isRefreshing by remember { mutableStateOf(viewModel.isRefreshing) }
+        // Set status bar and nav bar colours
+        val systemUiController = rememberSystemUiController()
+        val useDarkIcons = MaterialTheme.colors.isLight
+        val color = MaterialTheme.colors.background
+        // Get elevated color to match the bottom bar that is also elevated by 8.dp
+        val elevatedColor = LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = color,
+                darkIcons = useDarkIcons
+            )
 
-        Scaffold(
-            topBar = { TopBar() },
-            bottomBar = { BottomNavigationBar(navController = navController) }
-        ) {
-            SwipeRefresh(
-                state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
-                onRefresh = {
-                    viewModel.updateRss(parser)
-                }
+            systemUiController.setNavigationBarColor(
+                color = elevatedColor!!
+            )
+        }
+
+        Surface(color = MaterialTheme.colors.background) {
+
+            val navController = rememberNavController()
+            val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
+            val isRefreshing by remember { mutableStateOf(viewModel.isRefreshing) }
+
+            Scaffold(
+                topBar = { TopBar() },
+                bottomBar = { BottomNavigationBar(navController = navController) }
             ) {
-                Navigation(navController)
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
+                    onRefresh = {
+                        viewModel.updateRss(parser)
+                    }
+                ) {
+                    Navigation(navController)
+                }
             }
         }
     }
@@ -349,7 +334,10 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun TopBar() {
         Row(
-            modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -370,7 +358,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
+                    val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {}
                     startActivity(intent)
                 }) {
                     Icon(
@@ -444,8 +432,8 @@ class MainActivity : ComponentActivity() {
         Button(
             onClick = {
                 val intent = Intent(this, AddFeedActivity::class.java).apply {}
-                startActivity(intent)
                 feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                startActivity(intent)
             }
         ) {
             Text("Add Feed")
@@ -467,4 +455,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Preview(showBackground = true)
+    @Composable
+    fun Preview() {
+        UI()
+    }
 }
