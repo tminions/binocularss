@@ -1,10 +1,12 @@
 package monster.minions.binocularss.operations
 
+import android.annotation.SuppressLint
 import monster.minions.binocularss.dataclasses.Article
+import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 
-class ArticleDateComparator: Comparator<Article>{
+class ArticleDateComparator : Comparator<Article> {
     /**
      * Compares its two arguments for order.
      *
@@ -18,10 +20,20 @@ class ArticleDateComparator: Comparator<Article>{
      *      as article1 is less than, equal to, or greater than article2
      */
 
-    override fun compare(article1: Article, article2: Article): Int{
-        val articleDateFormat: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm z")
-        val currentDate: Date = articleDateFormat.parse(article1.pubDate)
-        val otherDate: Date = articleDateFormat.parse(article2.pubDate)
-        return currentDate.compareTo(otherDate)
+    @SuppressLint("SimpleDateFormat")
+    override fun compare(article1: Article, article2: Article): Int {
+        val dateFormats = listOf("EEE, dd MMM yyyy HH:mm:ss zzz", "EEE, dd MMM yyyy HH:mm zzz", "EEE, dd MMM yyyy HH:mm zzz")
+        var currentDate: Date? = Date()
+        var otherDate: Date? = Date()
+
+        for (dateFormat in dateFormats) {
+            try {
+                val articleDateFormat = SimpleDateFormat(dateFormat)
+                currentDate = articleDateFormat.parse(article1.pubDate!!)
+                otherDate = articleDateFormat.parse(article2.pubDate!!)
+            } catch (e: ParseException) {}
+        }
+
+        return otherDate!!.compareTo(currentDate!!)
     }
 }

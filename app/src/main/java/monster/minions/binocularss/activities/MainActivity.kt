@@ -2,8 +2,8 @@ package monster.minions.binocularss.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Contacts
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +37,8 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.ArticleDateComparator
+import monster.minions.binocularss.operations.FeedTitleComparator
 import monster.minions.binocularss.operations.PullFeed
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
@@ -47,6 +48,7 @@ import java.util.*
 class MainActivity : ComponentActivity() {
     // FeedGroup object
     private var feedGroup: FeedGroup = FeedGroup()
+    private lateinit var sortedArticles: MutableList<Article>
 
     // Parser variable
     private lateinit var parser: Parser
@@ -178,19 +180,21 @@ class MainActivity : ComponentActivity() {
 
         feedGroup.feeds = feeds
 
+        sortedArticles = getAllArticlesSortedByDate()
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-//        if (feedGroup.feeds.isNullOrEmpty()) {
-//            // Add some feeds to the feedGroup
-//            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
-//            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
-//            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-//            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
-//
-//            // Inform the user of this
-//            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-//                .show()
-//        }
+        if (feedGroup.feeds.isNullOrEmpty()) {
+            // Add some feeds to the feedGroup
+            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
+            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
+            // feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
+            // feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+
+            // Inform the user of this
+            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
+                .show()
+        }
 //        ///////////////////////////////////////////////////////////////////////////////////////////
 //        updateText()
     }
@@ -228,7 +232,9 @@ class MainActivity : ComponentActivity() {
                     Spacer(Modifier.padding(16.dp))
                     AddFeedButton()
                 }
-        } else {
+        } else  {
+            val feedTitleComparator = FeedTitleComparator()
+            feedGroup.feeds.sortWith(comparator = feedTitleComparator)
             LazyColumn(
                 modifier = Modifier
                     .padding(vertical = 4.dp)
@@ -265,12 +271,18 @@ class MainActivity : ComponentActivity() {
         return articles
     }
 
+    private fun getAllArticlesSortedByDate(): MutableList<Article> {
+        val articles = getAllArticles()
+        val dateComparator = ArticleDateComparator()
+//        articles.sortWith(comparator = dateComparator)
+        return articles.sortedWith(comparator = dateComparator).toMutableList()
+    }
+
     /**
      * Displays a list of articles in the order given by the currently selected sorting method
      */
     @Composable
-    fun SortedArticleView(getArticles: () -> MutableList<Article>) {
-        val articles = getArticles()
+    fun SortedArticleView(articles: MutableList<Article>) {
         val list = remember { articles.toMutableStateList() }
 
         // TODO sort articles based on criteria
@@ -322,12 +334,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     @Composable
     fun Navigation(navController: NavHostController) {
         NavHost(navController, startDestination = NavigationItem.Article.route) {
             composable(NavigationItem.Article.route) {
                 // TODO either do this or just call getAll articles then sort them
-                SortedArticleView { getAllArticles() }
+                SortedArticleView(sortedArticles)
             }
             composable(NavigationItem.Feed.route) {
                 FeedTitles()
