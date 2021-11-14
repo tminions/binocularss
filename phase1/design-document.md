@@ -1,28 +1,36 @@
 # Design Document
 
+### To Add
+- UML Diagram
+- Talk about testing 
+- Talk about code style and documentation
+
 ## Updated Specification
+Overall we followed our initial specification closely but there are multiple new additions to highlight.
+
+### Proper UI
+Our skeleton program for phase 0 was barebones in terms of user interface. Since then we've worked on implementing a functional and good looking user interface that enchances the user experience of our app.  
+
+### Room Database
+Since phase 0 we've added the Room library to implement data persistence in our program. This allows our users to save their feeds and articles over multiple lifecycles of the program, without having to re-fecth them again.
+
+### Priority
+We decided against implementing a priority feature as it proved too complex for this program.
 
 ## UML Diagram
 
-Also talk about clean architecture here
+Also talk about clean architecture here s
 
-## Major Design Decisions
+## Major Design Decisions   
 
-- How we chose to do workflows
-- For each major design decision, justify the choice we made
-  - like the library
-
-### Kotlin:
+### Kotlin
 Early in the develpoment period we decided to change our language from Java to Kotlin. This was done primarily for two reasons, the first being general readability. Kotlin removes a lot of the boilerplate code used in Java which improves readability and makes our code more concise (example under refactoring). The second reason was so we could use the Jetpack Compose library for building our UI. Compared to using XML files Compose is a more intuitive and less clunky way for creating UI, making the development process more streamlined and making our code cleaner. 
 
-### RRS Parser Library:
+### RRS Parser Library
 We originally intended to write our own class to parse an RSS feed but we eventually decided to use a library instead.  We decided to use a library for a couple of reasons, but the main one was the insane complexity of the RSS standard. It was much more complex than we initially assumed. There are multiple competing standards and in order to create a system capable of handling all of the cases, we would need approximately 3600 lines of kotlin code (approximated from the used library) - far too much to write within the scope of this project on one of many functions.
 
-### Room Database:
+### Room Database
 In order to add data persistence to our program we were debating whether to use the Room Database library or savedInstanceState. We decided on using Room because savedInstanceState doesn't persist data beyond one life cycle, however with Room we can save our data to a local database that will perserve our data over multiple lifecycles. This saves bandwidth as we don't have to retrieve feeds everytime the lifecycle renews and users can choose to perserve articles of their choice.
-
-
-
 
 ## Clean Architecture
 
@@ -47,22 +55,29 @@ this would have taken too long to implement given our time, but we could look in
 Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix
 
 ### Single Responsability Principle 
-Besides a minor error mentioned below our code closely follows the single responsability principle. We've done this by seperating our critical data classes into multiple files (Article.kt, Feed.kt, FeedGroup.kt), keepinng our important data operations in seperate files (our code for sorting by date, article title, and feed title are all seperated), and by keeping our UI activites in seperate files as well.
+Besides a minor error mentioned below our code closely follows the single responsability principle. We've done this by seperating our critical data classes into multiple files (`Article.kt, Feed.kt, FeedGroup.kt`), keepinng our important data operations in seperate files (our code for sorting by date, article title, and feed title are all seperated), and by keeping our UI activites in seperate files as well.
+
+For example `Cards.kt` and `Icons.kt` are both elements of our UI, but as they play seperate roles within our UI we have seperated them into seeprate files.
 
 ### Open-closed Principle
+One way our code follows the Open-closed principle is through our UI. We can easily extend our UI by adding more options to our settings, adding more feeds and articles to their respective views, and adding more selectable views without editing the functionality of our code directly. This is done by creating more composables and adding them to our UI which can be done without editing our UI classes.
 
 ### Vacuous SOLID
-Two principles of SOLID, Liskov Substitution and Interface Segregation, are never violated in our code as we don't include any chains of inheritance nor define any interfaces. As we don't allow the problem to manifest to begin with we can conclude that our code vacously follows these two principles of SOLID.
+Two principles of SOLID, Liskov Substitution and Interface Segregation, are never violated in our code as we don't include any chains of inheritance nor define any interfaces. As we don't allow the problem to manifest to begin with we can conclude that our code follows these two principles of SOLID.
+
+### Dependency Inversion
+For our database implementation, we used the Room library to interface with SQLite. Room itself is noting more than an abstraction layer for SQLite so we remove our dependency of the lower level SQLite code by interfacing with it through Room.
+
+Likewise the Jetpack Compose library provides a layer of abstraction over the UI. Instead of worrying about the implementation of Jetpack Compose we can call the interface it provides to allows us to create our UIs.
+
 
 ### SettingsActivity.kt
 Under SettingsActivity.kt where we handle our user settings, we violate the first principle of clean architecture by including the front-end UI of the settings page with the back-end functinoality under the same file. Ideally we would want to seperate these responsabilities into seperate files so we don't run the rist of alterning the front-end when working on the back-end and vice-versa. To fix this we would seperate the respective code into two files and only link the front-end to the back-end to maintain clean architecture as well.
 
-### Composable Functions
-
-
 ## Packaging Strategies
+We have our files organized into packages by their clean architecture layer. Our frameworks and drivers are composed of the `room`, `ui`, and `activities/ui` folders. These encapsulate the UI of our program and our database interface. Our entities are organized into the `dataclasses` folder and our uses cases are organized into the `activities` and `operations` folders. Our main interface adapters however are also mixed in with the `activites` folder. To improve our package organization we would want to better seperate our use cases and interface adapters into their own folders.
 
-Android APK vs Android App Bundle. Signed vs Unsigned (we will need to sign it if we publish it) (see slide 7)
+We chose this package strategy as it allows up to better adhere to clean architecture by making it clear what file belongs to what clean architecture layer. Overall this makes our code cleaner and easier to read.
 
 ## Design Patterns
 
@@ -274,7 +289,7 @@ to keep ui.theme within activities because the code is used by all activities.
 
 ### Open Questions
 
-Avoiding burnout?
+How do we avoid burnout?
 
 ### What has worked well so far
 
@@ -320,3 +335,21 @@ Our team communication has been very strong. Through Discord we have been able t
 #### Tai Zhang
 
 - Tags System
+
+### Plans for Phase 2
+
+#### Benson Chou
+
+#### Eamon Ma
+
+#### Hisbaan Noorani
+
+#### Ismail Ahmed
+
+#### Macdeini Niu
+
+#### Salman Husainie
+
+#### Simon Chen
+
+#### Tai Zhang
