@@ -19,7 +19,7 @@ We decided against implementing a priority feature as it proved too complex for 
 
 ## UML Diagram
 
-Also talk about clean architecture here
+Also talk about clean architecture here s
 
 ## Major Design Decisions   
 
