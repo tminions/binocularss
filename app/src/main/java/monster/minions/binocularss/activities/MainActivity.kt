@@ -2,6 +2,7 @@ package monster.minions.binocularss.activities
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -9,9 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -20,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +42,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
 
+    // User Preferences
+    private lateinit var sharedPref: SharedPreferences
+    private lateinit var sharedPrefEditor: SharedPreferences.Editor
+    private lateinit var theme: String
+    private lateinit var themeState: MutableState<String>
+    private var isFirstRun = true
+    private var cacheExpiration = 0L
+
     // Companion object as this variable needs to be updated from other asynchronous classes.
     companion object {
         var feedGroupText = MutableStateFlow("Empty\n")
@@ -57,20 +65,22 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO this code goes with onSaveInstanceState and onRestoreInstanceState
-        // if (savedInstanceState != null) {
-        // feedGroup = savedInstanceState.getParcelable<FeedGroup>("feedGroup")!!
-        //    Toast.makeText(this@MainActivity, feedGroup.feeds[0].title, Toast.LENGTH_SHORT).show()
-        // }
-
         setContent {
-            BinoculaRSSTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    UI()
-                }
+            themeState = remember { mutableStateOf(theme) }
+            BinoculaRSSTheme(
+                theme = themeState.value
+            ) {
+                UI()
             }
         }
+
+        sharedPref = getSharedPreferences(
+            SettingsActivity.PreferenceKeys.SETTINGS,
+            Context.MODE_PRIVATE
+        )
+        sharedPrefEditor = sharedPref.edit()
+        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
@@ -81,7 +91,7 @@ class MainActivity : ComponentActivity() {
         feedDao = (db as AppDatabase).feedDao()
         parser = Parser.Builder()
             .context(this)
-            .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
+            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration) // Set the cache to expire in one hour
             // Different options for cacheExpiration
             // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
             // .cacheExpirationMillis(0)
@@ -157,7 +167,6 @@ class MainActivity : ComponentActivity() {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // NOT PERMANENT: If the user does not have any feeds added, add some.
-        // TODO maybe suggest some? This sounds like a phase 2 idea.
         if (feedGroup.feeds.isNullOrEmpty()) {
             // Add some feeds to the feedGroup
             feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
@@ -171,6 +180,11 @@ class MainActivity : ComponentActivity() {
         }
         ///////////////////////////////////////////////////////////////////////////////////////////
 
+        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        if (!isFirstRun) {
+            themeState.value = theme
+        }
+        isFirstRun = false
         updateText()
     }
 
@@ -213,8 +227,8 @@ class MainActivity : ComponentActivity() {
         Button(
             onClick = {
                 val intent = Intent(this, AddFeedActivity::class.java).apply {}
-                startActivity(intent)
                 feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                startActivity(intent)
             }
         ) {
             Text("Add Feed")
@@ -249,31 +263,57 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
+    @Composable
+    fun SettingsButton() {
+        Button(
+            onClick = {
+                val intent = Intent(this, SettingsActivity::class.java).apply {}
+                startActivity(intent)
+            }
+        ) {
+            Text("Settings")
+        }
+    }
+
     @Composable
     fun UI() {
-        val padding = 16.dp
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            FeedTitles()
-            UpdateFeedButton()
-            Spacer(Modifier.size(padding))
-            AddFeedButton()
-            Spacer(modifier = Modifier.size(padding))
-            ClearFeeds()
-            Spacer(modifier = Modifier.size(padding))
-            BookmarksButton()
+        // Set status bar and nav bar colours
+        val systemUiController = rememberSystemUiController()
+        val useDarkIcons = MaterialTheme.colors.isLight
+        val color = MaterialTheme.colors.background
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = color,
+                darkIcons = useDarkIcons
+            )
+        }
+
+        Surface(color = MaterialTheme.colors.background) {
+            val padding = 16.dp
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                FeedTitles()
+                UpdateFeedButton()
+                Spacer(Modifier.size(padding))
+                AddFeedButton()
+                Spacer(modifier = Modifier.size(padding))
+                ClearFeeds()
+                Spacer(modifier = Modifier.size(padding))
+                BookmarksButton()
+                Spacer(modifier = Modifier.size(padding))
+                SettingsButton()
+            }
         }
     }
 
     @Preview(showBackground = true)
     @Composable
     fun Preview() {
-        Surface(color = MaterialTheme.colors.background) {
-            UI()
-        }
+        UI()
     }
 }
 

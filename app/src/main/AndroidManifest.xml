@@ -15,6 +15,11 @@
         android:theme="@style/Theme.BinoculaRSS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
+        <activity
             android:name=".activities.AddFeedActivity"
             android:exported="false"
             android:label="@string/title_activity_add_feed"
