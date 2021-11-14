@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat
  * @param categories A list of Source-defined categories.
  */
 @Parcelize
-data class Article(
+data class Article  (
     var title: String? = "",
     var author: String? = "",
     var link: String? = "",

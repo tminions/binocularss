@@ -30,7 +30,7 @@ import monster.minions.binocularss.operations.PullFeed
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 
-class MainActivity : ComponentActivity() {
+class  MainActivity : ComponentActivity() {
 
     // FeedGroup object
     private var feedGroup: FeedGroup = FeedGroup()
