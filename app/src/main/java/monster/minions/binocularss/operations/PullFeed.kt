@@ -66,7 +66,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
                 }
             }
 
-//            MainActivity.list = articles.toMutableStateList()
+            // MainActivity.list = articles.toMutableStateList()
         }
     }
 
@@ -88,7 +88,6 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
                 try {
                     val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source)))
 
-                    // TODO this isn't working all the time?
                     // Set article sourceTitle to be the same as feed.title
                     for (article in feed.articles) {
                         article.sourceTitle = feed.title.toString()
@@ -165,7 +164,6 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val guid = oldArticle.guid.toString()
         val sourceName = oldArticle.sourceName.toString()
         val sourceUrl = oldArticle.sourceUrl.toString()
-        val sourceTitle = sourceTitle
         val categories = oldArticle.categories
 
         article = Article(

@@ -1,6 +1,7 @@
 package monster.minions.binocularss.activities
 
 import android.content.Intent
+import android.graphics.Paint
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -14,6 +15,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -274,7 +276,6 @@ class MainActivity : ComponentActivity() {
     private fun getAllArticlesSortedByDate(): MutableList<Article> {
         val articles = getAllArticles()
         val dateComparator = ArticleDateComparator()
-//        articles.sortWith(comparator = dateComparator)
         return articles.sortedWith(comparator = dateComparator).toMutableList()
     }
 
@@ -284,8 +285,6 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SortedArticleView(articles: MutableList<Article>) {
         val list = remember { articles.toMutableStateList() }
-
-        // TODO sort articles based on criteria
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
             items(items = articles) { article ->
@@ -334,7 +333,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     @Composable
     fun Navigation(navController: NavHostController) {
         NavHost(navController, startDestination = NavigationItem.Article.route) {
@@ -350,43 +348,50 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun TopBar() {
-        TopAppBar(title = {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("BinoculaRSS", style = MaterialTheme.typography.h5)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("BinoculaRSS")
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Bookmarks Activity Button
-                    IconButton(onClick = {
-                        val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
-                        startActivity(intent)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Bookmark,
-                            contentDescription = "Bookmarks Activity"
-                        )
-                    }
+                // Bookmarks Activity Button
+                IconButton(onClick = {
+                    val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
+                    startActivity(intent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Bookmark,
+                        contentDescription = "Bookmark Activity"
+                    )
+                }
 
-                    // Add Feed Activity Button
-                    IconButton(onClick = {
-                        val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        startActivity(intent)
-                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Add Feed Activity"
-                        )
-                    }
+                IconButton(onClick = {
+                    val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
+                    startActivity(intent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Settings Activity"
+                    )
+                }
+
+                // Add Feed Activity Button
+                IconButton(onClick = {
+                    val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                    startActivity(intent)
+                    feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Add Feed Activity"
+                    )
                 }
             }
-        })
+        }
     }
 
     @Composable
