@@ -70,6 +70,8 @@ For our database implementation, we used the Room library to interface with SQLi
 
 Likewise the Jetpack Compose library provides a layer of abstraction over the UI. Instead of worrying about the implementation of Jetpack Compose we can call the interface it provides to allows us to create our UIs.
 
+### SettingsActivity.kt
+Under SettingsActivity.kt where we handle our user settings, we violate the first principle of clean architecture by including the front-end UI of the settings page with the back-end functinoality under the same file. Ideally we would want to seperate these responsabilities into seperate files so we don't run the rist of alterning the front-end when working on the back-end and vice-versa. To fix this we would seperate the respective code into two files and only link the front-end to the back-end to maintain clean architecture as well.
 
 ### SettingsActivity.kt
 Under SettingsActivity.kt where we handle our user settings, we violate the first principle of clean architecture by including the front-end UI of the settings page with the back-end functinoality under the same file. Ideally we would want to seperate these responsabilities into seperate files so we don't run the rist of alterning the front-end when working on the back-end and vice-versa. To fix this we would seperate the respective code into two files and only link the front-end to the back-end to maintain clean architecture as well.
@@ -275,15 +277,6 @@ inner Composables and placing them in different functions. This would make each 
 easier to read and debug.
 
 
-## Code Organization
-
-By default, Android Studio throws any files that we create into a single folder. Obviously this is
-not an ideal way of organizing code, so we created different packages for the different parts of our
-application. We started with separating the code into the packages activities, dataclasses, and operations. This
-made the different parts of the project more easily accessible. Once we implemented the room database, 
-we thought it was best to keep all associated files in a single package. We also decided
-to keep ui.theme within activities because the code is used by all activities. 
-
 
 ## Progress report
 
@@ -345,6 +338,15 @@ Our team communication has been very strong. Through Discord we have been able t
 #### Hisbaan Noorani
 
 #### Ismail Ahmed
+- Search Function
+    - Allow user to look for articles within feeds they're subscribed to
+    - Considering the use of a third-party library for fuzzy word matching to give an
+    approximation about which articles match a user's query
+- Priority
+    - Apply a measure of priority to each feed based on how much they view or like articles
+    within a feed
+    - Considering adding a like/dislike button for articles so we can base the priority of a feed
+    on some calculation of those likes and dislikes
 
 #### Macdeini Niu
 
