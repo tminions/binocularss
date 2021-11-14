@@ -46,6 +46,20 @@ this would have taken too long to implement given our time, but we could look in
 
 Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix
 
+### Single Responsability Principle 
+Besides a minor error mentioned below our code closely follows the single responsability principle. We've done this by seperating our critical data classes into multiple files (Article.kt, Feed.kt, FeedGroup.kt), keepinng our important data operations in seperate files (our code for sorting by date, article title, and feed title are all seperated), and by keeping our UI activites in seperate files as well.
+
+### Open-closed Principle
+
+### Vacuous SOLID
+Two principles of SOLID, Liskov Substitution and Interface Segregation, are never violated in our code as we don't include any chains of inheritance nor define any interfaces. As we don't allow the problem to manifest to begin with we can conclude that our code vacously follows these two principles of SOLID.
+
+### SettingsActivity.kt
+Under SettingsActivity.kt where we handle our user settings, we violate the first principle of clean architecture by including the front-end UI of the settings page with the back-end functinoality under the same file. Ideally we would want to seperate these responsabilities into seperate files so we don't run the rist of alterning the front-end when working on the back-end and vice-versa. To fix this we would seperate the respective code into two files and only link the front-end to the back-end to maintain clean architecture as well.
+
+### Composable Functions
+
+
 ## Packaging Strategies
 
 Android APK vs Android App Bundle. Signed vs Unsigned (we will need to sign it if we publish it) (see slide 7)
