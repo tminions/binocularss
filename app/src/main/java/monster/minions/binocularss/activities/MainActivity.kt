@@ -1,6 +1,7 @@
 package monster.minions.binocularss.activities
 
 import android.annotation.SuppressLint
+import android.app.ListActivity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -252,16 +253,27 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun FeedTitles(navController: NavController) {
+        val context = LocalContext.current
         if (feedGroup.feeds.isNullOrEmpty()) {
             Text(text = "No Feeds Found")
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(vertical = 4.dp)
-                    .border(1.dp, Color.Black)
-            ) {
-                items(items = feedGroup.feeds) { feed ->
-                    DisplayFeed(feed = feed, navController)
+            Column() {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(vertical = 4.dp)
+                        .border(1.dp, Color.Black)
+                ) {
+                    items(items = feedGroup.feeds) { feed ->
+                        DisplayFeed(feed = feed, navController)
+                    }
+                }
+
+                Button(onClick = {
+                    context.startActivity(Intent(context, SearchActivity::class.java))
+                }) {
+                    Text(
+                        text = "Go To Search"
+                    )
                 }
             }
         }

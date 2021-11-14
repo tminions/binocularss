@@ -3,7 +3,9 @@ package monster.minions.binocularss.ui
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
+import androidx.compose.ui.tooling.preview.Preview
 import monster.minions.binocularss.dataclasses.Article
 import androidx.compose.material.icons.filled.Bookmark as FilledBookmarkIcon
 import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIcon
@@ -34,5 +36,21 @@ fun BookmarkFlag(article: Article) {
             imageVector = if (isBookmarked) Icons.Filled.FilledBookmarkIcon else Icons.Filled.EmptyBookmarkIcon,
             contentDescription = null
         )
+    }
+}
+
+
+@Composable
+@Preview
+fun SearchIcon(){
+
+
+    IconButton(
+        onClick = {}
+    ){
+       Icon(
+           imageVector = Icons.Filled.Search,
+           contentDescription = null
+       )
     }
 }
