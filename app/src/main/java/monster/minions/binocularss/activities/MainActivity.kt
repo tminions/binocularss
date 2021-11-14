@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
     // Companion object as this variable needs to be updated from other asynchronous classes.
     companion object {
         var feedGroupText = MutableStateFlow("Empty\n")
-        lateinit var list: SnapshotStateList<Article>
+//        lateinit var list: SnapshotStateList<Article>
     }
 
 
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
             // .cacheExpirationMillis(0)
             .build()
 
-        list = getAllArticles().toMutableStateList()
+//        list = getAllArticles().toMutableStateList()
     }
 
     // /**
@@ -271,12 +271,12 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SortedArticleView(getArticles: () -> MutableList<Article>) {
         val articles = getArticles()
-//        val list = remember { articles.toMutableStateList() }
+        val list = remember { articles.toMutableStateList() }
 
         // TODO sort articles based on criteria
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = list) { article ->
+            items(items = articles) { article ->
                 ArticleCard(context = this@MainActivity, article = article)
             }
         }

@@ -65,7 +65,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
                 }
             }
 
-            MainActivity.list = articles.toMutableStateList()
+//            MainActivity.list = articles.toMutableStateList()
         }
     }
 
