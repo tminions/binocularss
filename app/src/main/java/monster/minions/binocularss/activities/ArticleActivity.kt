@@ -73,6 +73,11 @@ class ArticleActivity : ComponentActivity() {
         Log.d("ArticleActivity", article.toString())
     }
 
+    /**
+     * Composable function for rendering HTML, since Compose does not support HTML
+     *
+     * @param text String of HTML
+     */
     @Composable
     fun Html(text: String) {
         AndroidView(factory = { context ->
@@ -82,6 +87,9 @@ class ArticleActivity : ComponentActivity() {
         })
     }
 
+    /**
+     * Composable function containing the article
+     */
     @Composable
     @Preview
     private fun ArticleContainer() {
@@ -92,41 +100,22 @@ class ArticleActivity : ComponentActivity() {
                 .padding(bottom = 12.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-////        Article title
-//            Text(
-//                text = article.title.toString(),
-//                style = MaterialTheme.typography.h4.copy(fontWeight = FontWeight(700)),
-//                modifier = Modifier.padding(bottom = 4.dp)
-//            )
-////        Article description
-//            Text(
-//                text = article.description.toString(), style = MaterialTheme.typography.body1.copy(
-////                color = MaterialTheme.colors.
-//                )
-//            )
-//
-//            Image(
-//                painter = rememberImagePainter(
-//                    data = if (article.image != null) article.image else "https://miro.medium.com/max/500/0*-ouKIOsDCzVCTjK-.png",
-//                    builder = {
-//                        placeholder(R.drawable.ic_launcher_foreground)
-//                    }
-//                ),
-//                contentDescription = article.description,
-//                modifier = Modifier.fillMaxWidth()
-//            )
-
+//            Article heading
             ArticleHeading()
 
-            if (article.content.isNullOrEmpty()) {
-                Text(
-                    text = "Article has no content",
-                    style = MaterialTheme.typography.body1.copy(fontStyle = FontStyle.Italic)
-                )
-            } else {
-                Html(text = article.content!!.toString())
+            Box(modifier = Modifier.padding(bottom = 12.dp)) {
+//            Article content
+                if (article.content.isNullOrEmpty() || article.content.toString() == "null") {
+                    Text(
+                        text = "Article has no content.",
+                        style = MaterialTheme.typography.body1.copy(fontStyle = FontStyle.Italic)
+                    )
+                } else {
+                    Html(text = article.content!!.toString())
+                }
             }
 
+//            Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -136,7 +125,7 @@ class ArticleActivity : ComponentActivity() {
                         val shareIntent = Intent(Intent.ACTION_SEND)
                         shareIntent.type = "text/plain"
                         shareIntent.putExtra(Intent.EXTRA_TEXT, article.link)
-                        startActivity( Intent.createChooser(shareIntent, "choose one"))
+                        startActivity(Intent.createChooser(shareIntent, "choose one"))
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -162,6 +151,26 @@ class ArticleActivity : ComponentActivity() {
     }
 
     @Composable
+    private fun ArticleInformation(
+        text: String,
+        typeOfInformation: String,
+        atBottom: Boolean = false,
+        style: TextStyle = MaterialTheme.typography.caption
+    ) {
+        Text(
+            text = "By ${
+                if (text.isNullOrEmpty() || text == "null")
+                    "Unknown $typeOfInformation" else text
+            }".uppercase(),
+            style = style,
+            modifier = if (atBottom) Modifier else Modifier.padding(bottom = 4.dp)
+        )
+    }
+
+    /**
+     * Composable fo the heading, including the article title, author, source, and published date
+     */
+    @Composable
     private fun ArticleHeading() {
         Column(modifier = Modifier.padding(bottom = 12.dp)) {
             Text(
@@ -177,32 +186,21 @@ class ArticleActivity : ComponentActivity() {
             Divider(color = Color.LightGray, thickness = 1.dp)
             Spacer(modifier = Modifier.size(12.dp))
 
-            Text(
-                text = "By ${
-                    if (!article.author.isNullOrEmpty() && article.author.toString() != "null") article.author.toString()
-                    else "Unknown author"
-                }".uppercase(),
-                style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight(600)),
-                modifier = Modifier.padding(bottom = 4.dp)
+            ArticleInformation(
+                text = article.author.toString(),
+                typeOfInformation = "author",
+                style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight(600))
             )
 
-            Log.d("asdfjklasdfljkasdfjkl", article.sourceName!!::class.qualifiedName!!)
-
-            Text(
-                text = "From ${
-                    if (!article.sourceName.isNullOrEmpty() && article.sourceName.toString() != "null") article.sourceName.toString()
-                    else "Unknown source"
-                }".uppercase(),
-                style = MaterialTheme.typography.caption,
-                modifier = Modifier.padding(bottom = 4.dp)
+            ArticleInformation(
+                text = article.sourceName.toString(),
+                typeOfInformation = "source",
             )
 
-            Text(
-                text = "Published ${
-                    if (!article.pubDate.isNullOrEmpty()) article.pubDate.toString() else "Unknown date"
-                }".uppercase(),
-
-                style = MaterialTheme.typography.caption
+            ArticleInformation(
+                text = article.pubDate.toString(),
+                typeOfInformation = "date",
+                atBottom = true
             )
 
             Spacer(modifier = Modifier.size(12.dp))

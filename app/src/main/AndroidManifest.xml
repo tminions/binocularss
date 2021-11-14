@@ -20,6 +20,10 @@
             android:label="@string/title_activity_add_feed"
             android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
         <activity
+            android:name=".activities.ArticleActivity"
+            android:exported="false"
+            />
+        <activity
             android:name=".activities.BookmarksActivity"
             android:exported="false" />
         <activity
