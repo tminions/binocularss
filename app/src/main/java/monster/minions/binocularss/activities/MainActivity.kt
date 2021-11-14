@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -200,7 +201,6 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Displays the list of feeds saved
-     * TODO sort feeds alphabetically
      */
     @Composable
     fun FeedTitles() {
@@ -322,7 +322,7 @@ class MainActivity : ComponentActivity() {
     fun Navigation(navController: NavHostController) {
         NavHost(navController, startDestination = NavigationItem.Article.route) {
             composable(NavigationItem.Article.route) {
-                // TODO either do this or just call getAll articles then sort them
+                // TODO make the list update when we update the articles' order
                 SortedArticleView(sortedArticles)
             }
             composable(NavigationItem.Feed.route) {
@@ -357,6 +357,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                // Settings Activity Button
                 IconButton(onClick = {
                     val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {}
                     startActivity(intent)
@@ -389,31 +390,25 @@ class MainActivity : ComponentActivity() {
             NavigationItem.Feed,
         )
         BottomNavigation(
-            backgroundColor = MaterialTheme.colors.background,
-            contentColor = MaterialTheme.colors.onBackground
+            backgroundColor = MaterialTheme.colors.background
         ) {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
             items.forEach { item ->
                 BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            painterResource(id = item.icon),
-                            contentDescription = item.title
-                        )
-                    },
+                    icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
                     label = { Text(text = item.title) },
-                    selectedContentColor = Color.White,
-                    unselectedContentColor = Color.White.copy(0.4f),
+                    selectedContentColor = MaterialTheme.colors.primary,
+                    unselectedContentColor = MaterialTheme.colors.onBackground.copy(0.5f),
                     alwaysShowLabel = true,
-                    selected = false,
+                    selected = currentRoute == item.route,
                     onClick = {
                         navController.navigate(item.route) {
                             navController.graph.startDestinationRoute?.let { route ->
                                 // Pop up to the start destination of the graph to avoid building up
                                 //  a large stack of destinations on the back stack as users select
                                 //  items
-                                popUpTo(route) {
-                                    saveState = true
-                                }
+                                popUpTo(route) { saveState = true }
                             }
                             // Avoid multiple copies of the same destination when re-selecting the
                             //  same item
