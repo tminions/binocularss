@@ -2,6 +2,7 @@ package monster.minions.binocularss.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Contacts
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,10 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
@@ -57,7 +58,9 @@ class MainActivity : ComponentActivity() {
     // Companion object as this variable needs to be updated from other asynchronous classes.
     companion object {
         var feedGroupText = MutableStateFlow("Empty\n")
+        lateinit var list: SnapshotStateList<Article>
     }
+
 
     // Local variables
     private lateinit var currentFeed: Feed
@@ -104,6 +107,8 @@ class MainActivity : ComponentActivity() {
             // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
             // .cacheExpirationMillis(0)
             .build()
+
+        list = getAllArticles().toMutableStateList()
     }
 
     // /**
@@ -214,8 +219,15 @@ class MainActivity : ComponentActivity() {
     fun FeedTitles() {
         if (feedGroup.feeds.isNullOrEmpty()) {
             // Sad minion no feeds found
-            Text(text = "No Feeds Found")
-            AddFeedButton()
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "No Feeds Found")
+                    Spacer(Modifier.padding(16.dp))
+                    AddFeedButton()
+                }
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -231,8 +243,6 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Displays the list of articles associated with a given feed
-     *
-     * @param navController The controller used to navigate between states of the app
      */
     @Composable
     fun ArticlesFromFeed() {
@@ -261,11 +271,12 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SortedArticleView(getArticles: () -> MutableList<Article>) {
         val articles = getArticles()
+//        val list = remember { articles.toMutableStateList() }
 
         // TODO sort articles based on criteria
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = articles) { article ->
+            items(items = list) { article ->
                 ArticleCard(context = this@MainActivity, article = article)
             }
         }

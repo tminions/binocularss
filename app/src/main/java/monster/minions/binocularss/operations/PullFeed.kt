@@ -2,6 +2,7 @@ package monster.minions.binocularss.operations
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
@@ -55,6 +56,16 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             }
             MainActivity.feedGroupText.value = text
             isRefreshing = false
+
+            val articles = mutableListOf<Article>()
+
+            for (feed in localFeedGroup.feeds) {
+                for (article in feed.articles) {
+                    articles.add(article)
+                }
+            }
+
+            MainActivity.list = articles.toMutableStateList()
         }
     }
 
@@ -124,7 +135,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val updatePeriod = channel.updatePeriod.toString()
 
         for (article in channel.articles) {
-            articles.add(articleToArticle(article))
+            articles.add(articleToArticle(article, title))
         }
 
         feed = Feed("", title, link, description, lastBuildDate, image, updatePeriod, articles)
@@ -138,7 +149,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
      * @param oldArticle Article to be converted.
      * @return Converted Article.
      */
-    private fun articleToArticle(oldArticle: com.prof.rssparser.Article): Article {
+    private fun articleToArticle(oldArticle: com.prof.rssparser.Article, sourceTitle: String): Article {
         val article: Article
 
         val title = oldArticle.title.toString()
@@ -153,7 +164,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val guid = oldArticle.guid.toString()
         val sourceName = oldArticle.sourceName.toString()
         val sourceUrl = oldArticle.sourceUrl.toString()
-        val sourceTitle = ""
+        val sourceTitle = sourceTitle
         val categories = oldArticle.categories
 
         article = Article(
@@ -198,7 +209,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             for (pulledArticle in newFeed.articles) {
                 if (article == pulledArticle) {
                     // Satisfy property 3
-                    pulledArticle.sourceTitle = article.sourceTitle
+                    // pulledArticle.sourceTitle = article.sourceTitle
                     pulledArticle.bookmarked = article.bookmarked
                     pulledArticle.read = article.read
                     unionArticles.add(pulledArticle)
