@@ -39,17 +39,25 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import androidx.compose.material.RadioButtonDefaults.colors as radioButtonColors
 import androidx.compose.material.SwitchDefaults.colors as switchColors
 
+/**
+ * Settings Activity responsible for the settings UI and saving changes to settings.
+ */
 class SettingsActivity : ComponentActivity() {
 
+    // SharedPreferences variables.
     private lateinit var sharedPref: SharedPreferences
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
     private var cacheExpiration = 0L
 
+    /**
+     * Create method that sets the UI and initializes lateinit variables.
+     *
+     * @param savedInstanceState bundle to retrieve saved information from.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             themeState = remember { mutableStateOf(theme) }
             BinoculaRSSTheme(
@@ -59,18 +67,23 @@ class SettingsActivity : ComponentActivity() {
             }
         }
 
+        // Initialize lateinit variables.
         sharedPref = this.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE)
         sharedPrefEditor = sharedPref.edit()
         theme = sharedPref.getString(THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
     }
 
+    // Global preference keys to retrieve settings from shared preferences.
     object PreferenceKeys {
         const val SETTINGS = "settings"
         const val THEME = "theme"
         const val CACHE_EXPIRATION = "cacheExpiration"
     }
 
+    /**
+     * Open link with in the user's default browser.
+     */
     private fun openLink(link: String) {
         if (link != "") {
             val intent = Intent(Intent.ACTION_VIEW)
@@ -79,19 +92,28 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Row that renders information popup with close button when clicked.
+     *
+     * @param title Title of the item.
+     * @param subtitle Subtitle of the item.
+     * @param content Content to render within the popup.
+     */
     @Composable
     fun InformationPopupItem(
         title: String,
         subtitle: String = "",
-        content: @Composable () -> Unit
+        content: @Composable () -> Unit,
     ) {
         var showPopup by remember { mutableStateOf(false) }
+        // Main row to be clicked on.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                 .clickable { showPopup = true }
         ) {
+            // Column that contains title and subtitle if defined.
             Column {
                 Text(title)
                 if (subtitle != "") {
@@ -100,15 +122,20 @@ class SettingsActivity : ComponentActivity() {
             }
         }
 
+        // If the popup should be shown ...
         if (showPopup) {
+            // Popup size information.
             val popupHeight = 400.dp
             val cornerSize = 16.dp
 
-            // Create popup
             Popup(
                 alignment = Alignment.Center,
                 onDismissRequest = { showPopup = false }
             ) {
+                // FIXME Surface to dim the background while the popup is in view.
+                //  Surface(modifier = Modifier.fillMaxSize(), color = Color(0x77000000)) {}
+                // Set the elevation of the popup to be higher than default so it appears above
+                //  the background.
                 LocalElevationOverlay.current?.let {
                     Modifier
                         .fillMaxWidth(0.8f)
@@ -122,6 +149,8 @@ class SettingsActivity : ComponentActivity() {
                     Box(
                         it
                     ) {
+                        // Render content of popup passed as lambda function along with title and
+                        //  close button.
                         Column(modifier = Modifier.selectableGroup()) {
                             Text(text = title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             content()
@@ -140,13 +169,22 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Row that links to a given email when clicked.
+     *
+     * @param title Title of the item.
+     * @param subtitle Subtitle of the item.
+     * @param email Email to be send to.
+     */
     @Composable
     fun EmailItem(title: String, subtitle: String = "", email: String = "") {
+        // Main row to be clicked on.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                 .clickable {
+                    // on click, send to email application.
                     if (email != "") {
                         val intent = Intent(Intent.ACTION_SEND)
                         intent.data = Uri.parse("mailto:")
@@ -155,6 +193,7 @@ class SettingsActivity : ComponentActivity() {
                         startActivity(Intent.createChooser(intent, "Select an email application"))
                     }
                 }) {
+            // Render title and subtitle.
             Column {
                 Text(title)
                 if (subtitle != "") {
@@ -164,14 +203,20 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Item that takes user to linked website in their browser when clicked.
+     */
     @Composable
     fun LinkItem(title: String, subtitle: String = "", link: String = "") {
+        // Main row to be clicked on.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                // Open link when clicked.
                 .clickable { openLink(link) }
         ) {
+            // Column that renders title and subtitle.
             Column {
                 Text(title)
                 if (subtitle != "") {
@@ -181,20 +226,32 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Item that renders a popup with radio buttons and a cancel button when clicked on that runs
+     * a function passed as a lambda when an option is selected.
+     *
+     * @param title: Title of the item.
+     * @param subtitle: Subtitle of the item.
+     * @param radioOptions: List of strings that will be rendered as radio button text.
+     * @param initialItem: Item to be initially selected.
+     * @param onSelect: Function to be run when an option is selected.
+     */
     @Composable
     fun MultipleOptionItem(
         title: String,
         subtitle: String = "",
         radioOptions: List<String>,
-        currentItem: String = radioOptions[0],
-        onChangeFunction: (text: String) -> Unit
+        initialItem: String = radioOptions[0],
+        onSelect: (text: String) -> Unit,
     ) {
         var showPopup by remember { mutableStateOf(false) }
+        // Main row to be clicked on.
         Row(
             Modifier
                 .fillMaxWidth()
                 .clickable { showPopup = true }
                 .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp)) {
+            // Column that renders the title and subtitle.
             Column {
                 Text(title)
                 if (subtitle != "") {
@@ -203,22 +260,20 @@ class SettingsActivity : ComponentActivity() {
             }
         }
 
+        // If the popup is to be shown ...
         if (showPopup) {
-            // TODO possibly find a way to get 70% of parent width
-            val popupWidth = 300.dp
-
-            // Get popup height based on number of elements to display
+            // Get popup height based on number of elements to display.
             var popupHeight = 90.dp
             for (i in radioOptions) {
                 popupHeight += 56.dp
             }
             val cornerSize = 16.dp
 
-            // Create popup
             Popup(
                 alignment = Alignment.Center,
                 onDismissRequest = { showPopup = false }
             ) {
+                // Elevate the popup so it is distinguishable from the background.
                 LocalElevationOverlay.current?.let {
                     Modifier
                         .fillMaxWidth(0.8f)
@@ -234,10 +289,11 @@ class SettingsActivity : ComponentActivity() {
                     ) {
                         val (selectedOption, onOptionSelected) = remember {
                             mutableStateOf(
-                                currentItem
+                                initialItem
                             )
                         }
 
+                        // Render radio buttons, title, text, and cancel button.
                         Column(modifier = Modifier.selectableGroup()) {
                             Text(text = subtitle, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             radioOptions.forEach { text ->
@@ -248,8 +304,12 @@ class SettingsActivity : ComponentActivity() {
                                         .selectable(
                                             selected = (text == selectedOption),
                                             onClick = {
+                                                // When a radio button is selected, set it to be s
+                                                //  elected.
                                                 onOptionSelected(text)
-                                                onChangeFunction(text)
+                                                // Call the provided function.
+                                                onSelect(text)
+                                                // Dismiss the popup.
                                                 showPopup = false
                                             },
                                             role = Role.RadioButton
@@ -271,7 +331,6 @@ class SettingsActivity : ComponentActivity() {
                                     )
                                 }
                             }
-
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
@@ -287,9 +346,23 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Render item and toggle switch for boolean preferences
+     *
+     * @param title Title of the item.
+     * @param subtitle Subtitle of the item.
+     * @param checked Whether or not the item is initially checked.
+     * @param onToggle The function that is run when the switch is toggled.
+     */
     @Composable
-    fun ToggleItem(title: String, subtitle: String = "") {
-        var checkedState by remember { mutableStateOf(true) }
+    fun ToggleItem(
+        title: String,
+        subtitle: String = "",
+        checked: Boolean = false,
+        onToggle: (state: Boolean) -> Unit,
+    ) {
+        var checkedState by remember { mutableStateOf(checked) }
+        // Main row to be clicked on.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -297,15 +370,20 @@ class SettingsActivity : ComponentActivity() {
                 .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Render title and subtitle.
             Column {
                 Text(title)
                 if (subtitle != "") {
                     Text(subtitle)
                 }
             }
+            // Switch that toggles preferences.
             Switch(
                 checked = checkedState,
-                onCheckedChange = { checkedState = it },
+                onCheckedChange = {
+                    checkedState = it
+                    onToggle(it)
+                },
                 colors = switchColors(
                     checkedThumbColor = MaterialTheme.colors.primary,
                     checkedTrackColor = MaterialTheme.colors.primary,
@@ -315,6 +393,11 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Title of a preference section like Appearance or About
+     *
+     * @param title Title of the preference section.
+     */
     @Composable
     fun PreferenceTitle(title: String) {
         Text(
@@ -330,6 +413,9 @@ class SettingsActivity : ComponentActivity() {
         )
     }
 
+    /**
+     * Top navigation bar
+     */
     @Composable
     fun TopBar() {
         Row(
@@ -339,6 +425,7 @@ class SettingsActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Back button icon that goes back one activity.
             IconButton(onClick = {
                 finish()
             }) {
@@ -348,14 +435,18 @@ class SettingsActivity : ComponentActivity() {
                 )
             }
             Spacer(Modifier.padding(4.dp))
+            // Title of current page.
             Text("Settings", style = MaterialTheme.typography.h5)
         }
     }
 
+    /**
+     * Compilation of UI elements in the correct order.
+     */
     @Preview(showBackground = true)
     @Composable
     fun UI() {
-        // Set status bar and nav bar colours
+        // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
         val color = MaterialTheme.colors.background
@@ -366,6 +457,7 @@ class SettingsActivity : ComponentActivity() {
             )
         }
 
+        // Surface as a background.
         Surface(color = MaterialTheme.colors.background) {
             val padding = 16.dp
 
@@ -384,31 +476,41 @@ class SettingsActivity : ComponentActivity() {
 
             Surface(color = MaterialTheme.colors.background) {
                 Scaffold(topBar = { TopBar() }) {
+                    // Column of all the preference items.
                     Column(
                         Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .padding(top = padding, bottom = padding)
+                            .padding(vertical = padding)
                             .verticalScroll(rememberScrollState())
                     ) {
                         PreferenceTitle(title = "Appearance")
+                        // Theme selector.
                         MultipleOptionItem(
                             title = "Theme",
                             subtitle = themeSubtitle,
                             radioOptions = listOf("Light Theme", "Dark Theme", "System Default"),
-                            currentItem = themeSubtitle,
-                            onChangeFunction = {
+                            initialItem = themeSubtitle,
+                            onSelect = {
+                                // Update the subtitle and theme of the current activity.
+                                themeSubtitle = it
+                                themeState.value = it
+                                // Update the shared preferences.
                                 sharedPrefEditor.putString(THEME, it)
                                 sharedPrefEditor.apply()
                                 sharedPrefEditor.commit()
-                                themeSubtitle = it
-                                themeState.value = it
                             }
                         )
-                        ToggleItem(title = "Material You Theme")
+                        // Material You toggle.
+                        ToggleItem(
+                            title = "Material You Theme",
+                            checked = false, // TODO get this value from shared preferences
+                            onToggle = {println(it)/* TODO set shared preferences here */ }
+                        )
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                         PreferenceTitle(title = "Preferences")
+                        // Cache expiration time selector.
                         MultipleOptionItem(
                             title = "Cache Expiration Time",
                             subtitle = cacheSubtitle,
@@ -421,8 +523,8 @@ class SettingsActivity : ComponentActivity() {
                                 "15 Minutes",
                                 "Off"
                             ),
-                            currentItem = cacheSubtitle,
-                            onChangeFunction = {
+                            initialItem = cacheSubtitle,
+                            onSelect = {
                                 var cacheExpiration = 0L
                                 when (it) {
                                     "24 Hours" -> cacheExpiration = 24L * 60L * 60L * 1000L
@@ -433,7 +535,9 @@ class SettingsActivity : ComponentActivity() {
                                     "15 Minutes" -> cacheExpiration = 15L * 60L * 1000L
                                     "Off" -> cacheExpiration = 0L
                                 }
+                                // Update the subtitle.
                                 cacheSubtitle = it
+                                // Update the shared preferences.
                                 sharedPrefEditor.putLong(CACHE_EXPIRATION, cacheExpiration)
                                 sharedPrefEditor.apply()
                                 sharedPrefEditor.commit()
@@ -442,14 +546,17 @@ class SettingsActivity : ComponentActivity() {
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                         PreferenceTitle(title = "Support")
+                        // Email item
                         EmailItem(
                             title = "Contact",
                             email = "hisbaan@gmail.com"
                         )
+                        // Item that links to feedback form.
                         LinkItem(
                             title = "Feedback",
                             link = "google form or something"
                         )
+                        // Item that links to github issues page.
                         LinkItem(
                             title = "Bug Report",
                             link = "https://github.com/tminions/binocularss/issues/new"
@@ -457,16 +564,19 @@ class SettingsActivity : ComponentActivity() {
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                         PreferenceTitle(title = "About")
+                        // Item that links to github source code page.
                         LinkItem(
                             title = "GitHub",
                             subtitle = "github.com/tminions/binocularss",
                             link = "https://github.com/tminions/binocularss"
                         )
+                        // Item that links to github releases.
                         LinkItem(
                             title = "Version",
                             subtitle = "1.0",
                             link = "https://github.com/tminions/binocularss/releases"
                         )
+                        // Popup information on all the open source libraries used.
                         InformationPopupItem(title = "Open Source Libraries") {
                             Text(
                                 "RSS-Parser",
@@ -488,6 +598,7 @@ class SettingsActivity : ComponentActivity() {
                                 Modifier
                                     .padding(top = 4.dp)
                                     .clickable { openLink("https://material.io/design/color/the-color-system.html#color-theme-creation") })
+                            // TODO finish adding libraries then size the popup accordinly
                         }
                     }
                 }
