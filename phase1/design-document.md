@@ -275,6 +275,16 @@ inner Composables and placing them in different functions. This would make each 
 easier to read and debug.
 
 
+## Code Organization
+
+By default, Android Studio throws any files that we create into a single folder. Obviously this is
+not an ideal way of organizing code, so we created different packages for the different parts of our
+application. We started with separating the code into the packages activities, dataclasses, and operations. This
+made the different parts of the project more easily accessible. Once we implemented the room database, 
+we thought it was best to keep all associated files in a single package. We also decided
+to keep ui.theme within activities because the code is used by all activities. 
+
+
 ## Progress report
 
 ### Open Questions
