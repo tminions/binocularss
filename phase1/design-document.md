@@ -345,6 +345,15 @@ Our team communication has been very strong. Through Discord we have been able t
 #### Hisbaan Noorani
 
 #### Ismail Ahmed
+- Search Function
+    - Allow user to look for articles within feeds they're subscribed to
+    - Considering the use of a third-party library for fuzzy word matching to give an
+    approximation about which articles match a user's query
+- Priority
+    - Apply a measure of priority to each feed based on how much they view or like articles
+    within a feed
+    - Considering adding a like/dislike button for articles so we can base the priority of a feed
+    on some calculation of those likes and dislikes
 
 #### Macdeini Niu
 
