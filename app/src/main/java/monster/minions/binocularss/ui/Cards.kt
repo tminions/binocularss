@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -156,11 +157,17 @@ fun ArticleCard(context: Context, article: Article) {
                             diff < 1000L * 60L * 60L * 24L * 30L -> {
                                 time = "${diff / (1000L * 60L * 60L * 24L)}d"
                             }
+                            diff < 1000L * 60L * 60L * 24L * 30L * 12L -> {
+                                time = "${diff / (1000L * 60L * 60L * 24L * 30L)}M"
+                            }
+                            else -> {
+                                time = "${diff / (1000L * 60L * 60L * 24L * 30L * 12L)}Y"
+                            }
                         }
                     } catch (e: ParseException) {
-                        e.printStackTrace()
+//                        e.printStackTrace()
                         // time = "Invalid Date"
-                        time = ""
+                        time = article.pubDate.toString()
                     }
                     Text(text = time)
                 }
