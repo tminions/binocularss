@@ -12,6 +12,18 @@ Also talk about clean architecture here
 - For each major design decision, justify the choice we made
   - like the library
 
+### Kotlin:
+Early in the develpoment period we decided to change our language from Java to Kotlin. This was done primarily for two reasons, the first being general readability. Kotlin removes a lot of the boilerplate code used in Java which improves readability and makes our code more concise (example under refactoring). The second reason was so we could use the Jetpack Compose library for building our UI. Compared to using XML files Compose is a more intuitive and less clunky way for creating UI, making the development process more streamlined and making our code cleaner. 
+
+### RRS Parser Library:
+We originally intended to write our own class to parse an RSS feed but we eventually decided to use a library instead.  We decided to use a library for a couple of reasons, but the main one was the insane complexity of the RSS standard. It was much more complex than we initially assumed. There are multiple competing standards and in order to create a system capable of handling all of the cases, we would need approximately 3600 lines of kotlin code (approximated from the used library) - far too much to write within the scope of this project on one of many functions.
+
+### Room Database:
+In order to add data persistence to our program we were debating whether to use the Room Database library or savedInstanceState. We decided on using Room because savedInstanceState doesn't persist data beyond one life cycle, however with Room we can save our data to a local database that will perserve our data over multiple lifecycles. This saves bandwidth as we don't have to retrieve feeds everytime the lifecycle renews and users can choose to perserve articles of their choice.
+
+
+
+
 ## Clean Architecture
 
 Our code fell into three camps. The first was good, "clean", code. This did not necessitate fixing. The second and third are both considered "unclean" code. This unclean branch was further divided into violations that we knew how to fix, and violations that we did not know how to fix. 
@@ -113,10 +125,9 @@ for Phase 1 was our Features board which is where we would create new features t
 features that were in progress, under review or completed. We also marked each task within the project
 board with our initials so that other members could easily see who was working on what.
 
-### Actions
+### Discord 
 
-
-### Issues
+Althought not a Github feature, our team's primary source of communication has been through Discord. Instead of using Github Issues, we went through any errors and issues through Discord as it's more convenient to use for all of us.
 
 ## Refactoring
 
@@ -239,7 +250,13 @@ easier to read and debug.
 
 ### Open Questions
 
+Avoiding burnout?
+
 ### What has worked well so far
+
+The transition from Java to Kotlin was smooth as there was a lot of good documentation and guides online to help us with our code.
+
+Our team communication has been very strong. Through Discord we have been able to keep in contact with every group member and keep up to date with all of our progress.
 
 ### Group Member Breakdown
 
@@ -274,6 +291,7 @@ easier to read and debug.
 - Sorting/Filtering system
 
 #### Simon Chen
+- TBD
 
 #### Tai Zhang
 
