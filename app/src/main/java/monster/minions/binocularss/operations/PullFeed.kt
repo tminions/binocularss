@@ -41,7 +41,8 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
      */
     @DelicateCoroutinesApi
     fun updateRss(parser: Parser) {
-        GlobalScope.launch(Dispatchers.Main) {
+        val scope = CoroutineScope(Job() + Dispatchers.IO)
+        scope.launch {
             isRefreshing = true
             // Update feedGroup variable
             localFeedGroup = pullRss(localFeedGroup, parser)
