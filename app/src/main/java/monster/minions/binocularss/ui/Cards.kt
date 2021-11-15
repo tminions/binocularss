@@ -181,7 +181,7 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                 BookmarkFlag(article = article) { updateValues(article) }
                 ShareFlag(context = context, article = article)
                 ReadFlag(article = article) { updateValues(article) }
-                // TODO eamon add open link in browser icon
+                BrowserFlag(context = context, article = article)
             }
         }
     }

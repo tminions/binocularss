@@ -2,13 +2,11 @@ package monster.minions.binocularss.ui
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.PanoramaFishEye
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat.startActivity
 import monster.minions.binocularss.dataclasses.Article
@@ -84,6 +82,30 @@ fun ShareFlag(context: Context, article: Article) {
         Icon(
             imageVector = Icons.Filled.Share,
             contentDescription = "Share"
+        )
+    }
+}
+
+
+/**
+ * Composable representing a flag for each bookmarked
+ * article
+ *
+ * @param context The application context from which to share
+ * @param article Article that is currently being displayed
+ */
+@Composable
+fun BrowserFlag(context: Context, article: Article) {
+    IconButton(
+        onClick = {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse(article.link)
+            startActivity(context, intent, null)
+        }
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Public,
+            contentDescription = "Open in browser"
         )
     }
 }
