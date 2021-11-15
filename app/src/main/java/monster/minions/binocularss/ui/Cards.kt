@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat.startActivity
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import monster.minions.binocularss.R
+import monster.minions.binocularss.activities.ArticleActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import java.text.DateFormat
@@ -43,7 +44,7 @@ fun FeedCard(context: Context, feed: Feed) {
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                // TODO temporary until article view
+                // TODO temporary until articleFromFeed
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.data = Uri.parse(feed.link)
                 startActivity(context, intent, null)
@@ -116,9 +117,8 @@ fun ArticleCard(context: Context, article: Article) {
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                // TODO temporary until article view
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.data = Uri.parse(article.link)
+                val intent = Intent(context, ArticleActivity::class.java)
+                intent.putExtra("article", article)
                 startActivity(context, intent, null)
             },
         elevation = 4.dp
@@ -137,39 +137,7 @@ fun ArticleCard(context: Context, article: Article) {
                         Text(text = title, fontWeight = FontWeight.SemiBold)
                     }
                     Text(text = article.sourceTitle)
-                    val formatter: DateFormat =
-                        SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
-                    var time = ""
-                    try {
-                        val date =
-                            if (article.pubDate != null) formatter.parse(article.pubDate!!)
-                            else formatter.parse("Mon, 01 Jan 1970 00:00:00 GMT")
-
-                        val diff: Long = Date().time - date!!.time
-
-                        when {
-                            diff < 1000L * 60L * 60L -> {
-                                time = "${diff / (1000L * 60L)}m"
-                            }
-                            diff < 1000L * 60L * 60L * 24L -> {
-                                time = "${diff / (1000L * 60L * 60L)}h"
-                            }
-                            diff < 1000L * 60L * 60L * 24L * 30L -> {
-                                time = "${diff / (1000L * 60L * 60L * 24L)}d"
-                            }
-                            diff < 1000L * 60L * 60L * 24L * 30L * 12L -> {
-                                time = "${diff / (1000L * 60L * 60L * 24L * 30L)}M"
-                            }
-                            else -> {
-                                time = "${diff / (1000L * 60L * 60L * 24L * 30L * 12L)}Y"
-                            }
-                        }
-                    } catch (e: ParseException) {
-//                        e.printStackTrace()
-                        // time = "Invalid Date"
-                        time = article.pubDate.toString()
-                    }
-                    Text(text = time)
+                    Text(text = getTime(article.pubDate!!))
                 }
 
                 Box(
