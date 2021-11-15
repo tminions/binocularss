@@ -48,6 +48,7 @@ import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import java.util.*
 
+
 class MainActivity : ComponentActivity() {
     companion object {
         lateinit var articleList: MutableStateFlow<MutableList<Article>>
