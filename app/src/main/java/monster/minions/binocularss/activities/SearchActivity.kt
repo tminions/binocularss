@@ -1,10 +1,12 @@
 package monster.minions.binocularss.activities
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.prof.rssparser.Parser
+import me.xdrop.fuzzywuzzy.FuzzySearch
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
@@ -34,17 +37,27 @@ class SearchActivity : ComponentActivity() {
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
 
+
+    // User Preferences
+    private lateinit var sharedPref: SharedPreferences
+    private lateinit var sharedPrefEditor: SharedPreferences.Editor
+    private lateinit var theme: String
+    private lateinit var themeState: MutableState<String>
+    private var isFirstRun = true
+    private var cacheExpiration = 0L
+
+
     private var text = mutableStateOf("")
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BinoculaRSSTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    UI()
-                }
+            themeState = remember { mutableStateOf(theme) }
+            BinoculaRSSTheme(
+                theme = themeState.value
+            ) {
+               UI()
             }
         }
 
@@ -94,7 +107,9 @@ class SearchActivity : ComponentActivity() {
         feedGroup.feeds = feedDao.getAll()
     }
 
-
+    /**
+     *
+     */
     private fun getAllArticles(): MutableList<Article> {
         val articles: MutableList<Article> = mutableListOf()
 
@@ -114,13 +129,19 @@ class SearchActivity : ComponentActivity() {
      */
     private fun submit(query: String): MutableList<Article>{
 
+        // TODO: Change it so that it ranks the articles based on how well they match
         val articles: MutableList<Article> = getAllArticles()
         val matchedArticles: MutableList<Article> = mutableListOf()
 
+
+
         for (article in articles){
-            if (matches(query = query, article = article)){
+            val simpleRatio = FuzzySearch.ratio(query, article.title)
+
+            if (simpleRatio > 75){
                 matchedArticles.add(article)
             }
+
         }
 
         return matchedArticles
@@ -136,9 +157,6 @@ class SearchActivity : ComponentActivity() {
      */
     private fun matches(query: String, article: Article): Boolean {
 
-
-
-
         return true
     }
 
@@ -146,24 +164,30 @@ class SearchActivity : ComponentActivity() {
     @Preview
     fun UI(){
 
-        Column(
-
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(),
+            color = MaterialTheme.colors.background,
         ) {
-            Surface(
+
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                color = MaterialTheme.colors.primary,
-            ) {
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                ){
-                    SearchBar()
-                }
-
+                    .fillMaxWidth()
+                    .padding(12.dp)
+            ){
+                SearchBar()
             }
+
+        }
+
+    }
+
+    @Composable
+    fun ArticleSearchResults(matchedArticles: MutableList<Article>){
+
+        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+
+
         }
 
     }
@@ -173,24 +197,20 @@ class SearchActivity : ComponentActivity() {
     fun SearchBar() {
         val textState = remember { mutableStateOf(TextFieldValue()) }
 
-        Surface(
-            color = MaterialTheme.colors.background
-        ) {
 
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(0.7f),
-                value = textState.value,
-                placeholder = { Text("Search for an article") },
-                onValueChange = {
-                    textState.value = it
-                    text = mutableStateOf(textState.value.text)
-                },
-                singleLine = true,
-                maxLines = 1,
-                trailingIcon = { SearchIcon() },
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(0.7f),
+            value = textState.value,
+            placeholder = { Text("Search for an article") },
+            onValueChange = {
+                textState.value = it
+                text = mutableStateOf(textState.value.text)
+            },
+            singleLine = true,
+            maxLines = 1,
+            trailingIcon = { SearchIcon(textState.toString(), ::submit) },
 
-                )
-        }
+            )
     }
 }
 

@@ -2,6 +2,7 @@ package monster.minions.binocularss.ui
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -89,8 +90,8 @@ fun ReadFlag(article: Article) {
 }
 
 @Composable
-@Preview
-fun SearchIcon(){
+fun SearchIcon(query: String, submit: (query: String) -> Unit){
+    Log.d("QUERY:", query)
 
 
     IconButton(
