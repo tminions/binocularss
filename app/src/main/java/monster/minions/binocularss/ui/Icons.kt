@@ -23,18 +23,43 @@ import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIco
  * @param article Article that is currently being displayed
  */
 @Composable
-fun BookmarkFlag(article: Article) {
-    var isBookmarked by remember { mutableStateOf(article.bookmarked) }
+fun BookmarkFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
+    var isBookmark by remember { mutableStateOf(article.bookmarked) }
 
     IconButton(
         onClick = {
-            isBookmarked = !isBookmarked
+            isBookmark = !isBookmark
             article.bookmarked = !article.bookmarked
+            extraAction(article)
         }
     ) {
         Icon(
-            imageVector = if (isBookmarked) Icons.Filled.FilledBookmarkIcon else Icons.Filled.EmptyBookmarkIcon,
-            contentDescription = if (isBookmarked) "Click to unbookmark" else "Click to bookmark"
+            imageVector = if (article.bookmarked) Icons.Filled.FilledBookmarkIcon else Icons.Filled.EmptyBookmarkIcon,
+            contentDescription = if (isBookmark) "Mark as unbookmarked" else "Mark as bookmarked"
+        )
+    }
+}
+
+/**
+ * Composable representing a flag for each bookmarked
+ * article
+ *
+ * @param article Article that is currently being displayed
+ */
+@Composable
+fun ReadFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
+    var isRead by remember { mutableStateOf(article.read) }
+
+    IconButton(
+        onClick = {
+            isRead = !isRead
+            article.read = !article.read
+            extraAction(article)
+        }
+    ) {
+        Icon(
+            imageVector = if (article.read) Icons.Filled.TaskAlt else Icons.Filled.PanoramaFishEye,
+            contentDescription = if (isRead) "Mark as unread" else "Mark as read"
         )
     }
 }
@@ -59,29 +84,6 @@ fun ShareFlag(context: Context, article: Article) {
         Icon(
             imageVector = Icons.Filled.Share,
             contentDescription = "Share"
-        )
-    }
-}
-
-/**
- * Composable representing a flag for each bookmarked
- * article
- *
- * @param article Article that is currently being displayed
- */
-@Composable
-fun ReadFlag(article: Article) {
-    var isRead by remember { mutableStateOf(article.read) }
-
-    IconButton(
-        onClick = {
-            isRead = !isRead
-            article.read = !article.read
-        }
-    ) {
-        Icon(
-            imageVector = if (article.read) Icons.Filled.TaskAlt else Icons.Filled.PanoramaFishEye,
-            contentDescription = if (isRead) "Mark as unread" else "Mark as read"
         )
     }
 }
