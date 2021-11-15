@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
@@ -54,6 +52,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         lateinit var articleList: MutableStateFlow<MutableList<Article>>
         lateinit var feedList: MutableStateFlow<MutableList<Feed>>
+        lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
     }
 
     // FeedGroup object
@@ -122,9 +121,10 @@ class MainActivity : ComponentActivity() {
             .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
             .build()
 
-        // Refresh LazyColumn composable
+        // Refresh LazyColumn composables
         articleList = MutableStateFlow(mutableListOf())
         feedList = MutableStateFlow(mutableListOf())
+        bookmarkedArticleList = MutableStateFlow(mutableListOf())
     }
 
     /**

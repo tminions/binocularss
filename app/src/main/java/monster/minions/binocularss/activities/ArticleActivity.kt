@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -31,15 +30,14 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.prof.rssparser.Parser
 import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.sortArticlesByDate
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.BookmarkFlag
@@ -94,16 +92,6 @@ class ArticleActivity : ComponentActivity() {
         article = intent.getParcelableExtra("article")!!
     }
 
-    private fun getAllArticles(): MutableList<Article> {
-        val articles = mutableListOf<Article>()
-        for (feed in feedGroup.feeds) {
-            for (article in feed.articles) {
-                articles.add(article)
-            }
-        }
-        return articles
-    }
-
     private fun setArticle(article: Article) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
@@ -117,9 +105,8 @@ class ArticleActivity : ComponentActivity() {
         }
 
         // Recompose LazyColumn
-        // feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
-        MainActivity.articleList.value = mutableListOf<Article>()
-        BookmarksActivity.bookmarkedArticleList.value = mutableListOf<Article>()
+        MainActivity.articleList.value = mutableListOf()
+        MainActivity.bookmarkedArticleList.value = mutableListOf()
     }
 
     /**
@@ -135,7 +122,7 @@ class ArticleActivity : ComponentActivity() {
         Log.d("MainActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
 
-        BookmarksActivity.bookmarkedArticleList.value = mutableListOf<Article>()
+        MainActivity.bookmarkedArticleList.value = mutableListOf()
     }
 
     /**
@@ -231,7 +218,6 @@ class ArticleActivity : ComponentActivity() {
         val useDarkIcons = MaterialTheme.colors.isLight
         val color = MaterialTheme.colors.background
         // Get elevated color to match the bottom bar that is also elevated by 8.dp
-        val elevatedColor = LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -313,7 +299,7 @@ class ArticleActivity : ComponentActivity() {
     ) {
         Text(
             text = "$prefix${
-                if (text.isNullOrEmpty() || text == "NULL")
+                if (text.isEmpty() || text == "NULL")
                     "UNKNOWN ${typeOfInformation.uppercase()}" else text
             }",
             style = style,
@@ -324,6 +310,7 @@ class ArticleActivity : ComponentActivity() {
     /**
      * Composable fo the heading, including the article title, author, source, and published date
      */
+    @ExperimentalCoilApi
     @Composable
     private fun ArticleHeading() {
         Column(modifier = Modifier.padding(bottom = 12.dp)) {

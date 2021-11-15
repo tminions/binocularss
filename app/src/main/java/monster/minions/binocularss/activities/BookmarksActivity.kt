@@ -21,7 +21,6 @@ import androidx.room.RoomDatabase
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import kotlinx.coroutines.flow.MutableStateFlow
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
@@ -31,10 +30,6 @@ import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 
 class BookmarksActivity : AppCompatActivity() {
-    companion object {
-        lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
-    }
-
     // Set up room database for this specific activity
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
@@ -58,7 +53,7 @@ class BookmarksActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    UI(sortArticlesByDate(getBookmarkedArticles(feedGroup)))
+                    UI()
                 }
             }
         }
@@ -78,8 +73,6 @@ class BookmarksActivity : AppCompatActivity() {
             AppDatabase::class.java, "feed-db"
         ).allowMainThreadQueries().build()
         feedDao = (db as AppDatabase).feedDao()
-
-        bookmarkedArticleList = MutableStateFlow(mutableListOf())
     }
 
 
@@ -110,16 +103,12 @@ class BookmarksActivity : AppCompatActivity() {
         }
     }
 
-    // FIXME do the same state stuff to this one but only for bookmarked articles
     /**
      * Composable function that generates the list of bookmarked
      * articles
-     *
-     * @param bookmarked_articles MutableList of articles that are bookmarked
-     * across all feeds
      */
     @Composable
-    fun UI(bookmarked_articles: MutableList<Article>) {
+    fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
@@ -135,7 +124,7 @@ class BookmarksActivity : AppCompatActivity() {
             Scaffold(topBar = { TopBar() }) {
                 // Swipe refresh variables.
                 var isRefreshing by remember { mutableStateOf(false) }
-                val list by bookmarkedArticleList.collectAsState()
+                val list by MainActivity.bookmarkedArticleList.collectAsState()
 
                 // SwipeRefresh to refresh the list of bookmarked articles
                 SwipeRefresh(
@@ -143,7 +132,8 @@ class BookmarksActivity : AppCompatActivity() {
                     onRefresh = {
                         // update the list
                         isRefreshing = true
-                        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                        MainActivity.bookmarkedArticleList.value =
+                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
                         isRefreshing = false
                     }
                 ) {
@@ -213,6 +203,7 @@ class BookmarksActivity : AppCompatActivity() {
 
         // MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         // MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value =
+            sortArticlesByDate(getBookmarkedArticles(feedGroup))
     }
 }
