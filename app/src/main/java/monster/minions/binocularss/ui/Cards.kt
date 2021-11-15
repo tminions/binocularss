@@ -28,15 +28,53 @@ import monster.minions.binocularss.activities.ArticleActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 
-// Color matrix to turn image grayscale
-val grayScaleMatrix = ColorMatrix(
-    floatArrayOf(
-        0.33f, 0.33f, 0.33f, 0f, 0f,
-        0.33f, 0.33f, 0.33f, 0f, 0f,
-        0.33f, 0.33f, 0.33f, 0f, 0f,
-        0f, 0f, 0f, 1f, 0f
+@Composable
+fun CardImage(image: String, description: String = "") {
+
+    // Color matrix to turn image grayscale
+    val grayScaleMatrix = ColorMatrix(
+        floatArrayOf(
+            0.33f, 0.33f, 0.33f, 0f, 0f,
+            0.33f, 0.33f, 0.33f, 0f, 0f,
+            0.33f, 0.33f, 0.33f, 0f, 0f,
+            0f, 0f, 0f, 1f, 0f
+        )
     )
-)
+
+    val imageExists = image != "null" && image != null
+
+    // Box for image on the right.
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        elevation = 4.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .size(150.dp, 150.dp)
+                .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
+        ) {
+            Image(
+                painter = rememberImagePainter(
+                    data =
+                    if (imageExists) image
+                    else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                    builder = {
+                        // Placeholder when the image hasn't loaded yet.
+                        placeholder(R.drawable.ic_launcher_foreground)
+                    }
+                ),
+                contentScale = ContentScale.Crop,
+                contentDescription = description,
+                colorFilter = if (imageExists) null else colorMatrix(
+                    grayScaleMatrix
+                ),
+                modifier = Modifier
+                    .fillMaxSize()
+            )
+        }
+    }
+}
 
 /**
  * Displays a single feed in a card view format
@@ -76,30 +114,7 @@ fun FeedCard(context: Context, feed: Feed) {
 
                 val imageExists = feed.image != "null"
 
-                // Box for feed image if there is one.
-                Box(
-                    Modifier
-                        .size(150.dp, 150.dp)
-                        .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
-                ) {
-                    // TODO rounded corners
-                    Image(
-                        painter = rememberImagePainter(
-                            data = if (imageExists) feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
-                            builder = {
-                                // Placeholder when the image hasn't loaded yet.
-                                placeholder(R.drawable.ic_launcher_foreground)
-                            }
-                        ),
-                        colorFilter = if (imageExists) null else colorMatrix(
-                            grayScaleMatrix
-                        ),
-                        contentScale = ContentScale.Crop,
-                        contentDescription = feed.description,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    )
-                }
+                CardImage(image = feed.image, description = feed.description!!)
             }
         }
 
@@ -143,7 +158,9 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
             ) {
                 // Column for title, feed, and time.
                 Column(
-                    modifier = Modifier.width(200.dp).padding(end = 12.dp)
+                    modifier = Modifier
+                        .width(200.dp)
+                        .padding(end = 12.dp)
                 ) {
                     article.title?.let { title ->
                         Text(text = title, fontWeight = FontWeight.SemiBold)
@@ -152,39 +169,7 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                     Text(text = getTime(article.pubDate!!))
                 }
 
-                val imageExists = article.image != "null"
-
-                // Box for image on the right.
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    elevation = 4.dp
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(150.dp, 150.dp)
-                            .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
-                    ) {
-                        Image(
-                            painter = rememberImagePainter(
-                                data =
-                                if (imageExists) article.image
-                                else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
-                                builder = {
-                                    // Placeholder when the image hasn't loaded yet.
-                                    placeholder(R.drawable.ic_launcher_foreground)
-                                }
-                            ),
-                            contentScale = ContentScale.Crop,
-                            contentDescription = article.description,
-                            colorFilter = if (imageExists) null else colorMatrix(
-                                grayScaleMatrix
-                            ),
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
-                    }
-                }
+                CardImage(image = article.image!!, description = article.description!!)
             }
 
             // Row for buttons on the bottom.
