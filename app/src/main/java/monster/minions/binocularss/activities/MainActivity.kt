@@ -220,7 +220,10 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "No Feeds Found")
+                Text(
+                    text = "No Feeds Found",
+                    style = MaterialTheme.typography.h5
+                )
                 Spacer(Modifier.padding(16.dp))
                 Button(
                     onClick = {
@@ -265,23 +268,45 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Displays a list of articles in the order given by the currently selected sorting method
-     *
-     * TODO eamon copy the implementation from SortedFeedView for prompting the user to add a feed
-     *  before anything is there but change the text to say no articles found
      */
     @Composable
     fun SortedArticleView() {
         // Mutable state variable that is updated when articleList is updated to force a recompose.
         val articles by articleList.collectAsState()
 
-        // LazyColumn containing the article cards.
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
-            // For each article in the list, render a card.
-            items(items = articles) { article ->
-                ArticleCard(context = this@MainActivity, article = article) { setArticle(it) }
+        if (articles.isNullOrEmpty()) {
+            // Sad minion no article found
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "No Articles Found",
+                    style = MaterialTheme.typography.h5
+                )
+                Spacer(Modifier.padding(16.dp))
+                Button(
+                    onClick = {
+                        val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                        startActivity(intent)
+                    }
+                ) {
+                    Text("Add Feed")
+                }
+            }
+        } else {
+
+            // LazyColumn containing the article cards.
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                // For each article in the list, render a card.
+                items(items = articles) { article ->
+                    ArticleCard(context = this@MainActivity, article = article) { setArticle(it) }
+                }
             }
         }
     }
