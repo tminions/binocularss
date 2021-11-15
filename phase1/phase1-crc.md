@@ -183,4 +183,34 @@
 ### Collaborators
 - None
 
-# activities/ui
+## SettingItems
+### Responsibility
+- Contain all of the composables for SettingsActivity
+### Collabourators
+- None
+
+# activities/ui.theme
+
+## Color
+### Responsibility
+- Store color variables.
+### Collabourators
+- None
+
+## Shape
+### Responsibility
+- Store shapes like roudned corners so they remain consistent accross the UI.
+### Collabourators
+- None
+
+## Theme
+### Responsibility
+- Setup light and dark theme and dynamically change between them based on given variables.
+### Collabourators
+- None
+
+## Type
+### Responsibility
+- Store text styles to keep text consistent accross the UI.
+### Collabourators
+- None
