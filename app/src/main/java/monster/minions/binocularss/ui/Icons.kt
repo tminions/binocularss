@@ -24,18 +24,18 @@ import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIco
  */
 @Composable
 fun BookmarkFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
-    var isBookmark by remember { mutableStateOf(article.bookmarked) }
+     var isBookmarked by remember { mutableStateOf(article.bookmarked) }
 
     IconButton(
         onClick = {
-            isBookmark = !isBookmark
+             isBookmarked = !isBookmarked
             article.bookmarked = !article.bookmarked
             extraAction(article)
         }
     ) {
         Icon(
             imageVector = if (article.bookmarked) Icons.Filled.FilledBookmarkIcon else Icons.Filled.EmptyBookmarkIcon,
-            contentDescription = if (isBookmark) "Mark as unbookmarked" else "Mark as bookmarked"
+            contentDescription = if (isBookmarked) "Mark as unbookmarked" else "Mark as bookmarked"
         )
     }
 }
@@ -48,11 +48,11 @@ fun BookmarkFlag(article: Article, extraAction: (article: Article) -> Unit = { }
  */
 @Composable
 fun ReadFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
-    var isRead by remember { mutableStateOf(article.read) }
+     var isRead by remember { mutableStateOf(article.read) }
 
     IconButton(
         onClick = {
-            isRead = !isRead
+             isRead = !isRead
             article.read = !article.read
             extraAction(article)
         }
