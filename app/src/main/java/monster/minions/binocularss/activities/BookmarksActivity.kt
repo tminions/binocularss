@@ -10,24 +10,31 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.flow.MutableStateFlow
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.getAllArticles
-import monster.minions.binocularss.operations.getBookmarkedArticles
-import monster.minions.binocularss.operations.sortArticlesByDate
-import monster.minions.binocularss.operations.sortFeedsByTitle
+import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 
 class BookmarksActivity : AppCompatActivity() {
+    companion object {
+        lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
+    }
+
     // Set up room database for this specific activity
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
@@ -71,6 +78,36 @@ class BookmarksActivity : AppCompatActivity() {
             AppDatabase::class.java, "feed-db"
         ).allowMainThreadQueries().build()
         feedDao = (db as AppDatabase).feedDao()
+
+        bookmarkedArticleList = MutableStateFlow(mutableListOf())
+    }
+
+
+    /**
+     * Top navigation bar
+     */
+    @Composable
+    fun TopBar() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Back button icon that goes back one activity.
+            IconButton(onClick = {
+                finish()
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Back Arrow"
+                )
+            }
+            Spacer(Modifier.padding(4.dp))
+            // Title of current page.
+            Text("Bookmarks", style = MaterialTheme.typography.h5)
+        }
     }
 
     // FIXME do the same state stuff to this one but only for bookmarked articles
@@ -95,9 +132,29 @@ class BookmarksActivity : AppCompatActivity() {
         }
 
         Surface(color = MaterialTheme.colors.background) {
-            LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-                items(items = bookmarked_articles) { article ->
-                    ArticleCard(this@BookmarksActivity, article = article) { setArticle(article) }
+            Scaffold(topBar = { TopBar() }) {
+                // Swipe refresh variables.
+                var isRefreshing by remember { mutableStateOf(false) }
+                val list by bookmarkedArticleList.collectAsState()
+
+                // SwipeRefresh to refresh the list of bookmarked articles
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
+                    onRefresh = {
+                        // update the list
+                        isRefreshing = true
+                        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                        isRefreshing = false
+                    }
+                ) {
+                    // LazyColumn containing the bookmarked article cards.
+                    LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+                        items(items = list) { article ->
+                            // For each article in list, render a card.
+                            ArticleCard(this@BookmarksActivity,
+                                article = article) { setArticle(article) }
+                        }
+                    }
                 }
             }
         }
@@ -115,6 +172,9 @@ class BookmarksActivity : AppCompatActivity() {
         super.onPause()
         Log.d("BookmarksActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+
+        MainActivity.articleList.value = mutableListOf()
+        MainActivity.feedList.value = mutableListOf()
     }
 
     /**
@@ -151,7 +211,8 @@ class BookmarksActivity : AppCompatActivity() {
         Log.d("BookmarksActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
 
-        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        // MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        // MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
     }
 }

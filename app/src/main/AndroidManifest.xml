@@ -27,10 +27,11 @@
         <activity
             android:name=".activities.ArticleActivity"
             android:exported="false"
-            />
+            android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
         <activity
             android:name=".activities.BookmarksActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
         <activity
             android:name=".activities.MainActivity"
             android:exported="true"

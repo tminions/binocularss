@@ -119,6 +119,7 @@ class ArticleActivity : ComponentActivity() {
         // Recompose LazyColumn
         // feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
         MainActivity.articleList.value = mutableListOf<Article>()
+        BookmarksActivity.bookmarkedArticleList.value = mutableListOf<Article>()
     }
 
     /**
@@ -133,6 +134,8 @@ class ArticleActivity : ComponentActivity() {
         super.onPause()
         Log.d("MainActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+
+        BookmarksActivity.bookmarkedArticleList.value = mutableListOf<Article>()
     }
 
     /**
