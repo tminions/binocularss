@@ -123,19 +123,34 @@ class SettingsActivity : ComponentActivity() {
      * @param onClick Callback to invoke on click
      */
     @Composable
-    fun ActionItem(title: String, subtitle: String = "", onClick: () -> Unit) {
+    fun ActionItem(
+        title: String,
+        subtitle: String = "",
+        disabled: Boolean = false,
+        onClick: () -> Unit
+    ) {
+        // Grey out text if disabled
+        val alpha by remember {
+            mutableStateOf(if (disabled) 0.6f else 1f)
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-                // Open link when clicked.
-                .clickable { onClick() }
+                // Perform action when clicked if not disabled
+                .clickable(enabled = !disabled) { onClick() }
         ) {
             // Column that renders title and subtitle.
             Column {
-                Text(title)
+                Text(title, color = MaterialTheme.colors.onBackground.copy(alpha))
                 if (subtitle != "") {
-                    Text(text = subtitle, fontWeight = FontWeight.Light, fontSize = 12.sp)
+                    Text(
+                        text = subtitle,
+                        fontWeight = FontWeight.Light,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colors.onBackground.copy(alpha)
+                    )
                 }
             }
         }
@@ -613,11 +628,24 @@ class SettingsActivity : ComponentActivity() {
                                 sharedPrefEditor.commit()
                             }
                         )
-                        ActionItem(title = "Clear database") {
+
+                        val disableClearDatabase by remember {
+                            mutableStateOf(feedGroup.feeds.isNullOrEmpty())
+                        }
+
+                        ActionItem(
+                            title = "Clear database",
+                            disabled = disableClearDatabase
+                        ) {
+                            // Delete each feed in the database
                             for (feed in feedGroup.feeds) {
                                 feedDao.deleteBySource(feed.source)
                             }
 
+                            // Set feedGroup.feeds to empty
+                            feedGroup.feeds = mutableListOf()
+
+                            // Update MainActivity UI
                             MainActivity.articleList.value = mutableListOf()
                             MainActivity.bookmarkedArticleList.value = mutableListOf()
 
