@@ -33,6 +33,12 @@ In order to add data persistence to our program we were debating whether to use 
 
 ## Clean Architecture
 
+### Adherence to Clean Architecture
+
+Although there are some violations in our code (see below) our code does a good job following clean architecture. Our innermost layer of entities consists primarily of Feed and Article which only rely on each other. FeedGroup could reasonably belong to entities or use cases but either way Feedgroup only relies on the innermost entities. Likewise our comparator classes also only rely on entities. Our database classes and activity classes fall into the outermost layer of frameworks and drivers and the database classes only act to inferface with our database, and the activities mostly render our UI. These classes belong to the outermost layer so they may rely on any class from any inner layer without violating clean architecture. 
+
+### Violations
+
 Our code fell into three camps. The first was good, "clean", code. This did not necessitate fixing. The second and third are both considered "unclean" code. This unclean branch was further divided into violations that we knew how to fix, and violations that we did not know how to fix. 
 
 <!-- is this in solid design principles or clean architecture or code smells? -->
@@ -68,9 +74,6 @@ Two principles of SOLID, Liskov Substitution and Interface Segregation, are neve
 For our database implementation, we used the Room library to interface with SQLite. Room itself is noting more than an abstraction layer for SQLite so we remove our dependency of the lower level SQLite code by interfacing with it through Room.
 
 Likewise the Jetpack Compose library provides a layer of abstraction over the UI. Instead of worrying about the implementation of Jetpack Compose we can call the interface it provides to allows us to create our UIs.
-
-### SettingsActivity.kt
-Under SettingsActivity.kt where we handle our user settings, we violate the first principle of clean architecture by including the front-end UI of the settings page with the back-end functinoality under the same file. Ideally we would want to seperate these responsabilities into seperate files so we don't run the rist of alterning the front-end when working on the back-end and vice-versa. To fix this we would seperate the respective code into two files and only link the front-end to the back-end to maintain clean architecture as well.
 
 ### SettingsActivity.kt
 Under SettingsActivity.kt where we handle our user settings, we violate the first principle of clean architecture by including the front-end UI of the settings page with the back-end functinoality under the same file. Ideally we would want to seperate these responsabilities into seperate files so we don't run the rist of alterning the front-end when working on the back-end and vice-versa. To fix this we would seperate the respective code into two files and only link the front-end to the back-end to maintain clean architecture as well.
