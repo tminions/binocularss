@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -31,11 +33,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.dataclasses.Feed
+import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.getAllArticles
+import monster.minions.binocularss.operations.sortArticlesByDate
+import monster.minions.binocularss.operations.sortFeedsByTitle
+import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.FeedDao
 import androidx.compose.material.RadioButtonDefaults.colors as radioButtonColors
 import androidx.compose.material.SwitchDefaults.colors as switchColors
 
@@ -43,6 +54,13 @@ import androidx.compose.material.SwitchDefaults.colors as switchColors
  * Settings Activity responsible for the settings UI and saving changes to settings.
  */
 class SettingsActivity : ComponentActivity() {
+
+    // FeedGroup object
+    private var feedGroup: FeedGroup = FeedGroup()
+
+    // Room database variables
+    private lateinit var db: RoomDatabase
+    private lateinit var feedDao: FeedDao
 
     // SharedPreferences variables.
     private lateinit var sharedPref: SharedPreferences
@@ -54,7 +72,7 @@ class SettingsActivity : ComponentActivity() {
     /**
      * Create method that sets the UI and initializes lateinit variables.
      *
-     * @param savedInstanceState bundle to retrieve saved information from.
+     * @param savedInstanceState Bundle to retrieve saved information from.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +90,71 @@ class SettingsActivity : ComponentActivity() {
         sharedPrefEditor = sharedPref.edit()
         theme = sharedPref.getString(THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
+
+        db = Room
+            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
+            .allowMainThreadQueries()
+            .build()
+        feedDao = (db as AppDatabase).feedDao()
+    }
+
+    /**
+     * Gets the list of user feeds from the Room database (feed-db).
+     *
+     * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
+     *
+     * This function is called after `onCreate` or any time a "resume" happens. This includes
+     * the app being opened after the app is exited but not closed.
+     */
+    override fun onResume() {
+        super.onResume()
+        Log.d("MainActivity", "onResume called")
+
+        val feeds: MutableList<Feed> = feedDao.getAll()
+
+        feedGroup.feeds = feeds
+    }
+
+    /**
+     * Item that runs a callback on click
+     *
+     * @param title Title of item
+     * @param subtitle Subtitle of item
+     * @param onClick Callback to invoke on click
+     */
+    @Composable
+    fun ActionItem(
+        title: String,
+        subtitle: String = "",
+        disabled: Boolean = false,
+        onClick: () -> Unit
+    ) {
+        // Grey out text if disabled
+        val alpha by remember {
+            mutableStateOf(if (disabled) 0.6f else 1f)
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                // Perform action when clicked if not disabled
+                .clickable(enabled = !disabled) { onClick() }
+        ) {
+            // Column that renders title and subtitle.
+            Column {
+                Text(title, color = MaterialTheme.colors.onBackground.copy(alpha))
+                if (subtitle != "") {
+                    Text(
+                        text = subtitle,
+                        fontWeight = FontWeight.Light,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colors.onBackground.copy(alpha)
+                    )
+                }
+            }
+        }
+
     }
 
     // Global preference keys to retrieve settings from shared preferences.
@@ -368,7 +451,8 @@ class SettingsActivity : ComponentActivity() {
                 .fillMaxWidth()
                 .clickable { checkedState = !checkedState }
                 .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Render title and subtitle.
             Column {
@@ -440,6 +524,7 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+
     /**
      * Compilation of UI elements in the correct order.
      */
@@ -505,7 +590,7 @@ class SettingsActivity : ComponentActivity() {
                         ToggleItem(
                             title = "Material You Theme",
                             checked = false, // TODO get this value from shared preferences
-                            onToggle = {println(it)/* TODO set shared preferences here */ }
+                            onToggle = { println(it)/* TODO set shared preferences here */ }
                         )
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
@@ -543,6 +628,34 @@ class SettingsActivity : ComponentActivity() {
                                 sharedPrefEditor.commit()
                             }
                         )
+
+                        val disableClearDatabase by remember {
+                            mutableStateOf(feedGroup.feeds.isNullOrEmpty())
+                        }
+
+                        ActionItem(
+                            title = "Clear database",
+                            disabled = disableClearDatabase
+                        ) {
+                            // Delete each feed in the database
+                            for (feed in feedGroup.feeds) {
+                                feedDao.deleteBySource(feed.source)
+                            }
+
+                            // Set feedGroup.feeds to empty
+                            feedGroup.feeds = mutableListOf()
+
+                            // Update MainActivity UI
+                            MainActivity.articleList.value = mutableListOf()
+                            MainActivity.bookmarkedArticleList.value = mutableListOf()
+
+                            Toast.makeText(
+                                this@SettingsActivity,
+                                "Feeds cleared",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                        }
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                         PreferenceTitle(title = "Support")
