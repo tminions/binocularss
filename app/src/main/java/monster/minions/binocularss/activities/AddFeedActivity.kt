@@ -196,16 +196,12 @@ class AddFeedActivity : ComponentActivity() {
      * TextField where feed url is inputted.
      */
     @Composable
-    fun FeedTextField() {
-        val textState = remember { mutableStateOf(TextFieldValue()) }
+    fun FeedTextField(textValue: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = textState.value,
+            value = textValue,
             placeholder = { Text("Enter Feed URL") },
-            onValueChange = {
-                textState.value = it
-                text = mutableStateOf(textState.value.text)
-            },
+            onValueChange = onValueChange,
             singleLine = true,
             maxLines = 1,
             keyboardActions = KeyboardActions(
@@ -224,6 +220,8 @@ class AddFeedActivity : ComponentActivity() {
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
         val color = MaterialTheme.colors.background
+        var textState by remember { mutableStateOf(TextFieldValue()) }
+
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -241,7 +239,15 @@ class AddFeedActivity : ComponentActivity() {
                 // TODO eamon add a checkmark button or add button here next to it the code for
                 //  adding is in FeedTextField
                 //  You can use .fillMaxWidth(weight) to get this to work I think
-                FeedTextField()
+                Row {
+                    Box() { FeedTextField(textState, onValueChange =  {
+                        textState = it
+                        text = mutableStateOf(textState.text)
+                    }) }
+                    Button(onClick = { submit() }) {
+                        Text(text = "Add")
+                    }
+                }
             }
         }
     }
