@@ -60,7 +60,7 @@ this would have taken too long to implement given our time, but we could look in
 Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix
 
 ### Single Responsability Principle 
-Besides a minor error mentioned below our code closely follows the single responsability principle. We've done this by seperating our critical data classes into multiple files (`Article.kt, Feed.kt, FeedGroup.kt`), keepinng our important data operations in seperate files (our code for sorting by date, article title, and feed title are all seperated), and by keeping our UI activites in seperate files as well.
+Besides a minor error mentioned below our code closely follows the single responsability principle. We've done this by seperating our critical data classes into multiple files (`Article.kt, Feed.kt, FeedGroup.kt`), keeping our important data operations in seperate files (our code for sorting by date, article title, and feed title are all seperated), and by keeping our UI activites in seperate files as well.
 
 For example `Cards.kt` and `Icons.kt` are both elements of our UI, but as they play seperate roles within our UI we have seperated them into seeprate files.
 
