@@ -39,6 +39,7 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.sortArticlesByDate
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.BookmarkFlag
@@ -93,7 +94,17 @@ class ArticleActivity : ComponentActivity() {
         article = intent.getParcelableExtra("article")!!
     }
 
-    fun setArticle(article: Article) {
+    private fun getAllArticles(): MutableList<Article> {
+        val articles = mutableListOf<Article>()
+        for (feed in feedGroup.feeds) {
+            for (article in feed.articles) {
+                articles.add(article)
+            }
+        }
+        return articles
+    }
+
+    private fun setArticle(article: Article) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (possibleArticle in articles) {
@@ -104,6 +115,10 @@ class ArticleActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Recompose LazyColumn
+        // feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+        MainActivity.articleList.value = mutableListOf<Article>()
     }
 
     /**
@@ -131,9 +146,7 @@ class ArticleActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
-
         val feeds: MutableList<Feed> = feedDao.getAll()
-
         feedGroup.feeds = feeds
     }
 

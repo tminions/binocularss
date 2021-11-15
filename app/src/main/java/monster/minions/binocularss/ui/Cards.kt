@@ -4,14 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.LocalElevationOverlay
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -26,10 +24,6 @@ import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ArticleActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
-import java.text.DateFormat
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.*
 
 /**
  * Displays a single feed in a card view format
@@ -58,6 +52,7 @@ fun FeedCard(context: Context, feed: Feed) {
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Column for feed title.
                 Column(
                     modifier = Modifier.width(200.dp)
                 ) {
@@ -66,40 +61,39 @@ fun FeedCard(context: Context, feed: Feed) {
                     }
                 }
 
-                LocalElevationOverlay.current?.let {
+                // Box for feed image if there is one.
+                Box(
                     Modifier
                         .size(150.dp, 150.dp)
-                        .background(
-                            it.apply(MaterialTheme.colors.background, 4.dp),
-                            RoundedCornerShape(4.dp)
-                        )
-                }?.let {
-                    Box(
-                        it
-                    ) {
-                        // TODO rounded corners
-                        Image(
-                            painter = rememberImagePainter(
-                                data = if (feed.image != "") feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
-                                builder = {
-                                    placeholder(R.drawable.ic_launcher_foreground)
-                                }
-                            ),
-                            contentScale = ContentScale.Crop,
-                            contentDescription = feed.description,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
-                    }
+                        .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
+                ) {
+                    // TODO rounded corners
+                    Image(
+                        painter = rememberImagePainter(
+                            // TODO eamon (maybe) make the banana greyed out. I don't even think
+                            //  that it ever shows up, it usually just shows an empty view so
+                            //  getting this working in the first place would be good too
+                            data = if (feed.image != "") feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                            builder = {
+                                // Placeholder when the image hasn't loaded yet.
+                                placeholder(R.drawable.ic_launcher_foreground)
+                            }
+                        ),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = feed.description,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    )
                 }
             }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-            }
         }
+
+        // Row for buttons in the future that is currently not used
+        // Row(
+        //     modifier = Modifier
+        //         .fillMaxWidth()
+        // ) {
+        // }
     }
 }
 
@@ -111,7 +105,7 @@ fun FeedCard(context: Context, feed: Feed) {
 @SuppressLint("SimpleDateFormat")
 @ExperimentalCoilApi
 @Composable
-fun ArticleCard(context: Context, article: Article) {
+fun ArticleCard(context: Context, article: Article, updateValues: (article: Article) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,6 +113,8 @@ fun ArticleCard(context: Context, article: Article) {
             .clickable {
                 val intent = Intent(context, ArticleActivity::class.java)
                 intent.putExtra("article", article)
+                article.read = true
+                updateValues(article)
                 startActivity(context, intent, null)
             },
         elevation = 4.dp
@@ -130,6 +126,7 @@ fun ArticleCard(context: Context, article: Article) {
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Column for title, feed, and time.
                 Column(
                     modifier = Modifier.width(200.dp)
                 ) {
@@ -140,6 +137,7 @@ fun ArticleCard(context: Context, article: Article) {
                     Text(text = getTime(article.pubDate!!))
                 }
 
+                // Box for image on the right.
                 Box(
                     modifier = Modifier
                         .size(150.dp, 150.dp)
@@ -148,9 +146,14 @@ fun ArticleCard(context: Context, article: Article) {
                     // TODO rounded corners
                     Image(
                         painter = rememberImagePainter(
-                            // TODO make the banana greyed out
-                            data = if (article.image != null && article.image != "") article.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                            // TODO eamon (maybe) make the banana greyed out. I don't even think
+                            //  that it ever shows up, it usually just shows an empty view so
+                            //  getting this working in the first place would be good too
+                            data =
+                            if (article.image != null && article.image != "") article.image
+                            else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
                             builder = {
+                                // Placeholder when the image hasn't loaded yet.
                                 placeholder(R.drawable.ic_launcher_foreground)
                             }
                         ),
@@ -162,14 +165,16 @@ fun ArticleCard(context: Context, article: Article) {
                 }
             }
 
+            // Row for buttons on the bottom.
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                BookmarkFlag(article = article)
+                BookmarkFlag(article = article) { updateValues(article) }
                 ShareFlag(context = context, article = article)
-                ReadFlag(article = article)
+                ReadFlag(article = article) { updateValues(article) }
+                // TODO eamon add open link in browser icon
             }
         }
     }

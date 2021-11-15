@@ -1,8 +1,6 @@
 package monster.minions.binocularss.ui
 
 import android.annotation.SuppressLint
-import androidx.annotation.Nullable
-import java.text.DateFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -11,7 +9,11 @@ import java.util.*
 // TODO fix
 fun getTime(pubDate: String): String {
     var time = pubDate
-    val dateFormats = listOf("EEE, dd MMM yyyy HH:mm:ss zzz", "EEE, dd MMM yyyy HH:mm zzz", "EEE, dd MMM yyyy HH:mm zzz")
+    val dateFormats = listOf(
+        "EEE, dd MMM yyyy HH:mm:ss zzz",
+        "EEE, dd MMM yyyy HH:mm zzz",
+        "EEE, dd MMM yyyy HH:mm zzz"
+    )
     var diff = 0L
 
     for (dateFormat in dateFormats) {
@@ -19,7 +21,9 @@ fun getTime(pubDate: String): String {
             val articleDateFormat = SimpleDateFormat(dateFormat)
             val date = articleDateFormat.parse(pubDate)
             diff = Date().time - date!!.time
-        } catch (e: ParseException) {}
+        } catch (e: ParseException) {
+
+        }
     }
 
     when {

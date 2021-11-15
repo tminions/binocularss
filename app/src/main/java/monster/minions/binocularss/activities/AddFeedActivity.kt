@@ -26,14 +26,16 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
+import monster.minions.binocularss.operations.getAllArticles
+import monster.minions.binocularss.operations.sortArticlesByDate
+import monster.minions.binocularss.operations.sortFeedsByTitle
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 
-// TODO make sure to check that this is an RSS feed (probably in pull feed or something of
-//  the sort and send a toast to the user if it is not. Try and check this when initially
-//  adding maybe? Basically deeper checking than just is this a URL so we don't encounter
-//  errors later. Or we could leave it and have PullFeed silently remove a feed if it is
-//  invalid like it currently does.
+// TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
+//  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
+//  checking than just is this a URL so we don't encounter errors later. Or we could leave it and
+//  have PullFeed silently remove a feed if it is invalid like it currently does.
 class AddFeedActivity : ComponentActivity() {
 
     // FeedGroup object
@@ -125,6 +127,9 @@ class AddFeedActivity : ComponentActivity() {
         super.onResume()
         Log.d("AddFeedActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
+
+        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+//        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
     /**
@@ -171,7 +176,7 @@ class AddFeedActivity : ComponentActivity() {
                         "You've already added that RSS feed",
                         Toast.LENGTH_SHORT
                     ).show()
-                    continue
+                    break
                 }
             }
 
@@ -187,6 +192,9 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * TextField where feed url is inputted.
+     */
     @Composable
     fun FeedTextField() {
         val textState = remember { mutableStateOf(TextFieldValue()) }
@@ -201,11 +209,15 @@ class AddFeedActivity : ComponentActivity() {
             singleLine = true,
             maxLines = 1,
             keyboardActions = KeyboardActions(
+                // When you press the enter button on the keyboard.
                 onDone = { submit() }
             )
         )
     }
 
+    /**
+     * Main UI of the AddFeedActivity.
+     */
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
@@ -226,6 +238,9 @@ class AddFeedActivity : ComponentActivity() {
                 modifier = Modifier.padding(padding),
                 horizontalAlignment = Alignment.Start,
             ) {
+                // TODO eamon add a checkmark button or add button here next to it the code for
+                //  adding is in FeedTextField
+                //  You can use .fillMaxWidth(weight) to get this to work I think
                 FeedTextField()
             }
         }
