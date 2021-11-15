@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -31,11 +33,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.FeedDao
 import androidx.compose.material.RadioButtonDefaults.colors as radioButtonColors
 import androidx.compose.material.SwitchDefaults.colors as switchColors
 
@@ -43,6 +50,13 @@ import androidx.compose.material.SwitchDefaults.colors as switchColors
  * Settings Activity responsible for the settings UI and saving changes to settings.
  */
 class SettingsActivity : ComponentActivity() {
+
+    // FeedGroup object
+    private var feedGroup: FeedGroup = FeedGroup()
+
+    // Room database variables
+    private lateinit var db: RoomDatabase
+    private lateinit var feedDao: FeedDao
 
     // SharedPreferences variables.
     private lateinit var sharedPref: SharedPreferences
@@ -72,6 +86,34 @@ class SettingsActivity : ComponentActivity() {
         sharedPrefEditor = sharedPref.edit()
         theme = sharedPref.getString(THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
+
+        db = Room
+            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
+            .allowMainThreadQueries()
+            .build()
+        feedDao = (db as AppDatabase).feedDao()
+    }
+
+    @Composable
+    fun ClearFeeds() {
+        Button(
+            onClick = {
+                Log.d("feeds", feedGroup.feeds.toString())
+                for (feed in feedGroup.feeds) {
+                    feedDao.deleteBySource(feed.source)
+                    Log.d("SettingsActivity", feedDao.getAll().toString())
+                }
+                feedGroup.feeds = mutableListOf()
+                Toast.makeText(
+                    this@SettingsActivity,
+                    "Feeds cleared",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            }
+        ) {
+            Text("Clear DB")
+        }
     }
 
     // Global preference keys to retrieve settings from shared preferences.
@@ -440,6 +482,7 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 
+
     /**
      * Compilation of UI elements in the correct order.
      */
@@ -505,7 +548,7 @@ class SettingsActivity : ComponentActivity() {
                         ToggleItem(
                             title = "Material You Theme",
                             checked = false, // TODO get this value from shared preferences
-                            onToggle = {println(it)/* TODO set shared preferences here */ }
+                            onToggle = { println(it)/* TODO set shared preferences here */ }
                         )
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
@@ -543,6 +586,7 @@ class SettingsActivity : ComponentActivity() {
                                 sharedPrefEditor.commit()
                             }
                         )
+//                        ClearFeeds()
                         Divider(modifier = Modifier.padding(bottom = 16.dp))
 
                         PreferenceTitle(title = "Support")

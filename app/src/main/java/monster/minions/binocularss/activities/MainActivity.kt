@@ -311,21 +311,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // TODO eamon (maybe) move this to settings (will need to add database access to settings)
-    @Composable
-    fun ClearFeeds() {
-        Button(
-            onClick = {
-                for (feed in feedGroup.feeds) {
-                    feedDao.deleteBySource(feed.source)
-                }
-                feedGroup.feeds = mutableListOf()
-            }
-        ) {
-            Text("Clear DB")
-        }
-    }
-
     /**
      * Top app bar with buttons for BookmarkActivity, SettingsActivity, and AddFeedActivity.
      */
