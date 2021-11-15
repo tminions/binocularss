@@ -52,7 +52,7 @@ In addition to that, we also found a violation in BookmarksActivity. The specifi
 
 Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix
 
-### Single Responsability Principle 
+### Single Responsibility Principle 
 Besides a minor error mentioned below our code closely follows the single responsibility principle. We've done this by separating our critical data classes into multiple files (`Article.kt, Feed.kt, FeedGroup.kt`), keeping our important data operations in separate files (our code for sorting by date, article title, and feed title are all separated), and by keeping our UI activities in separate files as well.
 
 For example `Cards.kt` and `Icons.kt` are both elements of our UI, but as they play separate roles within our UI we have separated them into separate files.
