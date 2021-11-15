@@ -9,7 +9,6 @@ import androidx.room.RoomDatabase
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
 import monster.minions.binocularss.activities.MainActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
@@ -21,8 +20,6 @@ import monster.minions.binocularss.room.FeedDao
  * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
  */
 class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
-
-    var isRefreshing = MutableStateFlow(false)
 
     // FeedGroup object
     private var localFeedGroup: FeedGroup = feedGroup
@@ -39,21 +36,21 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
      *
      * @param parser A parser with preconfigured settings.
      */
+    @DelicateCoroutinesApi
     fun updateRss(parser: Parser) {
-        val scope = CoroutineScope(Job() + Dispatchers.IO)
-        scope.launch {
-            isRefreshing.value = true
-            // Update feedGroup variable.
+        GlobalScope.launch(Dispatchers.Main) {
+            // Update feedGroup variable
             localFeedGroup = pullRss(localFeedGroup, parser)
 
-            // Update DB with updated feeds.
+            // Update DB with updated feeds
             feedDao.insertAll(*(localFeedGroup.feeds.toTypedArray()))
 
-            // Update list states in MainActivity.
-            MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
-            MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
-
-            isRefreshing.value = false
+            var text = ""
+            for (feed in localFeedGroup.feeds) {
+                text += feed.title
+                text += "\n"
+            }
+            MainActivity.feedGroupText.value = text
         }
     }
 
@@ -73,14 +70,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             withContext(viewModelScope.coroutineContext) {
                 Log.d("PullFeed", "Pulling: " + feed.link)
                 try {
-                    val pulledFeed = mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source)))
-
-                    // Set article sourceTitle to be the same as feed.title
-                    for (article in feed.articles) {
-                        article.sourceTitle = feed.title.toString()
-                    }
-
-                    feedList.add(pulledFeed)
+                    feedList.add(mergeFeeds(feed, channelToFeed(parser.getChannel(feed.source))))
                 } catch (e: Exception) {
                     Log.e(
                         "PullFeed",
@@ -114,15 +104,12 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val title = channel.title.toString()
         val link = channel.link.toString()
         val description = channel.description.toString()
-        var image = channel.image?.url.toString()
-        if (image == "") {
-            image = "$link/favicon.ico"
-        }
+        val image = channel.image?.url.toString()
         val lastBuildDate = channel.lastBuildDate.toString()
         val updatePeriod = channel.updatePeriod.toString()
 
         for (article in channel.articles) {
-            articles.add(articleToArticle(article, title))
+            articles.add(articleToArticle(article))
         }
 
         feed = Feed("", title, link, description, lastBuildDate, image, updatePeriod, articles)
@@ -136,7 +123,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
      * @param oldArticle Article to be converted.
      * @return Converted Article.
      */
-    private fun articleToArticle(oldArticle: com.prof.rssparser.Article, sourceTitle: String): Article {
+    private fun articleToArticle(oldArticle: com.prof.rssparser.Article): Article {
         val article: Article
 
         val title = oldArticle.title.toString()
@@ -154,22 +141,20 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
         val categories = oldArticle.categories
 
         article = Article(
-            title = title,
-            author = author,
-            link = link,
-            pubDate = pubDate,
-            description = description,
-            content = content,
-            image = image,
-            audio = audio,
-            video = video,
-            guid = guid,
-            sourceName = sourceName,
-            sourceUrl = sourceUrl,
-            sourceTitle = sourceTitle,
-            categories = categories,
-            bookmarked = false,
-            read = false
+            title,
+            author,
+            link,
+            pubDate,
+            description,
+            content,
+            image,
+            audio,
+            video,
+            guid,
+            sourceName,
+            sourceUrl,
+            categories,
+            true
         )
 
         return article
@@ -177,10 +162,9 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
 
     /**
      * Update feed information based on the pulledFeed with the following criteria:
-     * 1. Any element in newFeed that is not in oldFeed will be added to the list.
-     * 2. Any element in oldFeed that is not in newFeed will be added to the list.
-     * 3. Any element in newFeed and oldFeed will be merged and added to the list.
-     * 4. The user set properties like tags and priority of oldFeed will be transferred to newFeed.
+     * 1. Any element in newFeed will be added to the new list
+     * 2. Any element in oldFeed that is not in newFeed will be added to the list
+     * 3. The user set properties like tags and priority of oldFeed will be transferred to newFeed
      *
      * @param oldFeed The feed passed in by the program to be updated
      * @param newFeed The feed pulled down from the RSS
@@ -189,41 +173,23 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
     private fun mergeFeeds(oldFeed: Feed, newFeed: Feed): Feed {
         val unionArticles = mutableListOf<Article>()
 
+        // Satisfy property 2 from the docstring
         for (article in oldFeed.articles) {
             var anyEquals = false
 
             for (pulledArticle in newFeed.articles) {
                 if (article == pulledArticle) {
-                    // Satisfy property 3
-                    // pulledArticle.sourceTitle = article.sourceTitle
-                    pulledArticle.bookmarked = article.bookmarked
-                    pulledArticle.read = article.read
-                    unionArticles.add(pulledArticle)
                     anyEquals = true
-                    break
                 }
             }
 
             if (!anyEquals) {
-                // Satisfy property 2
                 unionArticles.add(article)
             }
         }
 
-        // Satisfy property 1
-        for (pulledArticle in newFeed.articles) {
-            var anyEquals = false
-            for (article in unionArticles) {
-                if (pulledArticle == article) {
-                    anyEquals = true
-                    break
-                }
-            }
-
-            if (!anyEquals) {
-                unionArticles.add(pulledArticle)
-            }
-        }
+        // Satisfy property 1 from the docstring
+        unionArticles.addAll(newFeed.articles)
 
         // Transfer the user-set flags
         newFeed.source = oldFeed.source

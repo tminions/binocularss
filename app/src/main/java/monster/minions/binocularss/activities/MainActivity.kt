@@ -5,56 +5,32 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
-import monster.minions.binocularss.operations.getAllArticles
-import monster.minions.binocularss.operations.sortArticlesByDate
-import monster.minions.binocularss.operations.sortFeedsByTitle
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
-import monster.minions.binocularss.ui.*
-import java.util.*
 
-
-class MainActivity : ComponentActivity() {
-    companion object {
-        lateinit var articleList: MutableStateFlow<MutableList<Article>>
-        lateinit var feedList: MutableStateFlow<MutableList<Feed>>
-        lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
-    }
+class  MainActivity : ComponentActivity() {
 
     // FeedGroup object
     private var feedGroup: FeedGroup = FeedGroup()
@@ -74,9 +50,10 @@ class MainActivity : ComponentActivity() {
     private var isFirstRun = true
     private var cacheExpiration = 0L
 
-    // Local variables
-    private lateinit var currentFeed: Feed
-    private lateinit var currentArticle: Article
+    // Companion object as this variable needs to be updated from other asynchronous classes.
+    companion object {
+        var feedGroupText = MutableStateFlow("Empty\n")
+    }
 
     /**
      * The function that is run when the activity is created. This is on app launch in this case.
@@ -95,19 +72,14 @@ class MainActivity : ComponentActivity() {
             ) {
                 UI()
             }
-
-            currentFeed = Feed("default")
         }
 
-        // Set shared preferences variables.
         sharedPref = getSharedPreferences(
             SettingsActivity.PreferenceKeys.SETTINGS,
             Context.MODE_PRIVATE
         )
         sharedPrefEditor = sharedPref.edit()
-        theme = sharedPref
-            .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
-            .toString()
+        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
@@ -119,52 +91,49 @@ class MainActivity : ComponentActivity() {
         feedDao = (db as AppDatabase).feedDao()
         parser = Parser.Builder()
             .context(this)
-            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
+            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration) // Set the cache to expire in one hour
+            // Different options for cacheExpiration
+            // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
+            // .cacheExpirationMillis(0)
             .build()
-
-        // Refresh LazyColumn composables
-        articleList = MutableStateFlow(mutableListOf())
-        feedList = MutableStateFlow(mutableListOf())
-        bookmarkedArticleList = MutableStateFlow(mutableListOf())
     }
 
-    /**
-     * Replace the unmodified article with a modified article.
-     * This is to be used when updating article.bookmarked and article.read
-     *
-     * @param modifiedArticle Article with a modified property.
-     */
-    private fun setArticle(modifiedArticle: Article) {
-        for (feed in feedGroup.feeds) {
-            val articles = feed.articles.toMutableList()
-            for (unmodifiedArticle in articles) {
-                if (modifiedArticle == unmodifiedArticle) {
-                    feed.articles.remove(unmodifiedArticle)
-                    feed.articles.add(modifiedArticle)
-                    break
-                }
-            }
-        }
-    }
+    // /**
+    //  * Saves instance state when activity is destroyed
+    //  *
+    //  * TODO: We do not need onSaveInstanceState (goes with onRestoreInstanceState) for the current
+    //  *  use case. The room database handles
+    //  *  it all. I am leaving it here so that whoever uses it has a base for the code
+    //  *
+    //  * @param outState A bundle of instance state information stored using key-value pairs
+    //  */
+    // override fun onSaveInstanceState(outState: Bundle) {
+    //     Log.d("MainActivity", "onSaveInstanceState called")
+    //     super.onSaveInstanceState(outState)
+    //     outState.putParcelable(FEED_GROUP_KEY, feedGroup)
+    // }
 
-    /**
-     * Replace the unmodified article with a modified article.
-     * This is to be used when updating feed.tags
-     *
-     * @param modifiedFeed Feed with a modified property.
-     */
-    private fun setFeeds(modifiedFeed: Feed) {
-        val feeds = feedGroup.feeds.toMutableList()
-        for (unmodifiedFeed in feeds) {
-            if (modifiedFeed == unmodifiedFeed) {
-                feedGroup.feeds.remove(unmodifiedFeed)
-                feedGroup.feeds.add(modifiedFeed)
-                break
-            }
-        }
+    // /**
+    //  * Restores instance state when activity is recreated
+    //  *
+    //  * TODO: We do not need onRestoreInstanceState (goes with onSaveInstanceState) for the current
+    //  *  use case. The room database handles it all. I am leaving it here so that whoever uses it
+    //  *  has a base for the code
+    //  *
+    //  * @param savedInstanceState A bundle of instance state information stored using key-value pairs
+    //  */
+    // override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+    //     Log.d("MainActivity", "onRestoreInstanceState called")
+    //     super.onRestoreInstanceState(savedInstanceState)
+    //     feedGroup = savedInstanceState.getParcelable<FeedGroup>(FEED_GROUP_KEY)!!
 
-        feedList.value = sortFeedsByTitle(feedGroup.feeds)
-    }
+    //     var text = ""
+    //     for (feed in feedGroup.feeds) {
+    //         text += feed.title
+    //         text += "\n"
+    //     }
+    //     feedGroupText.value = text
+    // }
 
     /**
      * Save the list of user feeds to the Room database (feed-db) for data persistence.
@@ -174,9 +143,9 @@ class MainActivity : ComponentActivity() {
      * This function is called before `onDestroy` or any time a "stop" happens. This
      * includes when an app is exited but not closed.
      */
-    override fun onPause() {
-        super.onPause()
-        Log.d("MainActivity", "onPause called")
+    override fun onStop() {
+        super.onStop()
+        Log.d("MainActivity", "onStop called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
     }
 
@@ -196,278 +165,147 @@ class MainActivity : ComponentActivity() {
 
         feedGroup.feeds = feeds
 
-        theme = sharedPref
-            .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
-            .toString()
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // NOT PERMANENT: If the user does not have any feeds added, add some.
+        if (feedGroup.feeds.isNullOrEmpty()) {
+            // Add some feeds to the feedGroup
+            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
+            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
+            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
+            feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
+
+            // Inform the user of this
+            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
+                .show()
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////
+
+        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         if (!isFirstRun) {
             themeState.value = theme
         }
         isFirstRun = false
-
-        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        updateText()
     }
 
     /**
-     * Displays the list of feeds saved
-     */
-    @Composable
-    fun SortedFeedView() {
-        var showAddFeed by remember { mutableStateOf(feedGroup.feeds.isNullOrEmpty()) }
-        if (showAddFeed) {
-            // Sad minion no feeds found
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "No Feeds Found",
-                    style = MaterialTheme.typography.h5
-                )
-                Spacer(Modifier.padding(16.dp))
-                Button(
-                    onClick = {
-                        showAddFeed = false
-                        val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
-                        startActivity(intent)
-                    }
-                ) {
-                    Text("Add Feed")
-                }
-            }
-        } else {
-            val feeds by feedList.collectAsState()
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(items = feeds) { feed ->
-                    FeedCard(context = this@MainActivity, feed = feed)
-                }
-            }
-        }
-    }
-
-    /**
-     * Displays the list of articles associated with a given feed
+     * Update the text for UI elements
      *
-     * TODO to be implemented
+     * TODO this function can be modified to update other UI elements after the
+     *  feeds have been fetched as well at which point it should be named updateUI
+     *  or something along those lines.
      */
+    private fun updateText() {
+        var text = ""
+        for (feed in feedGroup.feeds) {
+            text += feed.title
+            text += "\n"
+        }
+        feedGroupText.value = text
+    }
+
     @Composable
-    fun ArticlesFromFeed() {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
+    fun FeedTitles() {
+        val text by feedGroupText.collectAsState()
+        Text(text = text)
+    }
+
+    @Composable
+    fun UpdateFeedButton() {
+        Button(
+            onClick = {
+                val viewModel = PullFeed(this, feedGroup)
+                viewModel.updateRss(parser)
+            }
         ) {
-            items(items = currentFeed.articles) { article ->
-                ArticleCard(context = this@MainActivity, article = article) { setArticle(it) }
-            }
+            Text("Update RSS Feeds")
         }
     }
 
-    /**
-     * Displays a list of articles in the order given by the currently selected sorting method
-     */
     @Composable
-    fun SortedArticleView() {
-        // Mutable state variable that is updated when articleList is updated to force a recompose.
-        val articles by articleList.collectAsState()
-
-        if (articles.isNullOrEmpty()) {
-            // Sad minion no article found
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "No Articles Found",
-                    style = MaterialTheme.typography.h5
-                )
-                Spacer(Modifier.padding(16.dp))
-                Button(
-                    onClick = {
-                        val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
-                        startActivity(intent)
-                    }
-                ) {
-                    Text("Add Feed")
-                }
+    fun AddFeedButton() {
+        Button(
+            onClick = {
+                val intent = Intent(this, AddFeedActivity::class.java).apply {}
+                feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                startActivity(intent)
             }
-        } else {
-
-            // LazyColumn containing the article cards.
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                // For each article in the list, render a card.
-                items(items = articles) { article ->
-                    ArticleCard(context = this@MainActivity, article = article) { setArticle(it) }
-                }
-            }
-        }
-    }
-
-    /**
-     * Top app bar with buttons for BookmarkActivity, SettingsActivity, and AddFeedActivity.
-     */
-    @Composable
-    fun TopBar() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("BinoculaRSS", style = MaterialTheme.typography.h5)
-            Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Bookmarks Activity Button
-                IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Bookmark,
-                        contentDescription = "Bookmark Activity"
-                    )
-                }
-
-                // Settings Activity Button
-                IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {}
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = "Settings Activity"
-                    )
-                }
-
-                // Add Feed Activity Button
-                IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                    feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Add Feed Activity"
-                    )
-                }
-            }
+            Text("Add Feed")
         }
     }
 
-    /**
-     * Bottom app bar with buttons for article and feed views.
-     */
     @Composable
-    fun BottomNavigationBar(navController: NavController) {
-        val items = listOf(
-            NavigationItem.Article,
-            NavigationItem.Feed,
-        )
-        BottomNavigation(
-            backgroundColor = MaterialTheme.colors.background
+    fun ClearFeeds() {
+        Button(
+            onClick = {
+                for (feed in feedGroup.feeds) {
+                    feedDao.deleteBySource(feed.source)
+                }
+                feedGroup.feeds = mutableListOf()
+                updateText()
+            }
         ) {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            items.forEach { item ->
-                // For each item in the list, create a navigation item for it.
-                BottomNavigationItem(
-                    icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
-                    label = { Text(text = item.title) },
-                    selectedContentColor = MaterialTheme.colors.primary,
-                    unselectedContentColor = MaterialTheme.colors.onBackground.copy(0.5f),
-                    alwaysShowLabel = true,
-                    selected = currentRoute == item.route,
-                    onClick = {
-                        navController.navigate(item.route) {
-                            navController.graph.startDestinationRoute?.let { route ->
-                                // Pop up to the start destination of the graph to avoid building up
-                                //  a large stack of destinations on the back stack as users select
-                                //  items
-                                popUpTo(route) { saveState = true }
-                            }
-                            // Avoid multiple copies of the same destination when re-selecting the
-                            //  same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
-                    }
-                )
-            }
+            Text("Clear DB")
         }
     }
 
-    /**
-     * Composable that loads in and out views based on the current navigation item selected.
-     */
     @Composable
-    fun Navigation(navController: NavHostController) {
-        NavHost(navController, startDestination = NavigationItem.Article.route) {
-            composable(NavigationItem.Article.route) {
-                SortedArticleView()
+    fun BookmarksButton() {
+        val context = LocalContext.current
+        Button(
+            onClick = {
+                val intent = Intent(context, BookmarksActivity::class.java)
+                context.startActivity(intent)
             }
-            composable(NavigationItem.Feed.route) {
-                SortedFeedView()
-            }
+        ) {
+            Text("Go to Bookmarks")
         }
     }
 
-    /**
-     * The default UI of the app.
-     */
+
+    @Composable
+    fun SettingsButton() {
+        Button(
+            onClick = {
+                val intent = Intent(this, SettingsActivity::class.java).apply {}
+                startActivity(intent)
+            }
+        ) {
+            Text("Settings")
+        }
+    }
+
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
         val color = MaterialTheme.colors.background
-        // Get elevated color to match the bottom bar that is also elevated by 8.dp
-        val elevatedColor = LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
                 darkIcons = useDarkIcons
             )
-            systemUiController.setNavigationBarColor(
-                color = elevatedColor!!
-            )
         }
 
         Surface(color = MaterialTheme.colors.background) {
-            // Navigation variables.
-            val navController = rememberNavController()
-
-            // Swipe refresh variables.
-            val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
-            val isRefreshing by viewModel.isRefreshing.collectAsState()
-
-            Scaffold(
-                topBar = { TopBar() },
-                bottomBar = { BottomNavigationBar(navController = navController) }
+            val padding = 16.dp
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Update feeds when swiping down like in a browser.
-                SwipeRefresh(
-                    state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
-                    onRefresh = {
-                        viewModel.updateRss(parser)
-                    }
-                ) {
-                    // Navigate to whatever view is selected by the bottom bar.
-                    Navigation(navController)
-                }
+                FeedTitles()
+                UpdateFeedButton()
+                Spacer(Modifier.size(padding))
+                AddFeedButton()
+                Spacer(modifier = Modifier.size(padding))
+                ClearFeeds()
+                Spacer(modifier = Modifier.size(padding))
+                BookmarksButton()
+                Spacer(modifier = Modifier.size(padding))
+                SettingsButton()
             }
         }
     }
@@ -478,3 +316,4 @@ class MainActivity : ComponentActivity() {
         UI()
     }
 }
+
