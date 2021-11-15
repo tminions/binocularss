@@ -28,6 +28,16 @@ import monster.minions.binocularss.activities.ArticleActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 
+// Color matrix to turn image grayscale
+val grayScaleMatrix = ColorMatrix(
+    floatArrayOf(
+        0.33f, 0.33f, 0.33f, 0f, 0f,
+        0.33f, 0.33f, 0.33f, 0f, 0f,
+        0.33f, 0.33f, 0.33f, 0f, 0f,
+        0f, 0f, 0f, 1f, 0f
+    )
+)
+
 /**
  * Displays a single feed in a card view format
  *
@@ -64,6 +74,8 @@ fun FeedCard(context: Context, feed: Feed) {
                     }
                 }
 
+                val imageExists = feed.image != "null"
+
                 // Box for feed image if there is one.
                 Box(
                     Modifier
@@ -73,14 +85,14 @@ fun FeedCard(context: Context, feed: Feed) {
                     // TODO rounded corners
                     Image(
                         painter = rememberImagePainter(
-                            // TODO eamon (maybe) make the banana greyed out. I don't even think
-                            //  that it ever shows up, it usually just shows an empty view so
-                            //  getting this working in the first place would be good too
-                            data = if (feed.image != "null") feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                            data = if (imageExists) feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
                             builder = {
                                 // Placeholder when the image hasn't loaded yet.
                                 placeholder(R.drawable.ic_launcher_foreground)
                             }
+                        ),
+                        colorFilter = if (imageExists) null else colorMatrix(
+                            grayScaleMatrix
                         ),
                         contentScale = ContentScale.Crop,
                         contentDescription = feed.description,
@@ -140,15 +152,6 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                     Text(text = getTime(article.pubDate!!))
                 }
 
-                val grayScaleMatrix = ColorMatrix(
-                    floatArrayOf(
-                        0.33f, 0.33f, 0.33f, 0f, 0f,
-                        0.33f, 0.33f, 0.33f, 0f, 0f,
-                        0.33f, 0.33f, 0.33f, 0f, 0f,
-                        0f, 0f, 0f, 1f, 0f
-                    )
-                )
-
                 val imageExists = article.image != "null"
 
                 // Box for image on the right.
@@ -162,12 +165,8 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                             .size(150.dp, 150.dp)
                             .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
                     ) {
-                        // TODO rounded corners
                         Image(
                             painter = rememberImagePainter(
-                                // TODO eamon (maybe) make the banana greyed out. I don't even think
-                                //  that it ever shows up, it usually just shows an empty view so
-                                //  getting this working in the first place would be good too
                                 data =
                                 if (imageExists) article.image
                                 else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
