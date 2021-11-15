@@ -240,9 +240,6 @@ class AddFeedActivity : ComponentActivity() {
                 modifier = Modifier.padding(padding),
                 horizontalAlignment = Alignment.Start,
             ) {
-                // TODO eamon add a checkmark button or add button here next to it the code for
-                //  adding is in FeedTextField
-                //  You can use .fillMaxWidth(weight) to get this to work I think
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,

@@ -14,6 +14,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorFilter.Companion.colorMatrix
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,7 +76,7 @@ fun FeedCard(context: Context, feed: Feed) {
                             // TODO eamon (maybe) make the banana greyed out. I don't even think
                             //  that it ever shows up, it usually just shows an empty view so
                             //  getting this working in the first place would be good too
-                            data = if (feed.image != "") feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                            data = if (feed.image != "null") feed.image else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
                             builder = {
                                 // Placeholder when the image hasn't loaded yet.
                                 placeholder(R.drawable.ic_launcher_foreground)
@@ -128,7 +131,7 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
             ) {
                 // Column for title, feed, and time.
                 Column(
-                    modifier = Modifier.width(200.dp)
+                    modifier = Modifier.width(200.dp).padding(end = 12.dp)
                 ) {
                     article.title?.let { title ->
                         Text(text = title, fontWeight = FontWeight.SemiBold)
@@ -137,31 +140,51 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                     Text(text = getTime(article.pubDate!!))
                 }
 
-                // Box for image on the right.
-                Box(
-                    modifier = Modifier
-                        .size(150.dp, 150.dp)
-                        .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
-                ) {
-                    // TODO rounded corners
-                    Image(
-                        painter = rememberImagePainter(
-                            // TODO eamon (maybe) make the banana greyed out. I don't even think
-                            //  that it ever shows up, it usually just shows an empty view so
-                            //  getting this working in the first place would be good too
-                            data =
-                            if (article.image != null && article.image != "") article.image
-                            else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
-                            builder = {
-                                // Placeholder when the image hasn't loaded yet.
-                                placeholder(R.drawable.ic_launcher_foreground)
-                            }
-                        ),
-                        contentScale = ContentScale.Crop,
-                        contentDescription = article.description,
-                        modifier = Modifier
-                            .fillMaxSize()
+                val grayScaleMatrix = ColorMatrix(
+                    floatArrayOf(
+                        0.33f, 0.33f, 0.33f, 0f, 0f,
+                        0.33f, 0.33f, 0.33f, 0f, 0f,
+                        0.33f, 0.33f, 0.33f, 0f, 0f,
+                        0f, 0f, 0f, 1f, 0f
                     )
+                )
+
+                val imageExists = article.image != "null"
+
+                // Box for image on the right.
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    elevation = 4.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(150.dp, 150.dp)
+                            .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
+                    ) {
+                        // TODO rounded corners
+                        Image(
+                            painter = rememberImagePainter(
+                                // TODO eamon (maybe) make the banana greyed out. I don't even think
+                                //  that it ever shows up, it usually just shows an empty view so
+                                //  getting this working in the first place would be good too
+                                data =
+                                if (imageExists) article.image
+                                else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                                builder = {
+                                    // Placeholder when the image hasn't loaded yet.
+                                    placeholder(R.drawable.ic_launcher_foreground)
+                                }
+                            ),
+                            contentScale = ContentScale.Crop,
+                            contentDescription = article.description,
+                            colorFilter = if (imageExists) null else colorMatrix(
+                                grayScaleMatrix
+                            ),
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
                 }
             }
 
