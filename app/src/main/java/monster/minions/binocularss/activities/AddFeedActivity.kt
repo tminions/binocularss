@@ -12,6 +12,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -239,13 +243,27 @@ class AddFeedActivity : ComponentActivity() {
                 // TODO eamon add a checkmark button or add button here next to it the code for
                 //  adding is in FeedTextField
                 //  You can use .fillMaxWidth(weight) to get this to work I think
-                Row {
-                    Box() { FeedTextField(textState, onValueChange =  {
-                        textState = it
-                        text = mutableStateOf(textState.text)
-                    }) }
-                    Button(onClick = { submit() }) {
-                        Text(text = "Add")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(modifier = Modifier.weight(1f)) {
+                        FeedTextField(textState, onValueChange = {
+                            textState = it
+                            text = mutableStateOf(textState.text)
+                        })
+                    }
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    FloatingActionButton(
+                        onClick = { submit() },
+                        backgroundColor = MaterialTheme.colors.primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Add feed"
+                        )
+
                     }
                 }
             }
