@@ -89,17 +89,3 @@ fun ReadFlag(article: Article) {
     }
 }
 
-@Composable
-fun SearchIcon(query: String, submit: (query: String) -> Unit){
-    Log.d("QUERY:", query)
-
-
-    IconButton(
-        onClick = {}
-    ){
-       Icon(
-           imageVector = Icons.Filled.Search,
-           contentDescription = null
-       )
-    }
-}
