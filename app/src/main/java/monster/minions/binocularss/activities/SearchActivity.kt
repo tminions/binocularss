@@ -188,28 +188,36 @@ class SearchActivity : ComponentActivity() {
 
 
     @Composable
-    fun SearchBar() {
+    fun SearchBar(displayResult: Boolean, onDisplayChange:(Boolean) -> Unit) {
         val textState = remember { mutableStateOf(TextFieldValue()) }
 
 
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(0.7f),
+            modifier = Modifier.fillMaxWidth(),
             value = textState.value,
-            placeholder = { Text("Search for an article") },
+            placeholder = { Text("Search for an article(s)") },
             onValueChange = {
                 textState.value = it
                 text = mutableStateOf(textState.value.text)
             },
             singleLine = true,
             maxLines = 1,
-            trailingIcon = { SearchIcon(textState.toString(), ::submit) },
-
+            trailingIcon = { Icon(Icons.Filled.Search, null) },
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    submit()
+                    onDisplayChange(true)
+                }
             )
+        )
     }
 
+    @ExperimentalCoilApi
     @Composable
     @Preview
     fun UI(){
+
+        var displayResults by rememberSaveable { mutableStateOf(true) }
 
         Surface(
             modifier = Modifier
@@ -217,14 +225,22 @@ class SearchActivity : ComponentActivity() {
             color = MaterialTheme.colors.background,
         ) {
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-            ){
-                SearchBar()
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                ) {
+                    SearchBar(
+                        displayResult = displayResults,
+                        onDisplayChange = { displayChange: Boolean ->
+                            displayResults = false
+                            displayResults = true
+                        }
+                    )
+                }
+                ArticleSearchResults()
             }
-
 
         }
 
