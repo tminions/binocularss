@@ -71,6 +71,17 @@ class SearchActivity : ComponentActivity() {
             }
         }
 
+
+        sharedPref = getSharedPreferences(
+            SettingsActivity.PreferenceKeys.SETTINGS,
+            Context.MODE_PRIVATE
+        )
+        sharedPrefEditor = sharedPref.edit()
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
+
+
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
         db = Room
@@ -115,6 +126,18 @@ class SearchActivity : ComponentActivity() {
         super.onResume()
         Log.d("SearchActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
+
+
+        searchResults = getAllArticles().sortedWith(ArticleSearchComparator(text.toString())).toMutableList()
+
+
+
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        if (!isFirstRun) {
+            themeState.value = theme
+        }
+        isFirstRun = false
     }
 
     /**
