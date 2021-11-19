@@ -56,8 +56,10 @@ class SearchActivity : ComponentActivity() {
 
 
     private var text = mutableStateOf("")
+    private var searchResults: MutableList<Article> = mutableListOf()
 
 
+    @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -135,28 +137,25 @@ class SearchActivity : ComponentActivity() {
      * Retrieve all articles that could match the given
      * query
      */
-    private fun submit(query: String): MutableList<Article>{
+    private fun submit(){
 
         val articles: MutableList<Article> = getAllArticles()
-        val matchedArticles: MutableList<Article>
+        Log.d("OP", "Submitting")
+        searchResults = articles.sortedWith(ArticleSearchComparator(text.value)).toMutableList()
 
-        matchedArticles = articles.sortedWith(ArticleSearchComparator(query)) as MutableList<Article>
-
-        return matchedArticles
+        if (searchResults.isEmpty()){
+            Toast.makeText(this@SearchActivity, "No matches", Toast.LENGTH_SHORT).show()
+        }
 
     }
 
 
-
-
-
-
     @ExperimentalCoilApi
     @Composable
-    fun ArticleSearchResults(matchedArticles: MutableList<Article>){
+    fun ArticleSearchResults(){
 
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = matchedArticles){article ->
+            items(items = searchResults){article ->
                 ArticleCard(context = this@SearchActivity, article = article)
             }
 
