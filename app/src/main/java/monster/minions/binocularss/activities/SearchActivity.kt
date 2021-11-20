@@ -9,10 +9,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -57,6 +59,7 @@ class SearchActivity : ComponentActivity() {
 
     private var text = mutableStateOf("")
     private var searchResults: MutableList<Article> = mutableListOf()
+    private var feedTitles: MutableList<String> = mutableListOf()
 
 
     @ExperimentalCoilApi
@@ -129,6 +132,7 @@ class SearchActivity : ComponentActivity() {
 
 
         searchResults = getAllArticles().sortedWith(ArticleSearchComparator(text.toString())).toMutableList()
+        feedTitles = getFeedTitles()
 
 
 
@@ -155,6 +159,17 @@ class SearchActivity : ComponentActivity() {
         return articles
     }
 
+
+    private fun getFeedTitles(): MutableList<String>{
+
+        val feeds = feedGroup.feeds
+        val feedTitles = mutableListOf("All feeds")
+
+        for (feed in feeds){
+            feedTitles.add(feed.title.toString())
+        }
+        return feedTitles
+    }
 
     /**
      * Retrieve all articles that could match the given
@@ -184,6 +199,38 @@ class SearchActivity : ComponentActivity() {
 
         }
 
+    }
+
+    @Composable
+    fun SpinnerButton(text: String, suggestions: List<String>){
+        var expanded by remember { mutableStateOf(false) }
+
+        Button(
+            onClick = { expanded = !expanded },
+            modifier = Modifier
+                .padding(12.dp)
+        ){
+            Text (text)
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            suggestions.forEach { label ->
+                DropdownMenuItem(
+                    onClick = {
+                        expanded = false
+                        //do something ...
+                    },
+                ) {
+                    Text(text = label)
+                }
+            }
+        }
     }
 
 
@@ -229,7 +276,7 @@ class SearchActivity : ComponentActivity() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp)
+                        .padding(8.dp)
                 ) {
                     SearchBar(
                         displayResult = displayResults,
@@ -238,6 +285,19 @@ class SearchActivity : ComponentActivity() {
                             displayResults = true
                         }
                     )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ){
+                   SpinnerButton(
+                       text = "Source",
+                       suggestions = feedTitles
+                   )
+                   SpinnerButton(
+                       text = "Time range",
+                       suggestions = listOf("None", "Past 24 hours", "Past Week", "Past Month")
+                   )
                 }
                 ArticleSearchResults()
             }
