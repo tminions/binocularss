@@ -133,7 +133,8 @@ class AddFeedActivity : ComponentActivity() {
         feedGroup.feeds = feedDao.getAll()
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-//        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
     /**

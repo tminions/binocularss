@@ -51,6 +51,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
 
             // Update list states in MainActivity.
             MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
+            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(localFeedGroup))
             MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
 
             isRefreshing.value = false
