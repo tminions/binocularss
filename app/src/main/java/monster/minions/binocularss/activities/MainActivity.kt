@@ -404,7 +404,6 @@ class MainActivity : ComponentActivity() {
                 ) {
                     // For each article in the list, render a card.
                     items(items = bookmarkedArticles) { article ->
-                        // ArticleCard(context = this@MainActivity, article = article) { setArticle(it, refreshBookmark = false) }
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
