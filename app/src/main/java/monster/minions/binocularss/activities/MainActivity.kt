@@ -7,17 +7,18 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.*
@@ -39,21 +40,17 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.PullFeed
-import monster.minions.binocularss.operations.getAllArticles
-import monster.minions.binocularss.operations.sortArticlesByDate
-import monster.minions.binocularss.operations.sortFeedsByTitle
+import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import java.util.*
 
-
 class MainActivity : ComponentActivity() {
     companion object {
         lateinit var articleList: MutableStateFlow<MutableList<Article>>
-        lateinit var feedList: MutableStateFlow<MutableList<Feed>>
         lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
+        lateinit var feedList: MutableStateFlow<MutableList<Feed>>
     }
 
     // FeedGroup object
@@ -85,6 +82,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -124,8 +122,8 @@ class MainActivity : ComponentActivity() {
 
         // Refresh LazyColumn composables
         articleList = MutableStateFlow(mutableListOf())
-        feedList = MutableStateFlow(mutableListOf())
         bookmarkedArticleList = MutableStateFlow(mutableListOf())
+        feedList = MutableStateFlow(mutableListOf())
     }
 
     /**
@@ -134,7 +132,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article) {
+    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -145,6 +143,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+
+        if (refreshBookmark) {
+            bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        }
+
+        feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
     /**
@@ -205,6 +211,7 @@ class MainActivity : ComponentActivity() {
         isFirstRun = false
 
         articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
         feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
@@ -298,7 +305,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         } else {
-
             // LazyColumn containing the article cards.
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -307,6 +313,103 @@ class MainActivity : ComponentActivity() {
                 // For each article in the list, render a card.
                 items(items = articles) { article ->
                     ArticleCard(context = this@MainActivity, article = article) { setArticle(it) }
+                }
+            }
+        }
+    }
+
+    /**
+     * Displays a list of all bookmarked articles.
+     */
+    @ExperimentalAnimationApi
+    @Composable
+    fun BookmarksView(navController: NavHostController) {
+        // Mutable state variable that is updated when articleList is updated to force a recompose.
+        val articles by articleList.collectAsState()
+        val bookmarkedArticles by bookmarkedArticleList.collectAsState()
+
+        when {
+            // Show "No Articles Found"
+            articles.isNullOrEmpty() -> {
+                // Sad minion no article found
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Articles Found",
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(Modifier.padding(16.dp))
+                    Button(
+                        onClick = {
+                            val intent =
+                                Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                            feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                            startActivity(intent)
+                        }
+                    ) {
+                        Text("Add Feed")
+                    }
+                }
+            }
+            // Show "No Bookmarked Articles"
+            bookmarkedArticles.isNullOrEmpty() -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Bookmarked Articles",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(Modifier.padding(4.dp))
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        text = "Bookmark an article and it will show up here",
+                        style = MaterialTheme.typography.body1
+                    )
+                    Spacer(Modifier.padding(16.dp))
+                    Button(onClick = {
+                        // Update bookmarkedArticleList when any nav item is clicked.
+                        bookmarkedArticleList.value =
+                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
+
+                        navController.navigate(NavigationItem.Articles.route) {
+                            navController.graph.startDestinationRoute?.let { route ->
+                                // Pop up to the start destination of the graph to avoid building up
+                                //  a large stack of destinations on the back stack as users select
+                                //  items
+                                popUpTo(route) { saveState = true }
+                            }
+                            // Avoid multiple copies of the same destination when re-selecting the
+                            //  same item
+                            launchSingleTop = true
+                            // Restore state when re-selecting a previously selected item
+                            restoreState = true
+                        }
+                    }) { Text("Go to Articles") }
+                }
+            }
+            // Show the lazy column with the bookmarked articles
+            else -> {
+                // LazyColumn containing the article cards.
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    // For each article in the list, render a card.
+                    items(items = bookmarkedArticles) { article ->
+                        // ArticleCard(context = this@MainActivity, article = article) { setArticle(it, refreshBookmark = false) }
+                        ArticleCard(
+                            context = this@MainActivity,
+                            article = article
+                        ) { setArticle(it, refreshBookmark = false) }
+                    }
                 }
             }
         }
@@ -330,17 +433,6 @@ class MainActivity : ComponentActivity() {
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Bookmarks Activity Button
-                IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Bookmark,
-                        contentDescription = "Bookmark Activity"
-                    )
-                }
-
                 // Settings Activity Button
                 IconButton(onClick = {
                     val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {}
@@ -373,8 +465,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun BottomNavigationBar(navController: NavController) {
         val items = listOf(
-            NavigationItem.Article,
-            NavigationItem.Feed,
+            NavigationItem.Articles,
+            NavigationItem.Feeds,
+            NavigationItem.Bookmarks
         )
         BottomNavigation(
             backgroundColor = MaterialTheme.colors.background
@@ -391,6 +484,10 @@ class MainActivity : ComponentActivity() {
                     alwaysShowLabel = true,
                     selected = currentRoute == item.route,
                     onClick = {
+                        // Update bookmarkedArticleList when any nav item is clicked.
+                        if (item.route == NavigationItem.Bookmarks.route) bookmarkedArticleList.value =
+                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
+
                         navController.navigate(item.route) {
                             navController.graph.startDestinationRoute?.let { route ->
                                 // Pop up to the start destination of the graph to avoid building up
@@ -411,16 +508,43 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
+     * Animate the entrance animation for navigation items.
+     */
+    @ExperimentalAnimationApi
+    @Composable
+    fun EnterAnimation(content: @Composable () -> Unit) {
+        // TODO figure out non-deprecated library
+        AnimatedVisibility(
+            visible = true,
+            enter = slideInVertically(initialOffsetY = { 10000 }),
+            exit = fadeOut(),
+            initiallyVisible = false
+        ) {
+            content()
+        }
+    }
+
+    /**
      * Composable that loads in and out views based on the current navigation item selected.
      */
+    @ExperimentalAnimationApi
     @Composable
     fun Navigation(navController: NavHostController) {
-        NavHost(navController, startDestination = NavigationItem.Article.route) {
-            composable(NavigationItem.Article.route) {
-                SortedArticleView()
+        NavHost(navController, startDestination = NavigationItem.Articles.route) {
+            composable(NavigationItem.Articles.route) {
+                EnterAnimation {
+                    SortedArticleView()
+                }
             }
-            composable(NavigationItem.Feed.route) {
-                SortedFeedView()
+            composable(NavigationItem.Feeds.route) {
+                EnterAnimation {
+                    SortedFeedView()
+                }
+            }
+            composable(NavigationItem.Bookmarks.route) {
+                EnterAnimation {
+                    BookmarksView(navController)
+                }
             }
         }
     }
@@ -428,6 +552,7 @@ class MainActivity : ComponentActivity() {
     /**
      * The default UI of the app.
      */
+    @ExperimentalAnimationApi
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
@@ -472,6 +597,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @ExperimentalAnimationApi
     @Preview(showBackground = true)
     @Composable
     fun Preview() {
