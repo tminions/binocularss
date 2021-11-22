@@ -154,9 +154,10 @@ class AddFeedActivity : ComponentActivity() {
      * @return url with https:// possibly appended to it.
      */
     private fun addHttps(url: String): String {
+        var trimmedUrl = url.trim(' ');
         return when {
-            url.startsWith("https://") || url.startsWith("http://") -> url
-            else -> "https://$url"
+            trimmedUrl.startsWith("https://") || trimmedUrl.startsWith("http://") -> trimmedUrl
+            else -> "https://$trimmedUrl"
         }
     }
 
