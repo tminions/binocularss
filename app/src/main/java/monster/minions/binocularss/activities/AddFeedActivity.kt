@@ -154,11 +154,20 @@ class AddFeedActivity : ComponentActivity() {
      * @return url with https:// possibly appended to it.
      */
     private fun addHttps(url: String): String {
-        var trimmedUrl = url.trim(' ');
         return when {
-            trimmedUrl.startsWith("https://") || trimmedUrl.startsWith("http://") -> trimmedUrl
-            else -> "https://$trimmedUrl"
+            url.startsWith("https://") || url.startsWith("http://") -> url
+            else -> "https://$url"
         }
+    }
+
+    /**
+     * Function to trim any whitespace characters
+     *
+     * @param url String with (or perhaps without) untrimmed whitespace.
+     * @return url that has been stripped of its trailing and leading whitespace.
+     */
+    private fun trimWhitespace(url: String): String {
+        return url.trim(' ', '\n', '\t', '\r')
     }
 
     /**
@@ -166,7 +175,7 @@ class AddFeedActivity : ComponentActivity() {
      */
     private fun submit() {
         // Add https:// or http:// to the front of the url if not present
-        val url = addHttps(text.value)
+        val url = addHttps(trimWhitespace(text.value))
 
         // If the url is valid ...
         if (Patterns.WEB_URL.matcher(url).matches()) {
