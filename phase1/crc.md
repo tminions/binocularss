@@ -8,7 +8,7 @@ TODOs:
 # activities
 
 ## MainActivity
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Render the main UI.
   - First view is all the articles.
@@ -38,7 +38,7 @@ TODOs:
 - Date
 
 ## ArticleActivity
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Render the content of one given Article including the author, title, time since publication, image, and article content.
 - Allow the user to share the feed, mark it as bookmarked, mark as read, or view the article on the web.
@@ -52,7 +52,7 @@ TODOs:
 - Date
 
 ## AddFeedActivity
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Add feeds to the database and refresh the list by fetching feeds after that.
 ### Collaborators
@@ -73,7 +73,7 @@ TODOs:
 	- This is an abstraction layer for [Article,Feed]^ Comparator
 
 ## SettingsActivity
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Display a list of settings and ways to action them.
 - Edit settings in sharedPreferences.
@@ -84,7 +84,7 @@ TODOs:
 
 <!-- TODO: Make a builder instead of a method that directly asssigns things -->
 ## Article
-<p style="color: #fcfdb9">Enterprise Business Rules - Entities</p>
+Enterprise Business Rules - Entities
 ### Responsibility
 - Represent an article.
 ### Collaborators:
@@ -92,7 +92,7 @@ TODOs:
 
 <!-- TODO: Make a builder instead of a method that directly asssigns things -->
 ## Feed
-<p style="color: #fcfdb9">Enterprise Business Rules - Entities</p>
+Enterprise Business Rules - Entities
 ### Responsibility
 - Represent a feed.
 ### Collaborators:
@@ -100,7 +100,7 @@ TODOs:
 
 <!-- TODO: Is this redundant? It could just as properly represented with a mutableListOf<Feed>() -->
 ## FeedGroup
-<p style="color: #fcfdb9">Enterprise Business Rules - Entities</p>
+Enterprise Business Rules - Entities
 ### Responsibility
 - Represent a group of feeds.
 ### Collaborators:
@@ -109,28 +109,28 @@ TODOs:
 # operations
 
 ## ArticleDateComparator
-<p style="color: #fe9f9b">Application Business Rules - Use Cases</p>
+Application Business Rules - Use Cases
 ### Responsibility
 - Compare the dates of two articles.
 ### Collaborators
 - Article
 
 ## ArticleTitleComparator
-<p style="color: #fe9f9b">Application Business Rules - Use Cases</p>
+Application Business Rules - Use Cases
 ### Responsibility
 - Compare the title of two articles.
 ### Collaborators
 - Article
 
 ## FeedTitleComparator
-<p style="color: #fe9f9b">Application Business Rules - Use Cases</p>
+Application Business Rules - Use Cases
 ### Responsibility
 - Compare the title of two feeds.
 ### Collaborators
 - Feed
 
 ## PullFeed
-<p style="color: #fe9f9b">Application Business Rules - Use Cases</p>
+Application Business Rules - Use Cases
 ### Responsibility
 - Fetch feeds from the RSS feeds.
 ### Collaborators
@@ -144,7 +144,7 @@ TODOs:
 	- This needs to talk to the controller
 
 ## Sorter
-<p style="color: #a2fbda">Interface Adapters - Gateways</p>
+Interface Adapters - Gateways
 ### Responsibility
 - Sort a given list of feeds or articles based on the comparator passed.
 ### Collaborators
@@ -154,7 +154,7 @@ TODOs:
 # room
 
 ##  AppDatabase
-<p style="color: #a7d7fd">Frameworks & Drivers - DB</p>
+Frameworks & Drivers - DB
 ### Responsibility
 - Communicate with the Room database abstraction layer.
 ### Collaborators
@@ -162,21 +162,21 @@ TODOs:
 - FeedDao
 
 ## ArticleListConverter
-<p style="color: #a7d7fd">Frameworks & Drivers - DB</p>
+Frameworks & Drivers - DB
 ### Responsibility
 - Convert Articles to and from a JSON representation since SQLite does not support lists.
 ### Collaborators
 - Article
 
 ## FeedDao
-<p style="color: #a7d7fd">Frameworks & Drivers - DB</p>
+Frameworks & Drivers - DB
 ### Responsibility
 - Link SQLite database queries to Kotlin functions
 ### Collaborators
 - Feed
 
 ## TagsListConverter
-<p style="color: #a7d7fd">Frameworks & Drivers - DB</p>
+Frameworks & Drivers - DB
 ### Responsibility
 - Convert a list of tags to and from a CSV representation since SQLite does not support lists.
 ### Collaborators
@@ -185,7 +185,7 @@ TODOs:
 # ui
 
 ## Icons
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Have buttons that can be called from activities that perform an action based on a given article.
   - BookmarkFlag: Toggles the bookmarked state of an article.
@@ -195,7 +195,7 @@ TODOs:
 - Article 
 
 ## Cards
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Render cards representing articles and feeds.
 ### Collaborators
@@ -207,21 +207,21 @@ TODOs:
 - Date
 
 ## Date
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Get the time since the publication date of an article in minutes, hours, days, months, or years.
 ### Collaborators
 - None
 
 ## NavigationItem
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Contain information for the navigation bar at the bottom of MainActivity such as route, icon, and title.
 ### Collaborators
 - None
 
 ## SettingItems
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Contain all of the composables for SettingsActivity
 ### Collabourators
@@ -230,28 +230,28 @@ TODOs:
 # activities/ui.theme
 
 ## Color
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Store color variables.
 ### Collabourators
 - None
 
 ## Shape
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Store shapes like roudned corners so they remain consistent accross the UI.
 ### Collabourators
 - None
 
 ## Theme
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Setup light and dark theme and dynamically change between them based on given variables.
 ### Collabourators
 - None
 
 ## Type
-<p style="color: #a7d7fd">Frameworks & Drivers - UI</p>
+Frameworks & Drivers - UI
 ### Responsibility
 - Store text styles to keep text consistent accross the UI.
 ### Collabourators

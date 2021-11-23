@@ -55,6 +55,9 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
 
             isRefreshing.value = false
+
+            // TODO add controller layers between ui and databse
+            MainActivity.updateFeedGroup(feedDao.getAll())
         }
     }
 

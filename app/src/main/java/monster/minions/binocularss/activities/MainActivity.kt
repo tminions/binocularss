@@ -51,10 +51,16 @@ class MainActivity : ComponentActivity() {
         lateinit var articleList: MutableStateFlow<MutableList<Article>>
         lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
         lateinit var feedList: MutableStateFlow<MutableList<Feed>>
+
+        // TODO make this a function call instead of setting this variable
+        fun updateFeedGroup(feeds: MutableList<Feed>) {
+            feedGroup.feeds = feeds
+        }
+
+        // FeedGroup object
+        private var feedGroup: FeedGroup = FeedGroup()
     }
 
-    // FeedGroup object
-    private var feedGroup: FeedGroup = FeedGroup()
 
     // Parser variable
     private lateinit var parser: Parser
