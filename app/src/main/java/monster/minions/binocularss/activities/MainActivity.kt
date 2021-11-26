@@ -358,8 +358,8 @@ class MainActivity : ComponentActivity() {
                         }
                         val items = listOf("Delete")
                         // Convert pixel to dp
-                        val xDp = with(LocalDensity.current) { (offset.x - 15).toDp() }
-                        val yDp = with(LocalDensity.current) { (offset.y - 50).toDp() }
+                        val xDp = with(LocalDensity.current) { (offset.x).toDp() } - 15.dp
+                        val yDp = with(LocalDensity.current) { (offset.y).toDp() } - 35.dp
                         DropdownMenu(
                             expanded = showDropdown,
                             onDismissRequest = { showDropdown = false },
