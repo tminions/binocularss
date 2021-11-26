@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -14,7 +13,6 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,21 +21,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.IconCompatParcelizer
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -246,7 +245,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param feed A feed that the user wants to delete
      */
-    fun deleteFeed(feed: Feed) {
+    private fun deleteFeed(feed: Feed) {
 
         feedDao.deleteBySource(feed.source)
         feedGroup.feeds.remove(feed)
@@ -315,20 +314,25 @@ class MainActivity : ComponentActivity() {
      * Displays a single feed in a card view format
      * Includes a long hold function to delete a feed
      *
-     * @param context \\TODO fill this in
+     * @param context The application context
      * @param feed The feed to be displayed
      */
     @ExperimentalCoilApi
     @Composable
     fun FeedCard(context: Context, feed: Feed) {
         var showDropdown by remember { mutableStateOf(false) }
+        // Location where user long pressed.
+        var offset by remember { mutableStateOf(Offset(0f, 0f)) }
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onLongPress = { showDropdown = true },
+                        onLongPress = {
+                            showDropdown = true
+                            offset = it
+                        },
                         onTap = {
                             // TODO temporary until articleFromFeed
                             val intent = Intent(Intent.ACTION_VIEW)
@@ -353,12 +357,15 @@ class MainActivity : ComponentActivity() {
                             Text(text = title, fontWeight = FontWeight.SemiBold)
                         }
                         val items = listOf("Delete")
-                        // TODO show up wherever we longpress
+                        // Convert pixel to dp
+                        val xDp = with(LocalDensity.current) { (offset.x - 15).toDp() }
+                        val yDp = with(LocalDensity.current) { (offset.y - 50).toDp() }
                         DropdownMenu(
                             expanded = showDropdown,
                             onDismissRequest = { showDropdown = false },
                             modifier = Modifier
-                                .background(MaterialTheme.colors.background)
+                                .background(MaterialTheme.colors.background),
+                            offset = DpOffset(xDp, yDp)
                         ) {
                             items.forEach { item ->
                                 DropdownMenuItem(onClick = {
@@ -373,13 +380,11 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    val imageExists = feed.image != "null"
-
                     CardImage(image = feed.image, description = feed.description!!)
                 }
             }
 
-            // Row for buttons in the future that is currently not used
+            // TODO Row for buttons in the future that is currently not used
             // Row(
             //     modifier = Modifier
             //         .fillMaxWidth()
