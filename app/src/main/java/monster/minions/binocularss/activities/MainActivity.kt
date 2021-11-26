@@ -842,30 +842,3 @@ class MainActivity : ComponentActivity() {
         UI()
     }
 }
-
-
-// Incorporated into FeedCard.
-//    @Composable
-//    fun FeedsDropDownMenu(
-//        feed: Feed,
-//        expanded: Boolean,
-//        onSelect: (selectedItem: String, feed: Feed) -> Unit
-//    ) {
-//        var showDropdown = expanded
-//        val items = listOf("Delete")
-//        DropdownMenu(
-//            expanded = showDropdown,
-//            onDismissRequest = { showDropdown = false },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .background(MaterialTheme.colors.background)
-//        ) {
-//            items.forEach { item ->
-//                DropdownMenuItem(onClick = {
-//                    onSelect(item, feed)
-//                }) {
-//                    Text(text = item)
-//                }
-//            }
-//        }
-//    }
