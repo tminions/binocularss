@@ -71,7 +71,8 @@ class MainActivity : ComponentActivity() {
         lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
         lateinit var feedList: MutableStateFlow<MutableList<Feed>>
 
-        // TODO make this a function call instead of setting this variable
+        // Function to update feedGroup from other activities to avoid
+		// 	bugs with returning to the main activity.
         fun updateFeedGroup(feeds: MutableList<Feed>) {
             feedGroup.feeds = feeds
         }
