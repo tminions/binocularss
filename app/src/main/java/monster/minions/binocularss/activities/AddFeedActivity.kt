@@ -14,8 +14,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -133,7 +131,8 @@ class AddFeedActivity : ComponentActivity() {
         feedGroup.feeds = feedDao.getAll()
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-//        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
     /**
@@ -248,7 +247,7 @@ class AddFeedActivity : ComponentActivity() {
 
             Column(
                 modifier = Modifier.padding(padding),
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.Start
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

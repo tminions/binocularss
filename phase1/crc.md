@@ -1,6 +1,14 @@
+<!--
+
+TODOs:
+- Turn sorter into a class so it can be an "interface" for Comparators
+
+-->
+
 # activities
 
 ## MainActivity
+Frameworks & Drivers - UI
 ### Responsibility
 - Render the main UI.
   - First view is all the articles.
@@ -12,53 +20,60 @@
 - AddFeedActivity
 - BookmarksActivity
 - SettingsActivity
-- Article
+- Article 
+	- FIXME: UI talking to entity
 - Feed
+	- FIXME: UI talking to entity
 - FeedGroup
+	- FIXME: UI talking to entity
 - PullFeed
-- AppDatabase
+	- FIXME: this will be separated into a ViewModel and PullFeed and a use case
+	- ViewModel will contain updateRss and PullFeed will contain the rest of the things
+- AppDatabase 
+	- Add a controller so the UI isn't directly talking to the DB, although that should be okay if we can't
 - FeedDao
-- Date
+	- FIXME: this is a part of the database -- same advice as above
 - Cards
 - NavigationItem
+- Date
 
 ## ArticleActivity
+Frameworks & Drivers - UI
 ### Responsibility
 - Render the content of one given Article including the author, title, time since publication, image, and article content.
 - Allow the user to share the feed, mark it as bookmarked, mark as read, or view the article on the web.
 ### Collaborators
 - Article
+	- FIXME: UI talking to entity
 - AppDatabase
+	- Add a controller so the UI isn't directly talking to the DB, although that should be okay if we can't
 - FeedDao
+	- FIXME: this is a part of the database -- same advice as above
 - Date
 
 ## AddFeedActivity
+Frameworks & Drivers - UI
 ### Responsibility
 - Add feeds to the database and refresh the list by fetching feeds after that.
 ### Collaborators
-<!-- - SettingsActivity -->
 - Feed
+	- FIXME: UI talking to entity
 - FeedGroup
+	- FIXME: UI talking to entity
 - PullFeed
+	- FIXME: this will be separated into a ViewModel and PullFeed and a use case
+	- ViewModel will contain updateRss and PullFeed will contain the rest of the things
 - AppDatabase
+	- Add a controller so the UI isn't directly talking to the DB, although that should be okay if we can't
 - FeedDao
+	- FIXME: this is a part of the database -- same advice as above
 - RetrieveArticles
 - MainActivity
 - Sorter
-
-## BookmarksActivity
-### Responsibility
-- Render all the articles that are bookmarked.
-- Perform actions to these articles.
-### Collaborators
-- SettingsActivity
-- Article
-- FeedGroup
-- AppDatabase
-- FeedDao
-- Cards
+	- This is an abstraction layer for [Article,Feed]^ Comparator
 
 ## SettingsActivity
+Frameworks & Drivers - UI
 ### Responsibility
 - Display a list of settings and ways to action them.
 - Edit settings in sharedPreferences.
@@ -67,19 +82,25 @@
 
 # dataclasses
 
+<!-- TODO: Make a builder instead of a method that directly asssigns things -->
 ## Article
+Enterprise Business Rules - Entities
 ### Responsibility
 - Represent an article.
 ### Collaborators:
 - None
 
+<!-- TODO: Make a builder instead of a method that directly asssigns things -->
 ## Feed
+Enterprise Business Rules - Entities
 ### Responsibility
 - Represent a feed.
 ### Collaborators:
 - Article
 
+<!-- TODO: Is this redundant? It could just as properly represented with a mutableListOf<Feed>() -->
 ## FeedGroup
+Enterprise Business Rules - Entities
 ### Responsibility
 - Represent a group of feeds.
 ### Collaborators:
@@ -88,35 +109,42 @@
 # operations
 
 ## ArticleDateComparator
+Application Business Rules - Use Cases
 ### Responsibility
 - Compare the dates of two articles.
 ### Collaborators
 - Article
 
 ## ArticleTitleComparator
+Application Business Rules - Use Cases
 ### Responsibility
 - Compare the title of two articles.
 ### Collaborators
 - Article
 
 ## FeedTitleComparator
+Application Business Rules - Use Cases
 ### Responsibility
 - Compare the title of two feeds.
 ### Collaborators
 - Feed
 
 ## PullFeed
+Application Business Rules - Use Cases
 ### Responsibility
 - Fetch feeds from the RSS feeds.
 ### Collaborators
-- MainActivity
+- ViewModel
 - Article
 - Feed
 - FeedGroup
 - AppDatabase
+	- This needs to talk to the controller
 - FeedDao
+	- This needs to talk to the controller
 
 ## Sorter
+Interface Adapters - Gateways
 ### Responsibility
 - Sort a given list of feeds or articles based on the comparator passed.
 ### Collaborators
@@ -126,6 +154,7 @@
 # room
 
 ##  AppDatabase
+Frameworks & Drivers - DB
 ### Responsibility
 - Communicate with the Room database abstraction layer.
 ### Collaborators
@@ -133,18 +162,21 @@
 - FeedDao
 
 ## ArticleListConverter
+Frameworks & Drivers - DB
 ### Responsibility
 - Convert Articles to and from a JSON representation since SQLite does not support lists.
 ### Collaborators
 - Article
 
 ## FeedDao
+Frameworks & Drivers - DB
 ### Responsibility
 - Link SQLite database queries to Kotlin functions
 ### Collaborators
 - Feed
 
 ## TagsListConverter
+Frameworks & Drivers - DB
 ### Responsibility
 - Convert a list of tags to and from a CSV representation since SQLite does not support lists.
 ### Collaborators
@@ -153,6 +185,7 @@
 # ui
 
 ## Icons
+Frameworks & Drivers - UI
 ### Responsibility
 - Have buttons that can be called from activities that perform an action based on a given article.
   - BookmarkFlag: Toggles the bookmarked state of an article.
@@ -162,25 +195,64 @@
 - Article 
 
 ## Cards
+Frameworks & Drivers - UI
 ### Responsibility
 - Render cards representing articles and feeds.
 ### Collaborators
-- ArticleActivity
 - Article
-- Icons
+	- FIXME: UI talking to entity
 - Feed
+	- FIXME: UI talking to entity
+- Icons
 - Date
 
 ## Date
+Frameworks & Drivers - UI
 ### Responsibility
-- Get the time since the publication date of an article in minutes, hourrs, days, months, or years.
+- Get the time since the publication date of an article in minutes, hours, days, months, or years.
 ### Collaborators
 - None
 
 ## NavigationItem
+Frameworks & Drivers - UI
 ### Responsibility
 - Contain information for the navigation bar at the bottom of MainActivity such as route, icon, and title.
 ### Collaborators
 - None
 
-# activities/ui
+## SettingItems
+Frameworks & Drivers - UI
+### Responsibility
+- Contain all of the composables for SettingsActivity
+### Collabourators
+- None
+
+# activities/ui.theme
+
+## Color
+Frameworks & Drivers - UI
+### Responsibility
+- Store color variables.
+### Collabourators
+- None
+
+## Shape
+Frameworks & Drivers - UI
+### Responsibility
+- Store shapes like roudned corners so they remain consistent accross the UI.
+### Collabourators
+- None
+
+## Theme
+Frameworks & Drivers - UI
+### Responsibility
+- Setup light and dark theme and dynamically change between them based on given variables.
+### Collabourators
+- None
+
+## Type
+Frameworks & Drivers - UI
+### Responsibility
+- Store text styles to keep text consistent accross the UI.
+### Collabourators
+- None

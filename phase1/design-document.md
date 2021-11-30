@@ -52,7 +52,7 @@ In addition to that, we also found a violation in BookmarksActivity. The specifi
 
 Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix
 
-### Single Responsability Principle 
+### Single Responsibility Principle 
 Besides a minor error mentioned below our code closely follows the single responsibility principle. We've done this by separating our critical data classes into multiple files (`Article.kt, Feed.kt, FeedGroup.kt`), keeping our important data operations in separate files (our code for sorting by date, article title, and feed title are all separated), and by keeping our UI activities in separate files as well.
 
 For example `Cards.kt` and `Icons.kt` are both elements of our UI, but as they play separate roles within our UI we have separated them into separate files.
@@ -81,41 +81,9 @@ We chose this packaging strategy as it allows up to better adhere to clean archi
 Any design patterns that we used or plan to use
 
 ### Dependency Injection
+For our UI we made sure to pass lambda functions to our Composables, allowing us to execute that code in the current scope, even if the Composables are in a different location. This ensures our Composables do not cause a circular dependency, but are still able to be used and run.
 
-When we display all of our bookmarks in the Bookmarks Composable, instead of calling ```getAllBookmarks()```
-directly within the composable, we declared it in the method header as a parameter thus eliminating this hard dependency and making our code more easily testable.
-
-Here was our code before
-
-```kotlin
-fun Bookmarks() {
-        
-        bookmarked_articles = getAllBookmarks()
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = bookmarked_articles) { article ->
-                Bookmark(article = article)
-            }
-
-        }
-    }
-```
-
-And here it is with Dependency Injection applied.
-
-```kotlin
-fun Bookmarks(bookmarked_articles: MutableList<Article>) {
-        
-        
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = bookmarked_articles) { article ->
-                Bookmark(article = article)
-            }
-
-        }
-    }
-```
 ### Builder
-
 If we have any complex objects that we want to build (Parser for example), the builder design pattern allows us to do that well - pull from Salman's design pattern work.
 
 ```kotlin
@@ -131,8 +99,20 @@ db = Room
     .databaseBuilder(this, AppDatabase::class.java, "feed-db")
     .allowMainThreadQueries()
     .build()
-
 ```
+
+### Memento
+We utilized Room to save and restore states, enabling persistence, allowing for the memento design pattern. Snapshots and values can be retrieved.
+
+This was done using our room database. Any time something was added or changed, we would update our database.
+
+And any time something is changed and reflected in the UI, we would refresh and pull from the database.
+
+### Observer
+We implemented the "observer" design pattern through our mutable states variables and remember keyword.
+
+Going into our code, there’s many instances of mutable state variables, and remember keywords. They constantly check for changes, and if found, will change to reflect in our UI. This observer design pattern allows for real-time user interaction with the interface.
+
 
 ## Use of Github Features
 
@@ -154,8 +134,9 @@ Although not a Github feature, our team's primary source of communication has be
 ### Java to Kotlin conversion
 
 One major refactoring that we made early on was the migration from Java to Kotlin for
-our Entity dataclasses. From pull request #2
+our Entity dataclasses. 
 
+This greatly reduced the amount of code we'd need to read, as Kotlin classes don't need a lot of boilerplate code (getters and setters), as well not needing keywords such as "new".
 
 <table>
 <tr>
@@ -263,6 +244,31 @@ Here is the following code for our long method.
 This composable is for selecting from multiple themes on our settings page. Obviously,
 this code spans far more than 10 lines. One way that we could fix this is by extracting some of the inner Composables and placing them in different functions. This would make each Composable function easier to read and debug.
 
+##Testing
+
+We implemented multiple tests for the various entities such as Articles, Feeds and FeedGroups.
+
+Specifically, we had tests to compare examples, as well as comparing equalities.
+
+```
+@Test
+    fun feedEqualsTest(){
+        val feed1 = Feed(source = "http://www.feedforall.com")
+        val feed2 = Feed(source = "http://www.feedforall.com/industry-solutions.htm")
+        val feed3 = Feed(source = "http://www.feedforall.com")
+
+        val article3 = Article(link = "http://www.feedforall.com")
+        val article4 = Article(link = "http://www.feedforall.com/restaurant.htm")
+
+        assertEquals(false, feed1 == feed2)
+        assertEquals(true, feed1 == feed3)
+        assertEquals(false, feed1.equals(article3))
+        assertEquals(false, feed1.equals(article4))
+    }
+```
+
+In the future, I think we would all like to see how we could implement testing for UI as well as persistence.
+
 
 
 ## Progress report
@@ -279,50 +285,57 @@ Our team communication has been very strong. Through Discord, we have been able 
 
 ### Group Member Breakdown
 
-#### Benson Chou
 
-- Sorting/Filtering system
+#### Benson Chou
+- Implementing the Sorting/Filtering system
+- Added tests (sorting, comparing Articles and Feeds)
 
 #### Eamon Ma
-
-- Article Renderer/Viewer
-- Sharing functionality
+- Created functions for article renderer/Viewer
+- Refactoring duplicate Composables
+- Sharing button/functionality
 
 #### Hisbaan Noorani
-
 - RSS parser
 - Data persistence 
 - Add feeds
-- Fix direct access to `MainActivity.feedGroup`
+- Fix direct access to MainActivity.feedGroup
+- Connect Main Page to different features/other pages.
 - Settings page
 
-#### Ismail Ahmed
 
+#### Ismail Ahmed
 - Bookmarking system
+- Began working on Search Function
+
 <!-- - Priority score -->
 
 #### Macdeini Niu
-
-- Main page (Mostly UI)
+- Main page as well as UI
 
 #### Salman Husainie
-
-- Sorting/Filtering system
+- Sorting/Filtering system for the Feeds (alongside Benson)
 
 #### Simon Chen
-- TBD
+- Refactoring Settings
 
 #### Tai Zhang
-
 - Tags System
+- Tests for entities, functionality and UI
 
 ### Plans for Phase 2
 
 #### Benson Chou
+- Add more tests (UI, Database)
+- Work on Feed Deleting system
 
 #### Eamon Ma
+- Curated Feeds in AddFeedActivity
+- Improve HTML rendering
 
 #### Hisbaan Noorani
+- Article Preview (long press to show)
+- Add more settings
 
 #### Ismail Ahmed
 - Search Function
@@ -336,9 +349,16 @@ Our team communication has been very strong. Through Discord, we have been able 
     on some calculation of those likes and dislikes
 
 #### Macdeini Niu
+- Export/Import save files
+- Reading history
 
 #### Salman Husainie
+- Work on Search function
+- Add more UI tests
 
 #### Simon Chen
+- General help with any new features that come up
 
 #### Tai Zhang
+- Create the UI for tags.
+- Contribute more to tests (importantly UI, tags)
