@@ -9,7 +9,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -70,9 +69,7 @@ class SettingsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
-            BinoculaRSSTheme(
-                theme = themeState.value
-            ) {
+            BinoculaRSSTheme(theme = themeState.value) {
                 UI()
             }
         }
@@ -131,9 +128,7 @@ class SettingsActivity : ComponentActivity() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Back button icon that goes back one activity.
-            IconButton(onClick = {
-                finish()
-            }) {
+            IconButton(onClick = { finish() }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back Arrow"
@@ -320,28 +315,12 @@ class SettingsActivity : ComponentActivity() {
                             openLink(it)
                         }
                         // Popup information on all the open source libraries used.
-                        InformationPopupItem(title = "Open Source Libraries") {
-                            Text(
-                                "RSS-Parser",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://github.com/prof18/RSS-Parser") })
-                            Text(
-                                "Coil",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://github.com/coil-kt/coil") })
-                            Text(
-                                "Room",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://developer.android.com/training/data-storage/room") })
-                            Text(
-                                "Material.io Theming Information",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://material.io/design/color/the-color-system.html#color-theme-creation") })
-                            // TODO finish adding libraries then size the popup accordinly
+                        ActionItem(title = "Open Source Libraries") {
+                            val intent = Intent(
+                                this@SettingsActivity,
+                                LicensesActivity::class.java
+                            ).apply {}
+                            startActivity(intent)
                         }
                     }
                 }
