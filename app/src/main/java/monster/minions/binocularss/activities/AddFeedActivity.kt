@@ -27,10 +27,7 @@ import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.PullFeed
-import monster.minions.binocularss.operations.getAllArticles
-import monster.minions.binocularss.operations.sortArticlesByDate
-import monster.minions.binocularss.operations.sortFeedsByTitle
+import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 
@@ -146,28 +143,7 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Function to append https:// if the string does not have the prefix http:// or https://.
-     *
-     * @param url String to have https:// appended to it.
-     * @return url with https:// possibly appended to it.
-     */
-    private fun addHttps(url: String): String {
-        return when {
-            url.startsWith("https://") || url.startsWith("http://") -> url
-            else -> "https://$url"
-        }
-    }
 
-    /**
-     * Function to trim any whitespace characters
-     *
-     * @param url String with (or perhaps without) untrimmed whitespace.
-     * @return url that has been stripped of its trailing and leading whitespace.
-     */
-    private fun trimWhitespace(url: String): String {
-        return url.trim(' ', '\n', '\t', '\r')
-    }
 
     /**
      * Add a feed with the given source url to the feedGroup if the source url is valid.
