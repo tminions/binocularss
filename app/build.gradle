@@ -3,6 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-parcelize'
     id 'kotlin-kapt'
+    // List open source licenses
+    id "com.mikepenz.aboutlibraries.plugin" version "10.0.0-b02"
 }
 
 android {
@@ -96,4 +98,9 @@ dependencies {
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     testImplementation "androidx.room:room-testing:$room_version" // optional - Test helpers
+
+    // AboutLibraries
+    def latestAboutLibsRelease = "10.0.0-b02"
+    implementation "com.mikepenz:aboutlibraries-core:$latestAboutLibsRelease"
+    implementation "com.mikepenz:aboutlibraries-compose:$latestAboutLibsRelease"
 }
