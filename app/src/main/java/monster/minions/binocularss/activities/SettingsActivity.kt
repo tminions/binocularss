@@ -314,8 +314,8 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        // Popup information on all the open source libraries used.
-                        ActionItem(title = "Open Source Libraries") {
+                        // Item that displays information on all the open source libraries used.
+                        ActionItem(title = "Open-Source Licenses") {
                             val intent = Intent(
                                 this@SettingsActivity,
                                 LicensesActivity::class.java
