@@ -1,6 +1,5 @@
 package monster.minions.binocularss.operations
 
-import android.util.Log
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import monster.minions.binocularss.dataclasses.Article
 
@@ -20,7 +19,7 @@ class ArticleSearchComparator(
      */
     override fun compare(p0: Article?, p1: Article?): Int {
 
-
+       // We tokenize the strings so that we can ignore order
        val p0Ratio = FuzzySearch.tokenSetRatio(query, p0?.title.toString())
        val p1Ratio = FuzzySearch.tokenSetRatio(query, p1?.title.toString())
 
