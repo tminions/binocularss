@@ -9,12 +9,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,6 +31,7 @@ import monster.minions.binocularss.operations.ArticleSearchComparator
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.ArticleCard
+import java.util.*
 
 class SearchActivity : ComponentActivity() {
 
@@ -74,7 +73,7 @@ class SearchActivity : ComponentActivity() {
             }
         }
 
-
+        // Restore shared preferences
         sharedPref = getSharedPreferences(
             SettingsActivity.PreferenceKeys.SETTINGS,
             Context.MODE_PRIVATE
@@ -188,54 +187,28 @@ class SearchActivity : ComponentActivity() {
     }
 
 
+
     @ExperimentalCoilApi
     @Composable
-    fun ArticleSearchResults(){
+    fun ArticleSearchResults(displayResults: Boolean){
 
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = searchResults){article ->
-                ArticleCard(context = this@SearchActivity, article = article)
-            }
 
-        }
+        if (displayResults) {
 
-    }
-
-    @Composable
-    fun SpinnerButton(text: String, suggestions: List<String>){
-        var expanded by remember { mutableStateOf(false) }
-
-        Button(
-            onClick = { expanded = !expanded },
-            modifier = Modifier
-                .padding(12.dp)
-        ){
-            Text (text)
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                contentDescription = null,
-            )
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            suggestions.forEach { label ->
-                DropdownMenuItem(
-                    onClick = {
-                        expanded = false
-                        //do something ...
-                    },
-                ) {
-                    Text(text = label)
+            LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+                items(items = searchResults) { article ->
+                    ArticleCard(context = this@SearchActivity, article = article)
                 }
             }
         }
     }
 
 
+    /**
+     * SearchBar Composable
+     */
     @Composable
-    fun SearchBar(displayResult: Boolean, onDisplayChange:(Boolean) -> Unit) {
+    fun SearchBar(onDisplayChange:(Boolean) -> Unit) {
         val textState = remember { mutableStateOf(TextFieldValue()) }
 
 
@@ -279,27 +252,15 @@ class SearchActivity : ComponentActivity() {
                         .padding(8.dp)
                 ) {
                     SearchBar(
-                        displayResult = displayResults,
                         onDisplayChange = { displayChange: Boolean ->
+
+                            // Force recomposition
                             displayResults = false
                             displayResults = true
                         }
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ){
-                   SpinnerButton(
-                       text = "Source",
-                       suggestions = feedTitles
-                   )
-                   SpinnerButton(
-                       text = "Time range",
-                       suggestions = listOf("None", "Past 24 hours", "Past Week", "Past Month")
-                   )
-                }
-                ArticleSearchResults()
+                ArticleSearchResults(displayResults = displayResults)
             }
 
         }
