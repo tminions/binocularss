@@ -2,7 +2,6 @@ package monster.minions.binocularss.operations
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
@@ -10,6 +9,7 @@ import androidx.room.RoomDatabase
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import monster.minions.binocularss.activities.MainActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
@@ -22,7 +22,7 @@ import monster.minions.binocularss.room.FeedDao
  */
 class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
 
-    var isRefreshing: Boolean = false
+    var isRefreshing = MutableStateFlow(false)
 
     // FeedGroup object
     private var localFeedGroup: FeedGroup = feedGroup
@@ -42,30 +42,22 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
     fun updateRss(parser: Parser) {
         val scope = CoroutineScope(Job() + Dispatchers.IO)
         scope.launch {
-            isRefreshing = true
-            // Update feedGroup variable
+            isRefreshing.value = true
+            // Update feedGroup variable.
             localFeedGroup = pullRss(localFeedGroup, parser)
 
-            // Update DB with updated feeds
+            // Update DB with updated feeds.
             feedDao.insertAll(*(localFeedGroup.feeds.toTypedArray()))
 
-            var text = ""
-            for (feed in localFeedGroup.feeds) {
-                text += feed.title
-                text += "\n"
-            }
-            MainActivity.feedGroupText.value = text
-            isRefreshing = false
+            // Update list states in MainActivity.
+            MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
+            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(localFeedGroup))
+            MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
 
-            val articles = mutableListOf<Article>()
+            isRefreshing.value = false
 
-            for (feed in localFeedGroup.feeds) {
-                for (article in feed.articles) {
-                    articles.add(article)
-                }
-            }
-
-            // MainActivity.list = articles.toMutableStateList()
+            // TODO add controller layers between ui and databse
+            MainActivity.updateFeedGroup(feedDao.getAll())
         }
     }
 

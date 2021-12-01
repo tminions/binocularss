@@ -15,6 +15,11 @@
         android:theme="@style/Theme.BinoculaRSS"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activities.LicensesActivity"
+            android:exported="false"
+            android:label="@string/title_activity_libraries"
+            android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
+        <activity
             android:name=".activities.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings" />
@@ -31,10 +36,7 @@
         <activity
             android:name=".activities.ArticleActivity"
             android:exported="false"
-            />
-        <activity
-            android:name=".activities.BookmarksActivity"
-            android:exported="false" />
+            android:theme="@style/Theme.BinoculaRSS.NoActionBar" />
         <activity
             android:name=".activities.MainActivity"
             android:exported="true"

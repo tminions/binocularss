@@ -1,63 +1,87 @@
 package monster.minions.binocularss.activities
 
-import androidx.compose.material.icons.filled.Search
-
-import android.content.Context
 import android.annotation.SuppressLint
-import android.app.ListActivity
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.border
+import androidx.compose.animation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.ArticleDateComparator
-import monster.minions.binocularss.operations.FeedTitleComparator
-import monster.minions.binocularss.operations.PullFeed
+import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import java.util.*
 
 class MainActivity : ComponentActivity() {
-    // FeedGroup object
-    private var feedGroup: FeedGroup = FeedGroup()
-    private lateinit var sortedArticles: MutableList<Article>
+    companion object {
+        lateinit var articleList: MutableStateFlow<MutableList<Article>>
+        lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
+        lateinit var feedList: MutableStateFlow<MutableList<Feed>>
+
+        // Function to update feedGroup from other activities to avoid
+        // 	bugs with returning to the main activity.
+        fun updateFeedGroup(feeds: MutableList<Feed>) {
+            feedGroup.feeds = feeds
+        }
+
+        // FeedGroup object
+        private var feedGroup: FeedGroup = FeedGroup()
+    }
+
 
     // Parser variable
     private lateinit var parser: Parser
@@ -74,13 +98,6 @@ class MainActivity : ComponentActivity() {
     private var isFirstRun = true
     private var cacheExpiration = 0L
 
-    // Companion object as this variable needs to be updated from other asynchronous classes.
-    companion object {
-        var feedGroupText = MutableStateFlow("Empty\n")
-//        lateinit var list: SnapshotStateList<Article>
-    }
-
-
     // Local variables
     private lateinit var currentFeed: Feed
     private lateinit var currentArticle: Article
@@ -92,6 +109,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -106,13 +124,15 @@ class MainActivity : ComponentActivity() {
             currentFeed = Feed("default")
         }
 
+        // Set shared preferences variables.
         sharedPref = getSharedPreferences(
             SettingsActivity.PreferenceKeys.SETTINGS,
             Context.MODE_PRIVATE
         )
         sharedPrefEditor = sharedPref.edit()
-        theme =
-            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        theme = sharedPref
+            .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
+            .toString()
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
@@ -127,7 +147,10 @@ class MainActivity : ComponentActivity() {
             .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
             .build()
 
-        //list = getAllArticles().toMutableStateList()
+        // Refresh LazyColumn composables
+        articleList = MutableStateFlow(mutableListOf())
+        bookmarkedArticleList = MutableStateFlow(mutableListOf())
+        feedList = MutableStateFlow(mutableListOf())
     }
 
     /**
@@ -160,75 +183,315 @@ class MainActivity : ComponentActivity() {
 
         feedGroup.feeds = feeds
 
-        sortedArticles = getAllArticlesSortedByDate()
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // NOT PERMANENT: If the user does not have any feeds added, add some.
-        if (feedGroup.feeds.isNullOrEmpty()) {
-            // Add some feeds to the feedGroup
-            feedGroup.feeds.add(Feed(source = "https://rss.cbc.ca/lineup/topstories.xml"))
-            feedGroup.feeds.add(Feed(source = "https://androidauthority.com/feed"))
-            // feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Gravity-Assist.rss"))
-            // feedGroup.feeds.add(Feed(source = "https://www.nasa.gov/rss/dyn/Houston-We-Have-a-Podcast.rss"))
-
-            // Inform the user of this
-            Toast.makeText(this@MainActivity, "Added Sample Feeds to feedGroup", Toast.LENGTH_SHORT)
-                .show()
-        }
-        ///////////////////////////////////////////////////////////////////////////////////////////
-
-        theme =
-            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        theme = sharedPref
+            .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
+            .toString()
         if (!isFirstRun) {
             themeState.value = theme
         }
         isFirstRun = false
-        updateText()
+
+        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
     /**
-     * Update the text for UI elements
+     * Replace the unmodified article with a modified article.
+     * This is to be used when updating article.bookmarked and article.read
      *
-     * TODO this function can be modified to update other UI elements after the
-     *  feeds have been fetched as well at which point it should be named updateUI
-     *  or something along those lines.
+     * @param modifiedArticle Article with a modified property.
      */
-    private fun updateText() {
-        var text = ""
+    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
         for (feed in feedGroup.feeds) {
-            text += feed.title
-            text += "\n"
+            val articles = feed.articles.toMutableList()
+            for (unmodifiedArticle in articles) {
+                if (modifiedArticle == unmodifiedArticle) {
+                    feed.articles.remove(unmodifiedArticle)
+                    feed.articles.add(modifiedArticle)
+                    break
+                }
+            }
         }
-        feedGroupText.value = text
+
+        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+
+        if (refreshBookmark) {
+            bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        }
+
+        feedList.value = sortFeedsByTitle(feedGroup.feeds)
+    }
+
+    /**
+     * Replace the unmodified feeds with a modified feed.
+     * This is to be used when updating feed.tags
+     *
+     * @param modifiedFeed Feed with a modified property.
+     */
+    private fun setFeeds(modifiedFeed: Feed) {
+        val feeds = feedGroup.feeds.toMutableList()
+        for (unmodifiedFeed in feeds) {
+            if (modifiedFeed == unmodifiedFeed) {
+                feedGroup.feeds.remove(unmodifiedFeed)
+                feedGroup.feeds.add(modifiedFeed)
+                break
+            }
+        }
+
+        feedList.value = sortFeedsByTitle(feedGroup.feeds)
+    }
+
+    /**
+     * Delete feeds through deleting the source from feedDao
+     *
+     * @param feed A feed that the user wants to delete
+     */
+    private fun deleteFeed(feed: Feed) {
+
+        feedDao.deleteBySource(feed.source)
+        feedGroup.feeds.remove(feed)
+
+        articleList.value = mutableListOf()
+        feedList.value = mutableListOf()
+        bookmarkedArticleList.value = mutableListOf()
+    }
+
+    /**
+     * Formats the image and article/feed description if available.
+     * If not, put in a placeholder image (tminions logo) or empty string for description
+     *
+     * @param image string that represents the URL of the image
+     * @param description Article/Feed descriptions
+     */
+    @Composable
+    fun CardImage(image: String, description: String = "") {
+
+        // Color matrix to turn image grayscale
+        val grayScaleMatrix = ColorMatrix(
+            floatArrayOf(
+                0.33f, 0.33f, 0.33f, 0f, 0f,
+                0.33f, 0.33f, 0.33f, 0f, 0f,
+                0.33f, 0.33f, 0.33f, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f
+            )
+        )
+
+        val imageExists = image != "null" && image != null
+
+        // Box for image on the right.
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            elevation = 4.dp
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(150.dp, 150.dp)
+                    .background(MaterialTheme.colors.background, RoundedCornerShape(4.dp))
+            ) {
+                Image(
+                    painter = rememberImagePainter(
+                        data =
+                        if (imageExists) image
+                        else "https://avatars.githubusercontent.com/u/91392435?s=200&v=4",
+                        builder = {
+                            // Placeholder when the image hasn't loaded yet.
+                            placeholder(R.drawable.ic_launcher_foreground)
+                        }
+                    ),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = description,
+                    colorFilter = if (imageExists) null else ColorFilter.colorMatrix(
+                        grayScaleMatrix
+                    ),
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
+        }
+    }
+
+    /**
+     * Displays a single feed in a card view format
+     * Includes a long hold function to delete a feed
+     *
+     * @param context The application context
+     * @param feed The feed to be displayed
+     */
+    @ExperimentalCoilApi
+    @Composable
+    fun FeedCard(context: Context, feed: Feed) {
+        var showDropdown by remember { mutableStateOf(false) }
+        // Location where user long pressed.
+        var offset by remember { mutableStateOf(Offset(0f, 0f)) }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
+                            showDropdown = true
+                            offset = it
+                        },
+                        onTap = {
+                            // TODO temporary until articleFromFeed
+                            val intent = Intent(Intent.ACTION_VIEW)
+                            intent.data = Uri.parse(feed.link)
+                            ContextCompat.startActivity(context, intent, null)
+                        }
+                    )
+                }, elevation = 4.dp
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Column for feed title.
+                    Column(
+                        modifier = Modifier.width(200.dp)
+                    ) {
+                        feed.title?.let { title ->
+                            Text(text = title, fontWeight = FontWeight.SemiBold)
+                        }
+                        val items = listOf("Delete")
+                        // Convert pixel to dp
+                        val xDp = with(LocalDensity.current) { (offset.x).toDp() } - 15.dp
+                        val yDp = with(LocalDensity.current) { (offset.y).toDp() } - 35.dp
+                        DropdownMenu(
+                            expanded = showDropdown,
+                            onDismissRequest = { showDropdown = false },
+                            modifier = Modifier
+                                .background(MaterialTheme.colors.background),
+                            offset = DpOffset(xDp, yDp)
+                        ) {
+                            items.forEach { item ->
+                                DropdownMenuItem(onClick = {
+                                    when (item) {
+                                        "Delete" -> {
+                                            deleteFeed(feed)
+                                        }
+                                    }
+                                }) {
+                                    Text(text = item)
+                                }
+                            }
+                        }
+                    }
+                    CardImage(image = feed.image, description = feed.description!!)
+                }
+            }
+
+            // TODO Row for buttons in the future that is currently not used
+            // Row(
+            //     modifier = Modifier
+            //         .fillMaxWidth()
+            // ) {
+            // }
+        }
+    }
+
+    /**
+     * Displays a single article in a card view format
+     *
+     * @param article The article to be displayed
+     */
+    @SuppressLint("SimpleDateFormat")
+    @ExperimentalCoilApi
+    @Composable
+    fun ArticleCard(context: Context, article: Article, updateValues: (article: Article) -> Unit) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable {
+                    val intent = Intent(context, ArticleActivity::class.java)
+                    intent.putExtra("article", article)
+                    article.read = true
+                    updateValues(article)
+                    ContextCompat.startActivity(context, intent, null)
+                },
+            elevation = 4.dp
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Column for title, feed, and time.
+                    Column(
+                        modifier = Modifier
+                            .width(200.dp)
+                            .padding(end = 12.dp)
+                    ) {
+                        article.title?.let { title ->
+                            Text(text = title, fontWeight = FontWeight.SemiBold)
+                        }
+                        Text(text = article.sourceTitle)
+                        Text(text = getTime(article.pubDate!!))
+                    }
+
+                    CardImage(image = article.image!!, description = article.description!!)
+                }
+
+                // Row for buttons on the bottom.
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    BookmarkFlag(article = article) { updateValues(article) }
+                    ShareFlag(context = context, article = article)
+                    ReadFlag(article = article) { updateValues(article) }
+                    BrowserFlag(context = context, article = article)
+                }
+            }
+        }
     }
 
     /**
      * Displays the list of feeds saved
-     * TODO sort feeds alphabetically
      */
     @Composable
-    fun FeedTitles() {
-
-        if (feedGroup.feeds.isNullOrEmpty()) {
+    fun SortedFeedView() {
+        var showAddFeed by remember { mutableStateOf(feedGroup.feeds.isNullOrEmpty()) }
+        if (showAddFeed) {
             // Sad minion no feeds found
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = "No Feeds Found")
+                Text(
+                    text = "No Feeds Found",
+                    style = MaterialTheme.typography.h5
+                )
                 Spacer(Modifier.padding(16.dp))
-                AddFeedButton()
+                Button(
+                    onClick = {
+                        showAddFeed = false
+                        val intent =
+                            Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                        startActivity(intent)
+                    }
+                ) {
+                    Text("Add Feed")
+                }
             }
         } else {
-            val feedTitleComparator = FeedTitleComparator()
-            feedGroup.feeds.sortWith(comparator = feedTitleComparator)
+            val feeds by feedList.collectAsState()
             LazyColumn(
-                modifier = Modifier
-                    .padding(vertical = 4.dp)
-                    .border(1.dp, Color.Black)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(items = feedGroup.feeds) { feed ->
+                items(items = feeds) { feed ->
                     FeedCard(context = this@MainActivity, feed = feed)
 
                 }
@@ -237,106 +500,175 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Displays the list of articles associated with a given feed
-     */
-    @Composable
-    fun ArticlesFromFeed() {
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = currentFeed.articles) { article ->
-                ArticleCard(context = this@MainActivity, article = article)
-            }
-        }
-    }
-
-    private fun getAllArticles(): MutableList<Article> {
-        val articles: MutableList<Article> = mutableListOf()
-
-        for (feed in feedGroup.feeds) {
-            for (article in feed.articles) {
-                articles.add(article)
-            }
-        }
-
-        return articles
-    }
-
-    private fun getAllArticlesSortedByDate(): MutableList<Article> {
-        val articles = getAllArticles()
-        val dateComparator = ArticleDateComparator()
-        return articles.sortedWith(comparator = dateComparator).toMutableList()
-    }
-
-    /**
      * Displays a list of articles in the order given by the currently selected sorting method
      */
     @Composable
-    fun SortedArticleView(articles: MutableList<Article>) {
-        // val list = remember { articles.toMutableStateList() }
+    fun SortedArticleView() {
+        // Mutable state variable that is updated when articleList is updated to force a recompose.
+        val articles by articleList.collectAsState()
 
-        LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-            items(items = articles) { article ->
-                ArticleCard(context = this@MainActivity, article = article)
-            }
-        }
-    }
-
-    /**
-     * The default UI state of the app.
-     */
-    @Composable
-    fun UI() {
-        // Set status bar and nav bar colours
-        val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
-        // Get elevated color to match the bottom bar that is also elevated by 8.dp
-        val elevatedColor = LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
-        SideEffect {
-            systemUiController.setSystemBarsColor(
-                color = color,
-                darkIcons = useDarkIcons
-            )
-
-            systemUiController.setNavigationBarColor(
-                color = elevatedColor!!
-            )
-        }
-
-        Surface(color = MaterialTheme.colors.background) {
-
-            val navController = rememberNavController()
-            val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
-            val isRefreshing by remember { mutableStateOf(viewModel.isRefreshing) }
-
-            Scaffold(
-                topBar = { TopBar() },
-                bottomBar = { BottomNavigationBar(navController = navController) }
+        if (articles.isNullOrEmpty()) {
+            // Sad minion no article found
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                SwipeRefresh(
-                    state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
-                    onRefresh = {
-                        viewModel.updateRss(parser)
+                Text(
+                    text = "No Articles Found",
+                    style = MaterialTheme.typography.h5
+                )
+                Spacer(Modifier.padding(16.dp))
+                Button(
+                    onClick = {
+                        val intent =
+                            Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                        startActivity(intent)
                     }
                 ) {
-                    Navigation(navController)
+                    Text("Add Feed")
+                }
+            }
+        } else {
+            // LazyColumn containing the article cards.
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                // For each article in the list, render a card.
+                items(items = articles) { article ->
+                    ArticleCard(
+                        context = this@MainActivity,
+                        article = article
+                    ) { setArticle(it) }
                 }
             }
         }
     }
 
+    /**
+     * Displays the list of articles associated with a given feed
+     *
+     * TODO to be implemented
+     */
     @Composable
-    fun Navigation(navController: NavHostController) {
-        NavHost(navController, startDestination = NavigationItem.Article.route) {
-            composable(NavigationItem.Article.route) {
-                // TODO either do this or just call getAll articles then sort them
-                SortedArticleView(sortedArticles)
-            }
-            composable(NavigationItem.Feed.route) {
-                FeedTitles()
+    fun ArticlesFromFeed() {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
+            items(items = currentFeed.articles) { article ->
+                ArticleCard(
+                    context = this@MainActivity,
+                    article = article
+                ) { setArticle(it) }
             }
         }
     }
 
+    /**
+     * Displays a list of all bookmarked articles.
+     */
+    @ExperimentalAnimationApi
+    @Composable
+    fun BookmarksView(navController: NavHostController) {
+        // Mutable state variable that is updated when articleList is updated to force a recompose.
+        val articles by articleList.collectAsState()
+        val bookmarkedArticles by bookmarkedArticleList.collectAsState()
+
+        when {
+            // Show "No Articles Found"
+            articles.isNullOrEmpty() -> {
+                // Sad minion no article found
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Articles Found",
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(Modifier.padding(16.dp))
+                    Button(
+                        onClick = {
+                            val intent =
+                                Intent(
+                                    this@MainActivity,
+                                    AddFeedActivity::class.java
+                                ).apply {}
+                            feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                            startActivity(intent)
+                        }
+                    ) {
+                        Text("Add Feed")
+                    }
+                }
+            }
+            // Show "No Bookmarked Articles"
+            bookmarkedArticles.isNullOrEmpty() -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Bookmarked Articles",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(Modifier.padding(4.dp))
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        text = "Bookmark an article and it will show up here",
+                        style = MaterialTheme.typography.body1
+                    )
+                    Spacer(Modifier.padding(16.dp))
+                    Button(onClick = {
+                        // Update bookmarkedArticleList when any nav item is clicked.
+                        bookmarkedArticleList.value =
+                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
+
+                        navController.navigate(NavigationItem.Articles.route) {
+                            navController.graph.startDestinationRoute?.let { route ->
+                                // Pop up to the start destination of the graph to avoid building up
+                                //  a large stack of destinations on the back stack as users select
+                                //  items
+                                popUpTo(route) { saveState = true }
+                            }
+                            // Avoid multiple copies of the same destination when re-selecting the
+                            //  same item
+                            launchSingleTop = true
+                            // Restore state when re-selecting a previously selected item
+                            restoreState = true
+                        }
+                    }) { Text("Go to Articles") }
+                }
+            }
+            // Show the lazy column with the bookmarked articles
+            else -> {
+                // LazyColumn containing the article cards.
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    // For each article in the list, render a card.
+                    items(items = bookmarkedArticles) { article ->
+                        ArticleCard(
+                            context = this@MainActivity,
+                            article = article
+                        ) { setArticle(it, refreshBookmark = false) }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Top app bar with buttons for BookmarkActivity, SettingsActivity, and AddFeedActivity.
+     */
     @Composable
     fun TopBar() {
         Row(
@@ -352,19 +684,11 @@ class MainActivity : ComponentActivity() {
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Bookmarks Activity Button
+
+                // Search Activity Button
                 IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, BookmarksActivity::class.java).apply {}
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Bookmark,
-                        contentDescription = "Bookmark Activity"
-                    )
-                }
-                // Bookmarks Activity Button
-                IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, SearchActivity::class.java).apply {}
+                    val intent =
+                        Intent(this@MainActivity, SearchActivity::class.java).apply {}
                     startActivity(intent)
                 }) {
                     Icon(
@@ -373,8 +697,10 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                // Settings Activity Button
                 IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, SettingsActivity::class.java).apply {}
+                    val intent =
+                        Intent(this@MainActivity, SettingsActivity::class.java).apply {}
                     startActivity(intent)
                 }) {
                     Icon(
@@ -385,9 +711,10 @@ class MainActivity : ComponentActivity() {
 
                 // Add Feed Activity Button
                 IconButton(onClick = {
-                    val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                    startActivity(intent)
+                    val intent =
+                        Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
                     feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                    startActivity(intent)
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Add,
@@ -398,38 +725,46 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Bottom app bar with buttons for article, feed, and bookmark views.
+     */
     @Composable
     fun BottomNavigationBar(navController: NavController) {
         val items = listOf(
-            NavigationItem.Article,
-            NavigationItem.Feed,
+            NavigationItem.Articles,
+            NavigationItem.Feeds,
+            NavigationItem.Bookmarks
         )
         BottomNavigation(
-            backgroundColor = MaterialTheme.colors.background,
-            contentColor = MaterialTheme.colors.onBackground
+            backgroundColor = MaterialTheme.colors.background
         ) {
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
             items.forEach { item ->
+                // For each item in the list, create a navigation item for it.
                 BottomNavigationItem(
                     icon = {
                         Icon(
-                            painterResource(id = item.icon),
+                            imageVector = item.icon,
                             contentDescription = item.title
                         )
                     },
                     label = { Text(text = item.title) },
-                    selectedContentColor = Color.White,
-                    unselectedContentColor = Color.White.copy(0.4f),
+                    selectedContentColor = MaterialTheme.colors.primary,
+                    unselectedContentColor = MaterialTheme.colors.onBackground.copy(0.5f),
                     alwaysShowLabel = true,
-                    selected = false,
+                    selected = currentRoute == item.route,
                     onClick = {
+                        // Update bookmarkedArticleList when any nav item is clicked.
+                        if (item.route == NavigationItem.Bookmarks.route) bookmarkedArticleList.value =
+                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
+
                         navController.navigate(item.route) {
                             navController.graph.startDestinationRoute?.let { route ->
                                 // Pop up to the start destination of the graph to avoid building up
                                 //  a large stack of destinations on the back stack as users select
                                 //  items
-                                popUpTo(route) {
-                                    saveState = true
-                                }
+                                popUpTo(route) { saveState = true }
                             }
                             // Avoid multiple copies of the same destination when re-selecting the
                             //  same item
@@ -443,34 +778,99 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun AddFeedButton() {
-        Button(
-            onClick = {
-                val intent = Intent(this, AddFeedActivity::class.java).apply {}
-                feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
-                startActivity(intent)
-            }
-        ) {
-            Text("Add Feed")
-        }
-    }
 
+    /**
+     * Composable that loads in and out views based on the current navigation item selected.
+     */
+    @ExperimentalAnimationApi
     @Composable
-    fun ClearFeeds() {
-        Button(
-            onClick = {
-                for (feed in feedGroup.feeds) {
-                    feedDao.deleteBySource(feed.source)
+    fun Navigation(navController: NavHostController) {
+        NavHost(navController, startDestination = NavigationItem.Articles.route) {
+            composable(NavigationItem.Articles.route) {
+                EnterAnimation {
+                    SortedArticleView()
                 }
-                feedGroup.feeds = mutableListOf()
-                updateText()
             }
-        ) {
-            Text("Clear DB")
+            composable(NavigationItem.Feeds.route) {
+                EnterAnimation {
+                    SortedFeedView()
+                }
+            }
+            composable(NavigationItem.Bookmarks.route) {
+                EnterAnimation {
+                    BookmarksView(navController)
+                }
+            }
         }
     }
 
+    /**
+     * Animate the entrance animation for navigation items.
+     */
+    @ExperimentalAnimationApi
+    @Composable
+    fun EnterAnimation(content: @Composable () -> Unit) {
+        // TODO figure out non-deprecated library
+        AnimatedVisibility(
+            visible = true,
+            enter = slideInVertically(initialOffsetY = { 10000 }),
+            exit = fadeOut(),
+            initiallyVisible = false
+        ) {
+            content()
+        }
+    }
+
+    /**
+     * The default UI of the app.
+     */
+    @ExperimentalAnimationApi
+    @Composable
+    fun UI() {
+        // Set status bar and nav bar colours
+        val systemUiController = rememberSystemUiController()
+        val useDarkIcons = MaterialTheme.colors.isLight
+        val color = MaterialTheme.colors.background
+        // Get elevated color to match the bottom bar that is also elevated by 8.dp
+        val elevatedColor =
+            LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = color,
+                darkIcons = useDarkIcons
+            )
+            systemUiController.setNavigationBarColor(
+                color = elevatedColor!!
+            )
+        }
+
+        Surface(color = MaterialTheme.colors.background) {
+            // Navigation variables.
+            val navController = rememberNavController()
+
+            // Swipe refresh variables.
+            val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
+            val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+            Scaffold(
+                topBar = { TopBar() },
+                bottomBar = { BottomNavigationBar(navController = navController) }
+            ) {
+                // Update feeds when swiping down like in a browser.
+                SwipeRefresh(
+                    state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
+                    onRefresh = {
+                        viewModel.updateRss(parser)
+                    }
+                ) {
+                    // Navigate to whatever view is selected by the bottom bar.
+                    Navigation(navController)
+                }
+            }
+        }
+    }
+
+    @ExperimentalAnimationApi
     @Preview(showBackground = true)
     @Composable
     fun Preview() {

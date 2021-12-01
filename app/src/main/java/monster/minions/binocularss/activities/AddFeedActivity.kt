@@ -12,6 +12,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,14 +28,16 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.PullFeed
+import monster.minions.binocularss.operations.getAllArticles
+import monster.minions.binocularss.operations.sortArticlesByDate
+import monster.minions.binocularss.operations.sortFeedsByTitle
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 
-// TODO make sure to check that this is an RSS feed (probably in pull feed or something of
-//  the sort and send a toast to the user if it is not. Try and check this when initially
-//  adding maybe? Basically deeper checking than just is this a URL so we don't encounter
-//  errors later. Or we could leave it and have PullFeed silently remove a feed if it is
-//  invalid like it currently does.
+// TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
+//  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
+//  checking than just is this a URL so we don't encounter errors later. Or we could leave it and
+//  have PullFeed silently remove a feed if it is invalid like it currently does.
 class AddFeedActivity : ComponentActivity() {
 
     // FeedGroup object
@@ -125,6 +129,10 @@ class AddFeedActivity : ComponentActivity() {
         super.onResume()
         Log.d("AddFeedActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
+
+        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
     /**
@@ -171,7 +179,7 @@ class AddFeedActivity : ComponentActivity() {
                         "You've already added that RSS feed",
                         Toast.LENGTH_SHORT
                     ).show()
-                    continue
+                    break
                 }
             }
 
@@ -187,31 +195,36 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * TextField where feed url is inputted.
+     */
     @Composable
-    fun FeedTextField() {
-        val textState = remember { mutableStateOf(TextFieldValue()) }
+    fun FeedTextField(textValue: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = textState.value,
+            value = textValue,
             placeholder = { Text("Enter Feed URL") },
-            onValueChange = {
-                textState.value = it
-                text = mutableStateOf(textState.value.text)
-            },
+            onValueChange = onValueChange,
             singleLine = true,
             maxLines = 1,
             keyboardActions = KeyboardActions(
+                // When you press the enter button on the keyboard.
                 onDone = { submit() }
             )
         )
     }
 
+    /**
+     * Main UI of the AddFeedActivity.
+     */
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
         val color = MaterialTheme.colors.background
+        var textState by remember { mutableStateOf(TextFieldValue()) }
+
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -224,9 +237,31 @@ class AddFeedActivity : ComponentActivity() {
 
             Column(
                 modifier = Modifier.padding(padding),
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.Start
             ) {
-                FeedTextField()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(modifier = Modifier.weight(1f)) {
+                        FeedTextField(textState, onValueChange = {
+                            textState = it
+                            text = mutableStateOf(textState.text)
+                        })
+                    }
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    FloatingActionButton(
+                        onClick = { submit() },
+                        backgroundColor = MaterialTheme.colors.primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Add feed"
+                        )
+
+                    }
+                }
             }
         }
     }

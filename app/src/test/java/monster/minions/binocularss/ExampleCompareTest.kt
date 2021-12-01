@@ -20,11 +20,25 @@ class ExampleCompareTest {
         val article3: Article = Article(pubDate = "Fri, 29 Oct 2021 10:02 EDT")
         val article4: Article = Article(pubDate = "Sat, 31 Oct 2021 10:02 EDT")
 
+        val article5: Article = Article(pubDate = "Thu, 28 Oct 2021 10:02:02 EDT")
+        val article6: Article = Article(pubDate = "Fri, 29 Oct 2021 10:02:03 EDT")
+        val article7: Article = Article(pubDate = "Sat, 31 Oct 2021 10:02:04 EDT")
+
         val articleDateComparator: ArticleDateComparator = ArticleDateComparator()
 
-        assertEquals(true, articleDateComparator.compare(article1, article4) < 0)
+        /* Comparing Articles without seconds */
+        assertEquals(true, articleDateComparator.compare(article1, article2) < 0)
         assertEquals(true, articleDateComparator.compare(article1, article3) == 0)
-        assertEquals(true, articleDateComparator.compare(article1, article2) > 0)
+        assertEquals(true, articleDateComparator.compare(article1, article4) > 0)
+
+        /* Comparing Articles with Seconds */
+        assertEquals(true, articleDateComparator.compare(article6, article5) < 0)
+        assertEquals(true, articleDateComparator.compare(article6, article7) > 0)
+
+        /* Comparing Articles with Seconds and without seconds */
+        assertEquals(true, articleDateComparator.compare(article1, article5) > 0)
+        assertEquals(true, articleDateComparator.compare(article1, article6) > 0)
+        assertEquals(true, articleDateComparator.compare(article1, article7) > 0)
     }
 
     @Test
@@ -42,7 +56,7 @@ class ExampleCompareTest {
     }
 
     @Test
-    fun feedTitlteCompareTest(){
+    fun feedTitleCompareTest(){
         val feed1: Feed = Feed(title = "The compareTo() method")
         val feed2: Feed = Feed(title = "ZcompareTo() method")
         val feed3: Feed = Feed(title = "The compareTo() method")
