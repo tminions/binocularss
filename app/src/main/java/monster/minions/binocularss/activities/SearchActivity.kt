@@ -23,11 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.ArticleSearchComparator
+import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.ArticleCard
@@ -130,7 +131,8 @@ class SearchActivity : ComponentActivity() {
         feedGroup.feeds = feedDao.getAll()
 
 
-        searchResults = getAllArticles().sortedWith(ArticleSearchComparator(text.toString())).toMutableList()
+
+        searchResults = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.toString())
         feedTitles = getFeedTitles()
 
 
@@ -143,20 +145,7 @@ class SearchActivity : ComponentActivity() {
         isFirstRun = false
     }
 
-    /**
-     * Retrieve all articles from the database
-     */
-    private fun getAllArticles(): MutableList<Article> {
-        val articles: MutableList<Article> = mutableListOf()
 
-        for (feed in feedGroup.feeds) {
-            for (article in feed.articles) {
-                articles.add(article)
-            }
-        }
-
-        return articles
-    }
 
 
     private fun getFeedTitles(): MutableList<String>{
@@ -176,7 +165,7 @@ class SearchActivity : ComponentActivity() {
      */
     private fun submit(){
 
-        val articles: MutableList<Article> = getAllArticles()
+        val articles: MutableList<Article> = getAllArticles(feedGroup)
         Log.d("OP", "Submitting")
         searchResults = articles.sortedWith(ArticleSearchComparator(text.value)).toMutableList()
 
@@ -197,10 +186,48 @@ class SearchActivity : ComponentActivity() {
 
             LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
                 items(items = searchResults) { article ->
-                    ArticleCard(context = this@SearchActivity, article = article)
+                    ArticleCard(context = this@SearchActivity, article = article) {
+                        setArticle(it)
+                    }
                 }
             }
         }
+    }
+
+
+    /**
+     * Replace the unmodified article with a modified article.
+     * This is to be used when updating article.bookmarked and article.read
+     *
+     * @param modifiedArticle Article with a modified property.
+     */
+    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
+        for (feed in feedGroup.feeds) {
+            val articles = feed.articles.toMutableList()
+            for (unmodifiedArticle in articles) {
+                if (modifiedArticle == unmodifiedArticle) {
+                    feed.articles.remove(unmodifiedArticle)
+                    feed.articles.add(modifiedArticle)
+                    break
+                }
+            }
+        }
+
+        MainActivity.articleList.value = sortArticlesByDate(
+            getAllArticles(
+                feedGroup
+            )
+        )
+
+        if (refreshBookmark) {
+            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(
+                getBookmarkedArticles(
+                    feedGroup
+                )
+            )
+        }
+
+        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
 
@@ -237,7 +264,19 @@ class SearchActivity : ComponentActivity() {
     @Preview
     fun UI(){
 
+        // Set status bar and nav bar colours.
+        val systemUiController = rememberSystemUiController()
+        val useDarkIcons = MaterialTheme.colors.isLight
+        val color = MaterialTheme.colors.background
+        SideEffect {
+            systemUiController.setSystemBarsColor(
+                color = color,
+                darkIcons = useDarkIcons
+            )
+        }
         var displayResults by rememberSaveable { mutableStateOf(true) }
+
+
 
         Surface(
             modifier = Modifier
