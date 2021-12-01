@@ -42,6 +42,7 @@ data class Article  (
     var categories: MutableList<String>? = mutableListOf(),
     var bookmarked: Boolean = false,
     var read: Boolean = false,
+    var readDate: String? = "",
 ) : Parcelable {
     /**
      * Check if an article is equal to another by checking the
@@ -76,7 +77,11 @@ data class Article  (
         result = 31 * result + (guid?.hashCode() ?: 0)
         result = 31 * result + (sourceName?.hashCode() ?: 0)
         result = 31 * result + (sourceUrl?.hashCode() ?: 0)
+        result = 31 * result + sourceTitle.hashCode()
         result = 31 * result + (categories?.hashCode() ?: 0)
+        result = 31 * result + bookmarked.hashCode()
+        result = 31 * result + read.hashCode()
+        result = 31 * result + (readDate?.hashCode() ?: 0)
         return result
     }
 }

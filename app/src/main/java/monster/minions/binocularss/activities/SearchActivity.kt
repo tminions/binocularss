@@ -128,8 +128,9 @@ class SearchActivity : ComponentActivity() {
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.searchResults.value = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+        MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        MainActivity.searchResults.value = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
     }
 
     private fun getFeedTitles(): MutableList<String> {
@@ -194,6 +195,7 @@ class SearchActivity : ComponentActivity() {
 
         MainActivity.articleList.value = mutableListOf()
         MainActivity.bookmarkedArticleList.value = mutableListOf()
+        MainActivity.readArticleList.value = mutableListOf()
         MainActivity.feedList.value = mutableListOf()
     }
 

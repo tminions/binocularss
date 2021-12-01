@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat.startActivity
 
 import monster.minions.binocularss.dataclasses.Article
+import java.util.*
 import androidx.compose.material.icons.filled.Bookmark as FilledBookmarkIcon
 import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIcon
 
@@ -55,8 +56,9 @@ fun ReadFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
     IconButton(
         onClick = {
              isRead = !isRead
-            article.read = !article.read
-            extraAction(article)
+             article.read = !article.read
+             article.readDate = Date().toString()
+             extraAction(article)
         }
     ) {
         Icon(

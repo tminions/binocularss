@@ -107,6 +107,7 @@ class ArticleActivity : ComponentActivity() {
         // Recompose LazyColumn
         MainActivity.articleList.value = mutableListOf()
         MainActivity.bookmarkedArticleList.value = mutableListOf()
+        MainActivity.readArticleList.value = mutableListOf()
         MainActivity.searchResults.value = mutableListOf()
     }
 
@@ -123,7 +124,11 @@ class ArticleActivity : ComponentActivity() {
         Log.d("MainActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
 
+        MainActivity.articleList.value = mutableListOf()
         MainActivity.bookmarkedArticleList.value = mutableListOf()
+        MainActivity.readArticleList.value = mutableListOf()
+        MainActivity.searchResults.value = mutableListOf()
+        MainActivity.feedList.value = mutableListOf()
     }
 
     /**
@@ -137,8 +142,7 @@ class ArticleActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
-        val feeds: MutableList<Feed> = feedDao.getAll()
-        feedGroup.feeds = feeds
+        feedGroup.feeds = feedDao.getAll()
     }
 
     /**

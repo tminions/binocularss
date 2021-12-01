@@ -24,6 +24,7 @@ import coil.compose.rememberImagePainter
 import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ArticleActivity
 import monster.minions.binocularss.dataclasses.Article
+import java.util.*
 
 /**
  * Displays a single article in a card view format
@@ -42,6 +43,7 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                 val intent = Intent(context, ArticleActivity::class.java)
                 intent.putExtra("article", article)
                 article.read = true
+                article.readDate = Date().toString()
                 updateValues(article)
                 ContextCompat.startActivity(context, intent, null)
             },
@@ -84,7 +86,6 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
         }
     }
 }
-
 
 /**
  * Formats the image and article/feed description if available.
