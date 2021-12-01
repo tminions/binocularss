@@ -38,3 +38,21 @@ fun getBookmarkedArticles(feedGroup: FeedGroup): MutableList<Article> {
 
     return bookmarkedArticles
 }
+
+/**
+ * Returns a list of read articles from the feedGroup
+ *
+ * @param feedGroup The feedGroup to get the list of bookmarked articles from.
+ */
+fun getReadArticles(feedGroup: FeedGroup): MutableList<Article> {
+    val readArticles: MutableList<Article> = mutableListOf()
+
+    for (feed in feedGroup.feeds) {
+        for (article in feed.articles) {
+            if (article.read) {
+                readArticles.add(article)
+            }
+        }
+    }
+    return readArticles
+}
