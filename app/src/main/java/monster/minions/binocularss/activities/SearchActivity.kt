@@ -35,8 +35,6 @@ import monster.minions.binocularss.ui.ArticleCard
 import java.util.*
 
 class SearchActivity : ComponentActivity() {
-
-
     // FeedGroup object
     private var feedGroup: FeedGroup = FeedGroup()
 
@@ -47,7 +45,6 @@ class SearchActivity : ComponentActivity() {
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
 
-
     // User Preferences
     private lateinit var sharedPref: SharedPreferences
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
@@ -56,11 +53,9 @@ class SearchActivity : ComponentActivity() {
     private var isFirstRun = true
     private var cacheExpiration = 0L
 
-
     private var text = mutableStateOf("")
-    private var searchResults: MutableList<Article> = mutableListOf()
-    private var feedTitles: MutableList<String> = mutableListOf()
 
+    private var feedTitles: MutableList<String> = mutableListOf()
 
     @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +65,7 @@ class SearchActivity : ComponentActivity() {
             BinoculaRSSTheme(
                 theme = themeState.value
             ) {
-               UI()
+                UI()
             }
         }
 
@@ -94,26 +89,21 @@ class SearchActivity : ComponentActivity() {
         feedDao = (db as AppDatabase).feedDao()
         parser = Parser.Builder()
             .context(this)
-            .cacheExpirationMillis(60L * 60L * 100L) // Set the cache to expire in one hour
-            // Different options for cacheExpiration
-            // .cacheExpirationMillis(24L * 60L * 60L * 100L) // Set the cache to expire in one day
-            // .cacheExpirationMillis(0)
+            .cacheExpirationMillis(60L * 60L * 100L)
             .build()
-
     }
-
 
     /**
      * Save the list of user feeds to the Room database (feed-db) for data persistence.
      *
      * The database files can be found in `Android/data/data/monster.minions.binocularss.databases`.
      *
-     * This function is called before `onDestroy` or any time a "stop" happens. This
+     * This function is called before `onDestroy` or any time a "pause" happens. This
      * includes when an app is exited but not closed.
      */
-    override fun onStop() {
-        super.onStop()
-        Log.d("SearchActivity", "onStop called")
+    override fun onPause() {
+        super.onPause()
+        Log.d("SearchActivity", "onPause called")
         feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
     }
 
@@ -129,31 +119,24 @@ class SearchActivity : ComponentActivity() {
         super.onResume()
         Log.d("SearchActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
-
-
-
-        searchResults = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.toString())
         feedTitles = getFeedTitles()
-
-
-
-        theme =
-            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         if (!isFirstRun) {
             themeState.value = theme
         }
         isFirstRun = false
+
+        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.searchResults.value = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
-
-
-
-    private fun getFeedTitles(): MutableList<String>{
-
+    private fun getFeedTitles(): MutableList<String> {
         val feeds = feedGroup.feeds
         val feedTitles = mutableListOf("All feeds")
 
-        for (feed in feeds){
+        for (feed in feeds) {
             feedTitles.add(feed.title.toString())
         }
         return feedTitles
@@ -163,37 +146,33 @@ class SearchActivity : ComponentActivity() {
      * Retrieve all articles that could match the given
      * query
      */
-    private fun submit(){
+    private fun submit() {
+        Log.d("SearchActivity", "Submitting")
+        MainActivity.searchResults.value =
+            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
 
-        val articles: MutableList<Article> = getAllArticles(feedGroup)
-        Log.d("OP", "Submitting")
-        searchResults = articles.sortedWith(ArticleSearchComparator(text.value)).toMutableList()
-
-        if (searchResults.isEmpty()){
+        if (MainActivity.searchResults.value.isEmpty()) {
             Toast.makeText(this@SearchActivity, "No matches", Toast.LENGTH_SHORT).show()
         }
-
     }
-
-
 
     @ExperimentalCoilApi
     @Composable
-    fun ArticleSearchResults(displayResults: Boolean){
+    fun ArticleSearchResults() {
+        val articles by MainActivity.searchResults.collectAsState()
 
-
-        if (displayResults) {
-
-            LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
-                items(items = searchResults) { article ->
-                    ArticleCard(context = this@SearchActivity, article = article) {
-                        setArticle(it)
-                    }
-                }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // For each article in the list, render a card.
+            items(items = articles) { article ->
+                ArticleCard(
+                    context = this@SearchActivity,
+                    article = article
+                ) { setArticle(it) }
             }
         }
     }
-
 
     /**
      * Replace the unmodified article with a modified article.
@@ -213,31 +192,17 @@ class SearchActivity : ComponentActivity() {
             }
         }
 
-        MainActivity.articleList.value = sortArticlesByDate(
-            getAllArticles(
-                feedGroup
-            )
-        )
-
-        if (refreshBookmark) {
-            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(
-                getBookmarkedArticles(
-                    feedGroup
-                )
-            )
-        }
-
-        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        MainActivity.articleList.value = mutableListOf()
+        MainActivity.bookmarkedArticleList.value = mutableListOf()
+        MainActivity.feedList.value = mutableListOf()
     }
-
 
     /**
      * SearchBar Composable
      */
     @Composable
-    fun SearchBar(onDisplayChange:(Boolean) -> Unit) {
+    fun SearchBar() {
         val textState = remember { mutableStateOf(TextFieldValue()) }
-
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -253,7 +218,6 @@ class SearchActivity : ComponentActivity() {
             keyboardActions = KeyboardActions(
                 onDone = {
                     submit()
-                    onDisplayChange(true)
                 }
             )
         )
@@ -262,8 +226,7 @@ class SearchActivity : ComponentActivity() {
     @ExperimentalCoilApi
     @Composable
     @Preview
-    fun UI(){
-
+    fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
@@ -274,51 +237,21 @@ class SearchActivity : ComponentActivity() {
                 darkIcons = useDarkIcons
             )
         }
-        var displayResults by rememberSaveable { mutableStateOf(true) }
-
-
-
         Surface(
             modifier = Modifier
                 .fillMaxWidth(),
             color = MaterialTheme.colors.background,
         ) {
-
             Column {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    SearchBar(
-                        onDisplayChange = { displayChange: Boolean ->
-
-                            // Force recomposition
-                            displayResults = false
-                            displayResults = true
-                        }
-                    )
+                    SearchBar()
                 }
-                ArticleSearchResults(displayResults = displayResults)
+                ArticleSearchResults()
             }
-
         }
-
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
