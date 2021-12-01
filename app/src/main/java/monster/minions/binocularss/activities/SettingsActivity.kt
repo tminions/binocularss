@@ -264,6 +264,7 @@ class SettingsActivity : ComponentActivity() {
                             // Update MainActivity UI
                             MainActivity.articleList.value = mutableListOf()
                             MainActivity.bookmarkedArticleList.value = mutableListOf()
+                            MainActivity.readArticleList.value = mutableListOf()
 
                             Toast.makeText(
                                 this@SettingsActivity,

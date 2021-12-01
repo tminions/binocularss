@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
         lateinit var articleList: MutableStateFlow<MutableList<Article>>
         lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
         lateinit var feedList: MutableStateFlow<MutableList<Feed>>
+        lateinit var readArticleList: MutableStateFlow<MutableList<Article>>
 
         // Function to update feedGroup from other activities to avoid
 		// 	bugs with returning to the main activity.
@@ -150,6 +151,7 @@ class MainActivity : ComponentActivity() {
         articleList = MutableStateFlow(mutableListOf())
         bookmarkedArticleList = MutableStateFlow(mutableListOf())
         feedList = MutableStateFlow(mutableListOf())
+        readArticleList = MutableStateFlow(mutableListOf())
     }
 
     /**
@@ -193,6 +195,7 @@ class MainActivity : ComponentActivity() {
         articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
         feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
     }
 
     /**
@@ -201,7 +204,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
+    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true, refreshRead: Boolean = true) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -217,6 +220,9 @@ class MainActivity : ComponentActivity() {
 
         if (refreshBookmark) {
             bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        }
+        if (refreshRead) {
+            readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
         }
 
         feedList.value = sortFeedsByTitle(feedGroup.feeds)
@@ -254,6 +260,7 @@ class MainActivity : ComponentActivity() {
         articleList.value = mutableListOf()
         feedList.value = mutableListOf()
         bookmarkedArticleList.value = mutableListOf()
+        readArticleList.value = mutableListOf()
     }
 
     /**
@@ -411,6 +418,7 @@ class MainActivity : ComponentActivity() {
                     val intent = Intent(context, ArticleActivity::class.java)
                     intent.putExtra("article", article)
                     article.read = true
+                    article.readDate = Date().toString()
                     updateValues(article)
                     ContextCompat.startActivity(context, intent, null)
                 },
@@ -553,6 +561,100 @@ class MainActivity : ComponentActivity() {
         ) {
             items(items = currentFeed.articles) { article ->
                 ArticleCard(context = this@MainActivity, article = article) { setArticle(it) }
+            }
+        }
+    }
+
+    /**
+     * Displays a list of all read articles.
+     */
+    @ExperimentalAnimationApi
+    @Composable
+    fun ReadingHistoryView(navController: NavHostController){
+        val articles by articleList.collectAsState()
+        val readArticles by readArticleList.collectAsState()
+
+        when {
+            articles.isNullOrEmpty() -> {
+                // Sad minion no article found
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Articles Found",
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(Modifier.padding(16.dp))
+                    Button(
+                        onClick = {
+                            val intent =
+                                Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                            feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                            startActivity(intent)
+                        }
+                    ) {
+                        Text("Add Feed")
+                    }
+                }
+            }
+            // Show "No Bookmarked Articles"
+            readArticles.isNullOrEmpty() -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "No Read Articles",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(Modifier.padding(4.dp))
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        text = "Read an article and it will show up here",
+                        style = MaterialTheme.typography.body1
+                    )
+                    Spacer(Modifier.padding(16.dp))
+                    Button(onClick = {
+                        // Update readArticleList when any nav item is clicked.
+                        readArticleList.value =
+                            sortArticlesByReadDate(getReadArticles(feedGroup))
+
+                        navController.navigate(NavigationItem.Articles.route) {
+                            navController.graph.startDestinationRoute?.let { route ->
+                                // Pop up to the start destination of the graph to avoid building up
+                                //  a large stack of destinations on the back stack as users select
+                                //  items
+                                popUpTo(route) { saveState = true }
+                            }
+                            // Avoid multiple copies of the same destination when re-selecting the
+                            //  same item
+                            launchSingleTop = true
+                            // Restore state when re-selecting a previously selected item
+                            restoreState = true
+                        }
+                    }) { Text("Go to Articles") }
+                }
+            }
+            // Show the lazy column with the bookmarked articles
+            else -> {
+                // LazyColumn containing the article cards.
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    // For each article in the list, render a card.
+                    items(items = readArticles) { article ->
+                        ArticleCard(
+                            context = this@MainActivity,
+                            article = article
+                        ) { setArticle(it, refreshRead = false) }
+                    }
+                }
             }
         }
     }
@@ -705,7 +807,8 @@ class MainActivity : ComponentActivity() {
         val items = listOf(
             NavigationItem.Articles,
             NavigationItem.Feeds,
-            NavigationItem.Bookmarks
+            NavigationItem.Bookmarks,
+            NavigationItem.ReadingHistory
         )
         BottomNavigation(
             backgroundColor = MaterialTheme.colors.background
@@ -766,6 +869,11 @@ class MainActivity : ComponentActivity() {
             composable(NavigationItem.Bookmarks.route) {
                 EnterAnimation {
                     BookmarksView(navController)
+                }
+            }
+            composable(NavigationItem.ReadingHistory.route){
+                EnterAnimation {
+                    ReadingHistoryView(navController)
                 }
             }
         }

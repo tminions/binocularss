@@ -107,6 +107,7 @@ class ArticleActivity : ComponentActivity() {
         // Recompose LazyColumn
         MainActivity.articleList.value = mutableListOf()
         MainActivity.bookmarkedArticleList.value = mutableListOf()
+        MainActivity.readArticleList.value = mutableListOf()
     }
 
     /**

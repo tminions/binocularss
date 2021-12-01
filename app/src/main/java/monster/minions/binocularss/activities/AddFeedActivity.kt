@@ -27,10 +27,7 @@ import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.PullFeed
-import monster.minions.binocularss.operations.getAllArticles
-import monster.minions.binocularss.operations.sortArticlesByDate
-import monster.minions.binocularss.operations.sortFeedsByTitle
+import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 
@@ -131,7 +128,8 @@ class AddFeedActivity : ComponentActivity() {
         feedGroup.feeds = feedDao.getAll()
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
