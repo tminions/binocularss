@@ -52,6 +52,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             // Update list states in MainActivity.
             MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
             MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(localFeedGroup))
+            MainActivity.readArticleList.value = sortArticlesByReadDate(getReadArticles(localFeedGroup))
             MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
 
             isRefreshing.value = false
@@ -173,7 +174,8 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             sourceTitle = sourceTitle,
             categories = categories,
             bookmarked = false,
-            read = false
+            read = false,
+            readDate = "",
         )
 
         return article
@@ -202,6 +204,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
                     // pulledArticle.sourceTitle = article.sourceTitle
                     pulledArticle.bookmarked = article.bookmarked
                     pulledArticle.read = article.read
+                    pulledArticle.readDate = article.readDate
                     unionArticles.add(pulledArticle)
                     anyEquals = true
                     break
