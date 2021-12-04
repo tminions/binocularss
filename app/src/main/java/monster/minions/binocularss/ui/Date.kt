@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @SuppressLint("SimpleDateFormat")
-// TODO fix
 fun getTime(pubDate: String, shortOutput: Boolean = false): String {
     var time = pubDate
     val dateFormats = listOf(

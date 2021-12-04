@@ -1,10 +1,7 @@
 package monster.minions.binocularss.activities.ui.theme
 
-import android.view.RoundedCorner
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Shapes
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 val RoundedCorner = Shapes(

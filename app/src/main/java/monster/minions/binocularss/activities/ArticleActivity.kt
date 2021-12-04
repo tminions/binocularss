@@ -13,7 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -34,11 +33,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.R
-import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.activities.ui.theme.paddingLarge
-import monster.minions.binocularss.activities.ui.theme.paddingLargeMedium
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
-import monster.minions.binocularss.activities.ui.theme.RoundedCorner
+import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.AppDatabase
@@ -354,8 +349,8 @@ class ArticleActivity : ComponentActivity() {
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(0.dp),
-                elevation = 5.dp
+                shape = RoundedCorner.small,
+                elevation = 4.dp
             ) {
                 Box(
                     modifier = Modifier.height(200.dp)

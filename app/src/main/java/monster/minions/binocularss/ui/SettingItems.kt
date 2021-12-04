@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +24,7 @@ import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat.startActivity
 import monster.minions.binocularss.activities.ui.theme.paddingLarge
 import monster.minions.binocularss.activities.ui.theme.paddingMedium
+import monster.minions.binocularss.activities.ui.theme.RoundedCorner
 
 /**
  * Item that runs a callback on click
@@ -102,8 +102,6 @@ fun InformationPopupItem(
     if (showPopup) {
         // Popup size information.
         val popupHeight = 400.dp
-        val cornerSize = 16.dp
-
         Popup(
             alignment = Alignment.Center,
             onDismissRequest = { showPopup = false }
@@ -118,7 +116,7 @@ fun InformationPopupItem(
                     .height(popupHeight)
                     .background(
                         it.apply(MaterialTheme.colors.background, 4.dp),
-                        RoundedCornerShape(cornerSize)
+                        RoundedCorner.large
                     )
                     .padding(paddingLarge)
             }?.let {
@@ -245,7 +243,6 @@ fun MultipleOptionItem(
         for (i in radioOptions) {
             popupHeight += 56.dp
         }
-        val cornerSize = 16.dp
 
         Popup(
             alignment = Alignment.Center,
@@ -258,7 +255,7 @@ fun MultipleOptionItem(
                     .height(popupHeight)
                     .background(
                         it.apply(MaterialTheme.colors.background, 4.dp),
-                        RoundedCornerShape(cornerSize)
+                        RoundedCorner.large
                     )
                     .padding(paddingLarge)
             }?.let {
