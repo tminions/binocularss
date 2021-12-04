@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat.startActivity
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingMedium
 
 /**
  * Item that runs a callback on click
@@ -46,7 +48,7 @@ fun ActionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             // Perform action when clicked if not disabled
             .clickable(enabled = !disabled) { onClick() }
     ) {
@@ -84,7 +86,7 @@ fun InformationPopupItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             .clickable { showPopup = true }
     ) {
         // Column that contains title and subtitle if defined.
@@ -118,7 +120,7 @@ fun InformationPopupItem(
                         it.apply(MaterialTheme.colors.background, 4.dp),
                         RoundedCornerShape(cornerSize)
                     )
-                    .padding(16.dp)
+                    .padding(paddingLarge)
             }?.let {
                 Box(
                     it
@@ -156,7 +158,7 @@ fun EmailItem(context: Context, title: String, subtitle: String = "", email: Str
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             .clickable {
                 // on click, send to email application.
                 if (email != "") {
@@ -187,7 +189,7 @@ fun LinkItem(title: String, subtitle: String = "", link: String, openLink: (link
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             // Open link when clicked.
             .clickable { openLink(link) }
     ) {
@@ -225,7 +227,8 @@ fun MultipleOptionItem(
         Modifier
             .fillMaxWidth()
             .clickable { showPopup = true }
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp)) {
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
+    ) {
         // Column that renders the title and subtitle.
         Column {
             Text(title)
@@ -257,7 +260,7 @@ fun MultipleOptionItem(
                         it.apply(MaterialTheme.colors.background, 4.dp),
                         RoundedCornerShape(cornerSize)
                     )
-                    .padding(16.dp)
+                    .padding(paddingLarge)
             }?.let {
                 Box(
                     it
@@ -289,7 +292,7 @@ fun MultipleOptionItem(
                                         },
                                         role = Role.RadioButton
                                     )
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = paddingLarge),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
@@ -302,7 +305,7 @@ fun MultipleOptionItem(
                                 Text(
                                     text = text,
                                     style = MaterialTheme.typography.body1.merge(),
-                                    modifier = Modifier.padding(start = 16.dp)
+                                    modifier = Modifier.padding(start = paddingLarge)
                                 )
                             }
                         }
@@ -342,7 +345,7 @@ fun ToggleItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { checkedState = !checkedState }
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp),
+            .padding(horizontal = paddingLarge, vertical = paddingMedium),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -377,7 +380,7 @@ fun ToggleItem(
 @Composable
 fun PreferenceTitle(title: String) {
     Text(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingMedium),
         text = buildAnnotatedString {
             withStyle(style = ParagraphStyle(lineHeight = 30.sp)) {
                 withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {

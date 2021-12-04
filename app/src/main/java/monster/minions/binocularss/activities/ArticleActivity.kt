@@ -35,8 +35,11 @@ import coil.compose.rememberImagePainter
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingLargeMedium
+import monster.minions.binocularss.activities.ui.theme.paddingSmall
+import monster.minions.binocularss.activities.ui.theme.RoundedCorner
 import monster.minions.binocularss.dataclasses.Article
-import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
@@ -193,7 +196,7 @@ class ArticleActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .padding(end = 16.dp),
+                .padding(end = paddingLarge),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -238,14 +241,14 @@ class ArticleActivity : ComponentActivity() {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                        .padding(bottom = 12.dp)
+                        .padding(horizontal = paddingLargeMedium)
+                        .padding(bottom = paddingLargeMedium)
                         .verticalScroll(rememberScrollState())
                 ) {
                     // Article heading
                     ArticleHeading()
 
-                    Box(modifier = Modifier.padding(bottom = 12.dp)) {
+                    Box(modifier = Modifier.padding(bottom = paddingLargeMedium)) {
                         // Article content
                         if (article.content.isNullOrEmpty() || article.content.toString() == "null") {
                             Text(
@@ -271,7 +274,7 @@ class ArticleActivity : ComponentActivity() {
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(end = 5.dp)
+                                .padding(end = paddingSmall)
                         ) {
                             Text(text = "Share")
                         }
@@ -283,7 +286,7 @@ class ArticleActivity : ComponentActivity() {
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(start = 5.dp)
+                                .padding(start = paddingSmall)
                         ) {
                             Text(text = "View article")
                         }
@@ -308,7 +311,7 @@ class ArticleActivity : ComponentActivity() {
                     "UNKNOWN ${typeOfInformation.uppercase()}" else text
             }",
             style = style,
-            modifier = if (atBottom) Modifier else Modifier.padding(bottom = 4.dp)
+            modifier = if (atBottom) Modifier else Modifier.padding(bottom = paddingSmall)
         )
     }
 
@@ -318,18 +321,18 @@ class ArticleActivity : ComponentActivity() {
     @ExperimentalCoilApi
     @Composable
     private fun ArticleHeading() {
-        Column(modifier = Modifier.padding(bottom = 12.dp)) {
+        Column(modifier = Modifier.padding(bottom = paddingLargeMedium)) {
             Text(
                 article.title.toString(),
                 style = MaterialTheme.typography.h5.copy(
                     fontWeight = FontWeight(700),
                     color = MaterialTheme.colors.onBackground
                 ),
-                modifier = Modifier.padding(vertical = 12.dp)
+                modifier = Modifier.padding(vertical = paddingLargeMedium)
             )
 
             Divider(thickness = 1.dp)
-            Spacer(modifier = Modifier.size(12.dp))
+            Spacer(modifier = Modifier.size(paddingLargeMedium))
 
             ArticleInformation(
                 text = article.author.toString().uppercase(),
@@ -345,9 +348,9 @@ class ArticleActivity : ComponentActivity() {
                 prefix = "",
             )
 
-            Spacer(modifier = Modifier.size(12.dp))
+            Spacer(modifier = Modifier.size(paddingLargeMedium))
             Divider(thickness = 1.dp)
-            Spacer(modifier = Modifier.size(12.dp))
+            Spacer(modifier = Modifier.size(paddingLargeMedium))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),

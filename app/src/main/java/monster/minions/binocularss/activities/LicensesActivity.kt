@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.mikepenz.aboutlibraries.ui.compose.LibrariesContainer
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.paddingSmall
 
 class LicensesActivity : ComponentActivity() {
 
@@ -66,7 +67,7 @@ class LicensesActivity : ComponentActivity() {
                     contentDescription = "Back Arrow"
                 )
             }
-            Spacer(Modifier.padding(4.dp))
+            Spacer(Modifier.padding(paddingSmall))
             // Title of current page.
             Text("Open-Source Licenses", style = MaterialTheme.typography.h5)
         }

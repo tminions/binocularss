@@ -27,6 +27,8 @@ import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CA
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.AppDatabase
@@ -134,7 +136,7 @@ class SettingsActivity : ComponentActivity() {
                     contentDescription = "Back Arrow"
                 )
             }
-            Spacer(Modifier.padding(4.dp))
+            Spacer(Modifier.padding(paddingSmall))
             // Title of current page.
             Text("Settings", style = MaterialTheme.typography.h5)
         }
@@ -160,8 +162,6 @@ class SettingsActivity : ComponentActivity() {
 
         // Surface as a background.
         Surface(color = MaterialTheme.colors.background) {
-            val padding = 16.dp
-
             var themeSubtitle by remember { mutableStateOf(theme) }
             var cacheExpirationString = ""
             when (cacheExpiration) {
@@ -182,7 +182,7 @@ class SettingsActivity : ComponentActivity() {
                         Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .padding(vertical = padding)
+                            .padding(vertical = paddingLarge)
                             .verticalScroll(rememberScrollState())
                     ) {
                         PreferenceTitle1(title = "Appearance")
@@ -208,7 +208,7 @@ class SettingsActivity : ComponentActivity() {
                             checked = false, // TODO get this value from shared preferences
                             onToggle = { println(it)/* TODO set shared preferences here */ }
                         )
-                        Divider(modifier = Modifier.padding(bottom = 16.dp))
+                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Preferences")
                         // Cache expiration time selector.
@@ -273,7 +273,7 @@ class SettingsActivity : ComponentActivity() {
                             ).show()
 
                         }
-                        Divider(modifier = Modifier.padding(bottom = 16.dp))
+                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Support")
                         // Email item
@@ -296,7 +296,7 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        Divider(modifier = Modifier.padding(bottom = 16.dp))
+                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "About")
                         // Item that links to github source code page.

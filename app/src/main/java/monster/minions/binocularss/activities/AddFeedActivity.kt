@@ -30,6 +30,8 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingMedium
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
@@ -231,10 +233,8 @@ class AddFeedActivity : ComponentActivity() {
         }
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-            val padding = 16.dp
-
             Column(
-                modifier = Modifier.padding(padding),
+                modifier = Modifier.padding(paddingLarge),
                 horizontalAlignment = Alignment.Start
             ) {
                 Row(
@@ -248,7 +248,7 @@ class AddFeedActivity : ComponentActivity() {
                             text = mutableStateOf(textState.text)
                         })
                     }
-                    Spacer(modifier = Modifier.padding(8.dp))
+                    Spacer(modifier = Modifier.padding(paddingMedium))
                     FloatingActionButton(
                         onClick = { submit() },
                         backgroundColor = MaterialTheme.colors.primary

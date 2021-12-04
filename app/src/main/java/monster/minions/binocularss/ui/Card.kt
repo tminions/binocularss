@@ -23,6 +23,9 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ArticleActivity
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingLargeMedium
+import monster.minions.binocularss.activities.ui.theme.paddingMedium
 import monster.minions.binocularss.dataclasses.Article
 import java.util.*
 
@@ -38,7 +41,7 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(paddingMedium)
             .clickable {
                 val intent = Intent(context, ArticleActivity::class.java)
                 intent.putExtra("article", article)
@@ -53,14 +56,14 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(paddingLarge),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // Column for title, feed, and time.
                 Column(
                     modifier = Modifier
                         .width(200.dp)
-                        .padding(end = 12.dp)
+                        .padding(end = paddingLargeMedium)
                 ) {
                     article.title?.let { title ->
                         Text(text = title, fontWeight = FontWeight.SemiBold)
