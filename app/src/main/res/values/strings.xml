@@ -2,5 +2,6 @@
     <string name="app_name">BinoculaRSS</string>
     <string name="title_activity_add_feed">AddFeedActivity</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_search">SearchActivity</string>
     <string name="title_activity_libraries">LibrariesActivity</string>
 </resources>
