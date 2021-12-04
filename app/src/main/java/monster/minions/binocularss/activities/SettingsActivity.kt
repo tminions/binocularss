@@ -245,7 +245,7 @@ class SettingsActivity : ComponentActivity() {
                             }
                         )
 
-                        val disableClearDatabase by remember {
+                        var disableClearDatabase by remember {
                             mutableStateOf(feedGroup.feeds.isNullOrEmpty())
                         }
 
@@ -260,6 +260,7 @@ class SettingsActivity : ComponentActivity() {
 
                             // Set feedGroup.feeds to empty
                             feedGroup.feeds = mutableListOf()
+                            disableClearDatabase = true
 
                             // Update MainActivity UI
                             MainActivity.articleList.value = mutableListOf()
