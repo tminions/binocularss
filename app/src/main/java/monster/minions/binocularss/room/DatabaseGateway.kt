@@ -8,18 +8,35 @@ import monster.minions.binocularss.dataclasses.Feed
 
 class DatabaseGateway {
 
-    private var db: RoomDatabase = Room
-        .databaseBuilder(context, AppDatabase::class.java, "feed-db")
-        .allowMainThreadQueries()
-        .build()
-    private var feedDao: FeedDao = (db as AppDatabase).feedDao()
     private lateinit var context: Context
+    private lateinit var db: RoomDatabase
+    private lateinit var feedDao: FeedDao
 
     fun read(): MutableList<Feed>{
         return feedDao.getAll()
     }
 
-    fun write(feedsToAdd: MutableList<Feed>){
+    fun setContext(context: Context){
+        this.context = context
+    }
+
+    fun setDb(){
+        db = Room
+            .databaseBuilder(context, AppDatabase::class.java, "feed-db")
+            .allowMainThreadQueries()
+            .build()
+
+    }
+
+    fun setFeedDao(){
+        feedDao = (db as AppDatabase).feedDao()
+    }
+
+    fun addFeeds(feedsToAdd: MutableList<Feed>){
         feedDao.insertAll(*(feedsToAdd.toTypedArray()))
+    }
+
+    fun removeFeedBySource(source: String){
+       feedDao.deleteBySource(source)
     }
 }
