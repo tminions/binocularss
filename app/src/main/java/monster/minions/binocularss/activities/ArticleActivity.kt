@@ -44,6 +44,7 @@ import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.BookmarkFlag
 import monster.minions.binocularss.ui.ReadFlag
 import monster.minions.binocularss.ui.getTime
+import kotlin.properties.Delegates
 
 class ArticleActivity : ComponentActivity() {
     /**
@@ -54,6 +55,8 @@ class ArticleActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var cacheExpiration = 0L
 
     // Room database variables
@@ -69,8 +72,10 @@ class ArticleActivity : ComponentActivity() {
 
         setContent {
             themeState = remember { mutableStateOf(theme) }
+            materialYouState = remember { mutableStateOf(materialYou) }
             BinoculaRSSTheme(
-                theme = themeState.value
+                theme = themeState.value,
+                materialYou = materialYouState.value
             ) {
                 UI()
             }
@@ -83,7 +88,7 @@ class ArticleActivity : ComponentActivity() {
         sharedPrefEditor = sharedPref.edit()
         theme =
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
-        cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
         db = Room
             .databaseBuilder(this, AppDatabase::class.java, "feed-db")
@@ -145,6 +150,10 @@ class ArticleActivity : ComponentActivity() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
+
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
     }
 
     /**

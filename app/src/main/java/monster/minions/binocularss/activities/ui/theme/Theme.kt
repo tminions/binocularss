@@ -1,10 +1,10 @@
 package monster.minions.binocularss.activities.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorPalette = darkColorScheme(
 //    primary = evilMinionPurple,
@@ -39,6 +39,7 @@ private val LightColorPalette = lightColorScheme(
 @Composable
 fun BinoculaRSSTheme(
     theme: String = "System Default",
+    materialYou: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when(theme) {
@@ -46,7 +47,15 @@ fun BinoculaRSSTheme(
         "Dark Theme" -> true
         else -> isSystemInDarkTheme()
     }
-    val colorScheme = if (darkTheme) DarkColorPalette else LightColorPalette
+
+    val dynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val colorScheme = when(materialYou && dynamic) {
+        true -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        false -> { if (darkTheme) DarkColorPalette else LightColorPalette }
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,

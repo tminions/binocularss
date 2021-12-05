@@ -31,6 +31,7 @@ import com.mikepenz.aboutlibraries.ui.compose.util.author
 import com.mikepenz.aboutlibraries.util.withContext
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.activities.ui.theme.paddingSmall
+import kotlin.properties.Delegates
 
 class LicensesActivity : ComponentActivity() {
 
@@ -39,14 +40,19 @@ class LicensesActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
-    private var cacheExpiration = 0L
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
 
     @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
-            BinoculaRSSTheme(theme = themeState.value) {
+            materialYouState = remember { mutableStateOf(materialYou) }
+            BinoculaRSSTheme(
+                theme = themeState.value,
+                materialYou = materialYouState.value
+            ) {
                 UI()
             }
         }
@@ -59,7 +65,7 @@ class LicensesActivity : ComponentActivity() {
         sharedPrefEditor = sharedPref.edit()
         theme =
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
-        cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
     }
 
     /**

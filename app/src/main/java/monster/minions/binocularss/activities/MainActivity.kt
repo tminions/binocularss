@@ -73,6 +73,7 @@ import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import kotlin.math.ln
+import kotlin.properties.Delegates
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -104,6 +105,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var isFirstRun = true
     private var cacheExpiration = 0L
 
@@ -123,12 +126,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        WindowCompat.setDecorFitsSystemWindows(window, false)
-
         setContent {
             themeState = remember { mutableStateOf(theme) }
+            materialYouState = remember { mutableStateOf(materialYou) }
             BinoculaRSSTheme(
-                theme = themeState.value
+                theme = themeState.value,
+                materialYou = materialYouState.value
             ) {
                 UI()
             }
@@ -145,6 +148,7 @@ class MainActivity : ComponentActivity() {
         theme = sharedPref
             .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
             .toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
@@ -200,8 +204,10 @@ class MainActivity : ComponentActivity() {
         theme = sharedPref
             .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
             .toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         if (!isFirstRun) {
             themeState.value = theme
+            materialYouState.value = materialYou
         }
         isFirstRun = false
 

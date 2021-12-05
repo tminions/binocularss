@@ -35,6 +35,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
+import kotlin.properties.Delegates
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
@@ -58,6 +59,8 @@ class AddFeedActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var cacheExpiration = 0L
 
     /**
@@ -71,8 +74,10 @@ class AddFeedActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
+            materialYouState = remember { mutableStateOf(materialYou) }
             BinoculaRSSTheme(
-                theme = themeState.value
+                theme = themeState.value,
+                materialYou = materialYouState.value
             ) {
                 UI()
             }
@@ -85,6 +90,7 @@ class AddFeedActivity : ComponentActivity() {
         sharedPrefEditor = sharedPref.edit()
         theme =
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
@@ -131,6 +137,11 @@ class AddFeedActivity : ComponentActivity() {
         super.onResume()
         Log.d("AddFeedActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
+
+        theme = sharedPref
+            .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
+            .toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value =
@@ -219,8 +230,25 @@ class AddFeedActivity : ComponentActivity() {
                 unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 textColor = MaterialTheme.colorScheme.onBackground,
+                disabledTextColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                backgroundColor = MaterialTheme.colorScheme.background,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                errorCursorColor = MaterialTheme.colorScheme.error,
+                leadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity),
+                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
+                    .copy(alpha = ContentAlpha.disabled),
+                errorLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity),
+                trailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity),
+                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
+                    .copy(alpha = ContentAlpha.disabled),
+                errorTrailingIconColor = MaterialTheme.colorScheme.error,
+                focusedLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = ContentAlpha.high),
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(ContentAlpha.medium),
+                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(ContentAlpha.medium)
+                    .copy(ContentAlpha.disabled),
+                errorLabelColor = MaterialTheme.colorScheme.error,
                 placeholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
-                disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled)
             )
         )
     }

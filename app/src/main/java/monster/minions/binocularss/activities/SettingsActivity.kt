@@ -13,8 +13,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.Divider
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -27,6 +25,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
+import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.MATERIAL_YOU
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
@@ -37,6 +36,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
+import kotlin.properties.Delegates
 import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle1
 
 /**
@@ -56,12 +56,15 @@ class SettingsActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var cacheExpiration = 0L
 
     // Global preference keys to retrieve settings from shared preferences.
     object PreferenceKeys {
         const val SETTINGS = "settings"
         const val THEME = "theme"
+        const val MATERIAL_YOU = "materialYou"
         const val CACHE_EXPIRATION = "cacheExpiration"
     }
 
@@ -75,7 +78,8 @@ class SettingsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
-            BinoculaRSSTheme(theme = themeState.value) {
+            materialYouState = remember { mutableStateOf(materialYou) }
+            BinoculaRSSTheme(theme = themeState.value, materialYou = materialYouState.value) {
                 UI()
             }
         }
@@ -84,6 +88,7 @@ class SettingsActivity : ComponentActivity() {
         sharedPref = this.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE)
         sharedPrefEditor = sharedPref.edit()
         theme = sharedPref.getString(THEME, "System Default").toString()
+        materialYou = sharedPref.getBoolean(MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
         db = Room
@@ -145,12 +150,6 @@ class SettingsActivity : ComponentActivity() {
             Text("Settings", style = MaterialTheme.typography.headlineMedium)
         }
     }
-
-    @Composable
-    fun PreferenceDivider() {
-        Divider(modifier = Modifier.padding(bottom = paddingLarge), color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled))
-    }
-
 
     /**
      * Compilation of UI elements in the correct order.
@@ -219,10 +218,14 @@ class SettingsActivity : ComponentActivity() {
                         // Material You toggle.
                         ToggleItem(
                             title = "Material You Theme",
-                            checked = false, // TODO get this value from shared preferences
-                            onToggle = { println(it)/* TODO set shared preferences here */ }
-                        )
-                        // PreferenceDivider()
+                            checked = materialYouState.value,
+                        ) {
+                            materialYouState.value = it
+                            // Update the shared preferences.
+                            sharedPrefEditor.putBoolean(MATERIAL_YOU, it)
+                            sharedPrefEditor.apply()
+                            sharedPrefEditor.commit()
+                        }
 
                         PreferenceTitle1(title = "Preferences")
                         // Cache expiration time selector.
@@ -286,9 +289,7 @@ class SettingsActivity : ComponentActivity() {
                                 "Feeds cleared",
                                 Toast.LENGTH_LONG
                             ).show()
-
                         }
-                        // Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Support")
                         // Email item
@@ -311,7 +312,6 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        // Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "About")
                         // Item that links to github source code page.
