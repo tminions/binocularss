@@ -141,25 +141,14 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Function to append https:// if the string does not have the prefix http:// or https://.
-     *
-     * @param url String to have https:// appended to it.
-     * @return url with https:// possibly appended to it.
-     */
-    private fun addHttps(url: String): String {
-        return when {
-            url.startsWith("https://") || url.startsWith("http://") -> url
-            else -> "https://$url"
-        }
-    }
+
 
     /**
      * Add a feed with the given source url to the feedGroup if the source url is valid.
      */
     private fun submit() {
         // Add https:// or http:// to the front of the url if not present
-        val url = addHttps(text.value)
+        val url = addHttps(trimWhitespace(text.value))
 
         // If the url is valid ...
         if (Patterns.WEB_URL.matcher(url).matches()) {
