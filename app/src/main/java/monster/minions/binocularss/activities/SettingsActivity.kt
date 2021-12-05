@@ -9,7 +9,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,17 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.room.AppDatabase
-import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
 import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle1
 
@@ -44,8 +42,7 @@ class SettingsActivity : ComponentActivity() {
     private var feedGroup: FeedGroup = FeedGroup()
 
     // Room database variables
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     // SharedPreferences variables.
     private lateinit var sharedPref: SharedPreferences
@@ -70,9 +67,7 @@ class SettingsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
-            BinoculaRSSTheme(
-                theme = themeState.value
-            ) {
+            BinoculaRSSTheme(theme = themeState.value) {
                 UI()
             }
         }
@@ -83,11 +78,8 @@ class SettingsActivity : ComponentActivity() {
         theme = sharedPref.getString(THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+        dataGateway = DatabaseGateway(context = this)
+
     }
 
     /**
@@ -102,7 +94,7 @@ class SettingsActivity : ComponentActivity() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
 
-        val feeds: MutableList<Feed> = feedDao.getAll()
+        val feeds: MutableList<Feed> = dataGateway.read()
 
         feedGroup.feeds = feeds
     }
@@ -131,15 +123,13 @@ class SettingsActivity : ComponentActivity() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Back button icon that goes back one activity.
-            IconButton(onClick = {
-                finish()
-            }) {
+            IconButton(onClick = { finish() }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back Arrow"
                 )
             }
-            Spacer(Modifier.padding(4.dp))
+            Spacer(Modifier.padding(paddingSmall))
             // Title of current page.
             Text("Settings", style = MaterialTheme.typography.h5)
         }
@@ -165,8 +155,6 @@ class SettingsActivity : ComponentActivity() {
 
         // Surface as a background.
         Surface(color = MaterialTheme.colors.background) {
-            val padding = 16.dp
-
             var themeSubtitle by remember { mutableStateOf(theme) }
             var cacheExpirationString = ""
             when (cacheExpiration) {
@@ -187,7 +175,7 @@ class SettingsActivity : ComponentActivity() {
                         Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .padding(vertical = padding)
+                            .padding(vertical = paddingLarge)
                             .verticalScroll(rememberScrollState())
                     ) {
                         PreferenceTitle1(title = "Appearance")
@@ -213,7 +201,7 @@ class SettingsActivity : ComponentActivity() {
                             checked = false, // TODO get this value from shared preferences
                             onToggle = { println(it)/* TODO set shared preferences here */ }
                         )
-                        Divider(modifier = Modifier.padding(bottom = 16.dp))
+                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Preferences")
                         // Cache expiration time selector.
@@ -250,7 +238,7 @@ class SettingsActivity : ComponentActivity() {
                             }
                         )
 
-                        val disableClearDatabase by remember {
+                        var disableClearDatabase by remember {
                             mutableStateOf(feedGroup.feeds.isNullOrEmpty())
                         }
 
@@ -260,15 +248,17 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             // Delete each feed in the database
                             for (feed in feedGroup.feeds) {
-                                feedDao.deleteBySource(feed.source)
+                                dataGateway.removeFeedBySource(feed.source)
                             }
 
                             // Set feedGroup.feeds to empty
                             feedGroup.feeds = mutableListOf()
+                            disableClearDatabase = true
 
                             // Update MainActivity UI
                             MainActivity.articleList.value = mutableListOf()
                             MainActivity.bookmarkedArticleList.value = mutableListOf()
+                            MainActivity.readArticleList.value = mutableListOf()
 
                             Toast.makeText(
                                 this@SettingsActivity,
@@ -277,7 +267,7 @@ class SettingsActivity : ComponentActivity() {
                             ).show()
 
                         }
-                        Divider(modifier = Modifier.padding(bottom = 16.dp))
+                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Support")
                         // Email item
@@ -300,7 +290,7 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        Divider(modifier = Modifier.padding(bottom = 16.dp))
+                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "About")
                         // Item that links to github source code page.
@@ -319,29 +309,13 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        // Popup information on all the open source libraries used.
-                        InformationPopupItem(title = "Open Source Libraries") {
-                            Text(
-                                "RSS-Parser",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://github.com/prof18/RSS-Parser") })
-                            Text(
-                                "Coil",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://github.com/coil-kt/coil") })
-                            Text(
-                                "Room",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://developer.android.com/training/data-storage/room") })
-                            Text(
-                                "Material.io Theming Information",
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .clickable { openLink("https://material.io/design/color/the-color-system.html#color-theme-creation") })
-                            // TODO finish adding libraries then size the popup accordinly
+                        // Item that displays information on all the open source libraries used.
+                        ActionItem(title = "Open-Source Licenses") {
+                            val intent = Intent(
+                                this@SettingsActivity,
+                                LicensesActivity::class.java
+                            ).apply {}
+                            startActivity(intent)
                         }
                     }
                 }

@@ -6,8 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @SuppressLint("SimpleDateFormat")
-// TODO fix
-fun getTime(pubDate: String): String {
+fun getTime(pubDate: String, shortOutput: Boolean = false): String {
     var time = pubDate
     val dateFormats = listOf(
         "EEE, dd MMM yyyy HH:mm:ss zzz",
@@ -28,19 +27,22 @@ fun getTime(pubDate: String): String {
 
     when {
         diff < 1000L * 60L * 60L -> {
-            time = "${diff / (1000L * 60L)}m"
+            time = "${diff / (1000L * 60L)}" + if (shortOutput) "m" else " months ago"
         }
         diff < 1000L * 60L * 60L * 24L -> {
-            time = "${diff / (1000L * 60L * 60L)}h"
+            time = "${diff / (1000L * 60L * 60L)}" + if (shortOutput) "h" else " hours ago"
         }
         diff < 1000L * 60L * 60L * 24L * 30L -> {
-            time = "${diff / (1000L * 60L * 60L * 24L)}d"
+            val longEnding = if ((diff / (1000L * 60L * 60L * 24L)) == 1L) " day ago" else " days ago"
+            time = "${diff / (1000L * 60L * 60L * 24L)}" + if (shortOutput) "d" else longEnding
         }
         diff < 1000L * 60L * 60L * 24L * 30L * 12L -> {
-            time = "${diff / (1000L * 60L * 60L * 24L * 30L)}M"
+            time =
+                "${diff / (1000L * 60L * 60L * 24L * 30L)}" + if (shortOutput) "M" else " months ago"
         }
         else -> {
-            time = "${diff / (1000L * 60L * 60L * 24L * 30L * 12L)}Y"
+            time =
+                "${diff / (1000L * 60L * 60L * 24L * 30L * 12L)}" + if (shortOutput) "Y" else " years ago"
         }
     }
 

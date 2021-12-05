@@ -6,10 +6,14 @@ import android.net.Uri
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.PanoramaFishEye
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat.startActivity
 import monster.minions.binocularss.dataclasses.Article
+import java.util.*
 import androidx.compose.material.icons.filled.Bookmark as FilledBookmarkIcon
 import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIcon
 
@@ -51,8 +55,9 @@ fun ReadFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
     IconButton(
         onClick = {
              isRead = !isRead
-            article.read = !article.read
-            extraAction(article)
+             article.read = !article.read
+             article.readDate = Date().toString()
+             extraAction(article)
         }
     ) {
         Icon(
@@ -109,3 +114,4 @@ fun BrowserFlag(context: Context, article: Article) {
         )
     }
 }
+

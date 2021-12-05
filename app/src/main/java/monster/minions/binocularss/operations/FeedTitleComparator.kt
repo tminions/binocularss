@@ -1,7 +1,7 @@
 package monster.minions.binocularss.operations
 
 import monster.minions.binocularss.dataclasses.Feed
-import java.util.Comparator
+import java.util.*
 
 class FeedTitleComparator: Comparator<Feed> {
     /**
