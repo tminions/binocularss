@@ -20,8 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
@@ -29,9 +27,7 @@ import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.TH
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.DatabaseGateway
-import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle1
 

@@ -38,8 +38,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -52,9 +50,7 @@ import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
-import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.DatabaseGateway
-import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import java.util.*
 

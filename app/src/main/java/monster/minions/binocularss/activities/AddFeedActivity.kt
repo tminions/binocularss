@@ -20,17 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
-import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.DatabaseGateway
-import monster.minions.binocularss.room.FeedDao
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
