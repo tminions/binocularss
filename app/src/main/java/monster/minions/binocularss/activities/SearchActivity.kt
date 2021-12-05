@@ -30,6 +30,7 @@ import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.ArticleCard
 import java.util.*
@@ -42,8 +43,7 @@ class SearchActivity : ComponentActivity() {
     private lateinit var parser: Parser
 
     // Room Database variables
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     // User Preferences
     private lateinit var sharedPref: SharedPreferences
@@ -82,11 +82,12 @@ class SearchActivity : ComponentActivity() {
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+
+        dataGateway = DatabaseGateway()
+        dataGateway.setContext(context = this)
+        dataGateway.setDb()
+        dataGateway.setFeedDao()
+
         parser = Parser.Builder()
             .context(this)
             .cacheExpirationMillis(60L * 60L * 100L)
@@ -104,7 +105,7 @@ class SearchActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         Log.d("SearchActivity", "onPause called")
-        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+        dataGateway.addFeeds(feedGroup.feeds)
     }
 
     /**
@@ -118,7 +119,7 @@ class SearchActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("SearchActivity", "onResume called")
-        feedGroup.feeds = feedDao.getAll()
+        feedGroup.feeds = dataGateway.read()
         feedTitles = getFeedTitles()
         theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         if (!isFirstRun) {

@@ -53,6 +53,7 @@ import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
 import java.util.*
@@ -80,8 +81,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var parser: Parser
 
     // Room database variables
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     // User Preferences
     private lateinit var sharedPref: SharedPreferences
@@ -130,11 +130,12 @@ class MainActivity : ComponentActivity() {
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+
+        dataGateway = DatabaseGateway()
+        dataGateway.setContext(context = this)
+        dataGateway.setDb()
+        dataGateway.setFeedDao()
+
         parser = Parser.Builder()
             .context(this)
             .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
@@ -159,7 +160,7 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         Log.d("MainActivity", "onPause called")
-        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+        dataGateway.addFeeds(feedGroup.feeds)
     }
 
     /**
@@ -174,7 +175,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
 
-        val feeds: MutableList<Feed> = feedDao.getAll()
+        val feeds: MutableList<Feed> = dataGateway.read()
 
         feedGroup.feeds = feeds
 
@@ -247,7 +248,7 @@ class MainActivity : ComponentActivity() {
      * @param feed A feed that the user wants to delete
      */
     private fun deleteFeed(feed: Feed) {
-        feedDao.deleteBySource(feed.source)
+        dataGateway.removeFeedBySource(feed.source)
         feedGroup.feeds.remove(feed)
 
         articleList.value = mutableListOf()
@@ -362,7 +363,7 @@ class MainActivity : ComponentActivity() {
                         showAddFeed = false
                         val intent =
                             Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                        dataGateway.addFeeds(feedGroup.feeds)
                         startActivity(intent)
                     }
                 ) {
@@ -407,7 +408,7 @@ class MainActivity : ComponentActivity() {
                     onClick = {
                         val intent =
                             Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                        dataGateway.addFeeds(feedGroup.feeds)
                         startActivity(intent)
                     }
                 ) {
@@ -477,7 +478,7 @@ class MainActivity : ComponentActivity() {
                         onClick = {
                             val intent =
                                 Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                            feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                            dataGateway.addFeeds(feedGroup.feeds)
                             startActivity(intent)
                         }
                     ) {
@@ -576,7 +577,7 @@ class MainActivity : ComponentActivity() {
                                     this@MainActivity,
                                     AddFeedActivity::class.java
                                 ).apply {}
-                            feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                            dataGateway.addFeeds(feedGroup.feeds)
                             startActivity(intent)
                         }
                     ) {
@@ -691,7 +692,7 @@ class MainActivity : ComponentActivity() {
                 IconButton(onClick = {
                     val intent =
                         Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                    feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+                    dataGateway.addFeeds(feedGroup.feeds)
                     startActivity(intent)
                 }) {
                     Icon(

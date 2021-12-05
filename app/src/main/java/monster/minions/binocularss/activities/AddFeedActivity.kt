@@ -29,6 +29,7 @@ import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.room.FeedDao
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
@@ -44,8 +45,7 @@ class AddFeedActivity : ComponentActivity() {
     private lateinit var parser: Parser
 
     // Room database variables
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     private var text = mutableStateOf("")
 
@@ -84,11 +84,12 @@ class AddFeedActivity : ComponentActivity() {
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+
+        dataGateway = DatabaseGateway()
+        dataGateway.setContext(context = this)
+        dataGateway.setDb()
+        dataGateway.setFeedDao()
+
         parser = Parser.Builder()
             .context(this)
             .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
@@ -111,7 +112,7 @@ class AddFeedActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         Log.d("AddFeedActivity", "onStop called")
-        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+        dataGateway.addFeeds(feedGroup.feeds)
     }
 
     /**
@@ -125,7 +126,7 @@ class AddFeedActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("AddFeedActivity", "onResume called")
-        feedGroup.feeds = feedDao.getAll()
+        feedGroup.feeds = dataGateway.read()
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
