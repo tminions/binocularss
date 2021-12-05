@@ -46,6 +46,9 @@ import com.prof.rssparser.Parser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingMedium
+import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
@@ -267,7 +270,7 @@ class MainActivity : ComponentActivity() {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(paddingMedium)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onLongPress = {
@@ -281,13 +284,13 @@ class MainActivity : ComponentActivity() {
                             ContextCompat.startActivity(context, intent, null)
                         }
                     )
-                }, elevation = 4.dp
+                }, elevation = 8.dp
         ) {
             Column {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(paddingLarge),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     // Column for feed title.
@@ -351,7 +354,7 @@ class MainActivity : ComponentActivity() {
                     text = "No Feeds Found",
                     style = MaterialTheme.typography.h5
                 )
-                Spacer(Modifier.padding(16.dp))
+                Spacer(Modifier.padding(paddingLarge))
                 Button(
                     onClick = {
                         showAddFeed = false
@@ -397,7 +400,7 @@ class MainActivity : ComponentActivity() {
                     text = "No Articles Found",
                     style = MaterialTheme.typography.h5
                 )
-                Spacer(Modifier.padding(16.dp))
+                Spacer(Modifier.padding(paddingLarge))
                 Button(
                     onClick = {
                         val intent =
@@ -467,7 +470,7 @@ class MainActivity : ComponentActivity() {
                         text = "No Articles Found",
                         style = MaterialTheme.typography.h5
                     )
-                    Spacer(Modifier.padding(16.dp))
+                    Spacer(Modifier.padding(paddingLarge))
                     Button(
                         onClick = {
                             val intent =
@@ -492,14 +495,14 @@ class MainActivity : ComponentActivity() {
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.h5
                     )
-                    Spacer(Modifier.padding(4.dp))
+                    Spacer(Modifier.padding(paddingSmall))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = "Read an article and it will show up here",
                         style = MaterialTheme.typography.body1
                     )
-                    Spacer(Modifier.padding(16.dp))
+                    Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
                         // Update readArticleList when any nav item is clicked.
                         readArticleList.value =
@@ -563,7 +566,7 @@ class MainActivity : ComponentActivity() {
                         text = "No Articles Found",
                         style = MaterialTheme.typography.h5
                     )
-                    Spacer(Modifier.padding(16.dp))
+                    Spacer(Modifier.padding(paddingLarge))
                     Button(
                         onClick = {
                             val intent =
@@ -591,14 +594,14 @@ class MainActivity : ComponentActivity() {
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.h5
                     )
-                    Spacer(Modifier.padding(4.dp))
+                    Spacer(Modifier.padding(paddingSmall))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = "Bookmark an article and it will show up here",
                         style = MaterialTheme.typography.body1
                     )
-                    Spacer(Modifier.padding(16.dp))
+                    Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
                         // Update bookmarkedArticleList when any nav item is clicked.
                         bookmarkedArticleList.value =
@@ -648,7 +651,7 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = paddingLarge),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {

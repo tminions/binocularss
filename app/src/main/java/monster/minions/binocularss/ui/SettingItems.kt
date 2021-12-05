@@ -8,21 +8,33 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.ParagraphStyle
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat.startActivity
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingMedium
+
+/**
+ * Display the title and subtitle of an item.
+ */
+@Composable
+private fun TitleSubtitle(title: String, subtitle: String) {
+    // If there is no subtitle, display only the title.
+    Text(text = title, style = MaterialTheme.typography.subtitle1)
+    if (subtitle != "") {
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.subtitle2,
+            fontWeight = FontWeight.Light
+        )
+    }
+}
 
 /**
  * Item that runs a callback on click
@@ -40,25 +52,31 @@ fun ActionItem(
 ) {
     // Grey out text if disabled
     val alpha by remember {
-        mutableStateOf(if (disabled) 0.6f else 1f)
+        mutableStateOf(if (disabled) 0.6f else 0.8f)
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             // Perform action when clicked if not disabled
-            .clickable(enabled = !disabled) { onClick() }
+            .clickable(enabled = !disabled) {
+                onClick()
+            }
     ) {
         // Column that renders title and subtitle.
         Column {
-            Text(title, color = MaterialTheme.colors.onBackground.copy(alpha))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.subtitle1,
+                color = MaterialTheme.colors.onBackground.copy(alpha = alpha),
+            )
             if (subtitle != "") {
                 Text(
                     text = subtitle,
-                    fontWeight = FontWeight.Light,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colors.onBackground.copy(alpha)
+                    style = MaterialTheme.typography.subtitle2,
+                    color = MaterialTheme.colors.onBackground.copy(alpha = alpha),
+                    fontWeight = FontWeight.Light
                 )
             }
         }
@@ -84,15 +102,12 @@ fun InformationPopupItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             .clickable { showPopup = true }
     ) {
         // Column that contains title and subtitle if defined.
         Column {
-            Text(title)
-            if (subtitle != "") {
-                Text(text = subtitle, fontWeight = FontWeight.Light, fontSize = 12.sp)
-            }
+            TitleSubtitle(title = title, subtitle = subtitle)
         }
     }
 
@@ -100,8 +115,6 @@ fun InformationPopupItem(
     if (showPopup) {
         // Popup size information.
         val popupHeight = 400.dp
-        val cornerSize = 16.dp
-
         Popup(
             alignment = Alignment.Center,
             onDismissRequest = { showPopup = false }
@@ -116,9 +129,9 @@ fun InformationPopupItem(
                     .height(popupHeight)
                     .background(
                         it.apply(MaterialTheme.colors.background, 4.dp),
-                        RoundedCornerShape(cornerSize)
+                        MaterialTheme.shapes.large
                     )
-                    .padding(16.dp)
+                    .padding(paddingLarge)
             }?.let {
                 Box(
                     it
@@ -126,7 +139,11 @@ fun InformationPopupItem(
                     // Render content of popup passed as lambda function along with title and
                     //  close button.
                     Column(modifier = Modifier.selectableGroup()) {
-                        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.h6,
+                            fontWeight = FontWeight.Bold
+                        )
                         content()
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -156,7 +173,7 @@ fun EmailItem(context: Context, title: String, subtitle: String = "", email: Str
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             .clickable {
                 // on click, send to email application.
                 if (email != "") {
@@ -170,10 +187,7 @@ fun EmailItem(context: Context, title: String, subtitle: String = "", email: Str
             }) {
         // Render title and subtitle.
         Column {
-            Text(title)
-            if (subtitle != "") {
-                Text(text = subtitle, fontWeight = FontWeight.Light, fontSize = 12.sp)
-            }
+            TitleSubtitle(title = title, subtitle = subtitle)
         }
     }
 }
@@ -187,16 +201,13 @@ fun LinkItem(title: String, subtitle: String = "", link: String, openLink: (link
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
             // Open link when clicked.
             .clickable { openLink(link) }
     ) {
         // Column that renders title and subtitle.
         Column {
-            Text(title)
-            if (subtitle != "") {
-                Text(text = subtitle, fontWeight = FontWeight.Light, fontSize = 12.sp)
-            }
+            TitleSubtitle(title = title, subtitle = subtitle)
         }
     }
 }
@@ -225,13 +236,11 @@ fun MultipleOptionItem(
         Modifier
             .fillMaxWidth()
             .clickable { showPopup = true }
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp)) {
+            .padding(horizontal = paddingLarge, vertical = paddingMedium)
+    ) {
         // Column that renders the title and subtitle.
         Column {
-            Text(title)
-            if (subtitle != "") {
-                Text(text = subtitle, fontWeight = FontWeight.Light, fontSize = 12.sp)
-            }
+            TitleSubtitle(title = title, subtitle = subtitle)
         }
     }
 
@@ -242,7 +251,6 @@ fun MultipleOptionItem(
         for (i in radioOptions) {
             popupHeight += 56.dp
         }
-        val cornerSize = 16.dp
 
         Popup(
             alignment = Alignment.Center,
@@ -255,9 +263,9 @@ fun MultipleOptionItem(
                     .height(popupHeight)
                     .background(
                         it.apply(MaterialTheme.colors.background, 4.dp),
-                        RoundedCornerShape(cornerSize)
+                        MaterialTheme.shapes.large
                     )
-                    .padding(16.dp)
+                    .padding(paddingLarge)
             }?.let {
                 Box(
                     it
@@ -270,7 +278,11 @@ fun MultipleOptionItem(
 
                     // Render radio buttons, title, text, and cancel button.
                     Column(modifier = Modifier.selectableGroup()) {
-                        Text(text = subtitle, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.h6,
+                            fontWeight = FontWeight.Bold
+                        )
                         radioOptions.forEach { text ->
                             Row(
                                 modifier = Modifier
@@ -289,7 +301,7 @@ fun MultipleOptionItem(
                                         },
                                         role = Role.RadioButton
                                     )
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = paddingLarge),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
@@ -302,7 +314,7 @@ fun MultipleOptionItem(
                                 Text(
                                     text = text,
                                     style = MaterialTheme.typography.body1.merge(),
-                                    modifier = Modifier.padding(start = 16.dp)
+                                    modifier = Modifier.padding(start = paddingLarge)
                                 )
                             }
                         }
@@ -342,16 +354,13 @@ fun ToggleItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { checkedState = !checkedState }
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp),
+            .padding(horizontal = paddingLarge, vertical = paddingMedium),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Render title and subtitle.
         Column {
-            Text(title)
-            if (subtitle != "") {
-                Text(subtitle)
-            }
+            TitleSubtitle(title = title, subtitle = subtitle)
         }
         // Switch that toggles preferences.
         Switch(
@@ -377,14 +386,10 @@ fun ToggleItem(
 @Composable
 fun PreferenceTitle(title: String) {
     Text(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-        text = buildAnnotatedString {
-            withStyle(style = ParagraphStyle(lineHeight = 30.sp)) {
-                withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                    append(title)
-                }
-            }
-        },
-        fontSize = 20.sp
+        modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingMedium),
+        text = title,
+        style = MaterialTheme.typography.h6,
+        color = MaterialTheme.colors.primary,
+        fontWeight = FontWeight.Normal,
     )
 }

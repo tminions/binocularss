@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
+import monster.minions.binocularss.activities.ui.theme.paddingLarge
+import monster.minions.binocularss.activities.ui.theme.paddingMedium
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
@@ -226,10 +228,8 @@ class AddFeedActivity : ComponentActivity() {
         }
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
-            val padding = 16.dp
-
             Column(
-                modifier = Modifier.padding(padding),
+                modifier = Modifier.padding(paddingLarge),
                 horizontalAlignment = Alignment.Start
             ) {
                 Row(
@@ -243,7 +243,7 @@ class AddFeedActivity : ComponentActivity() {
                             text = mutableStateOf(textState.text)
                         })
                     }
-                    Spacer(modifier = Modifier.padding(8.dp))
+                    Spacer(modifier = Modifier.padding(paddingMedium))
                     FloatingActionButton(
                         onClick = { submit() },
                         backgroundColor = MaterialTheme.colors.primary
