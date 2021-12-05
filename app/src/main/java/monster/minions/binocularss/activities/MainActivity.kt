@@ -872,17 +872,6 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Get the any color at an elevation. This is the same algorithm that google uses so we can get
-     * get the same colors for our custom elements.
-     */
-    @Composable
-    fun colorAtElevation(color: Color, elevation: Dp): Color {
-        if (elevation == 0.dp) return color
-        val alpha = ((4.5f * ln(elevation.value + 1)) + 2f) / 100f
-        return MaterialTheme.colorScheme.primary.copy(alpha = alpha).compositeOver(color)
-    }
-
-    /**
      * The default UI of the app.
      */
     @ExperimentalMaterial3Api
