@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -215,16 +216,18 @@ class SettingsActivity : ComponentActivity() {
                                 sharedPrefEditor.commit()
                             }
                         )
-                        // Material You toggle.
-                        ToggleItem(
-                            title = "Material You Theme",
-                            checked = materialYouState.value,
-                        ) {
-                            materialYouState.value = it
-                            // Update the shared preferences.
-                            sharedPrefEditor.putBoolean(MATERIAL_YOU, it)
-                            sharedPrefEditor.apply()
-                            sharedPrefEditor.commit()
+                        // Material You toggle. Only show on android version >= 12.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            ToggleItem(
+                                title = "Material You Theme",
+                                checked = materialYouState.value,
+                            ) {
+                                materialYouState.value = it
+                                // Update the shared preferences.
+                                sharedPrefEditor.putBoolean(MATERIAL_YOU, it)
+                                sharedPrefEditor.apply()
+                                sharedPrefEditor.commit()
+                            }
                         }
 
                         PreferenceTitle1(title = "Preferences")
