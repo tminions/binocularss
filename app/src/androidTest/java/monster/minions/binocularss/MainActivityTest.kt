@@ -1,11 +1,10 @@
 package monster.minions.binocularss
 
 import androidx.compose.ui.test.*
-
-import monster.minions.binocularss.activities.MainActivity
-import org.junit.Rule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import monster.minions.binocularss.activities.MainActivity
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -57,4 +56,17 @@ class MainActivityTest {
         settingsBackButton.assertIsDisplayed()
     }
 
+    @Test
+    fun SettingsTextTest(){
+        composeTestRule.onNodeWithContentDescription("Settings Activity").performClick()
+        val settingsTextButton = composeTestRule.onNodeWithText("Settings")
+        settingsTextButton.assertIsDisplayed()
+    }
+
+
+//    @Test
+//    fun OpenSourceLicensesTest(){
+//        composeTestRule.onNodeWithContentDescription("Settings Activity").performClick()
+//        composeTestRule.onNode
+//    }
 }
