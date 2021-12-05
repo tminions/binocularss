@@ -5,10 +5,11 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ class LicensesActivity : ComponentActivity() {
     private lateinit var themeState: MutableState<String>
     private var cacheExpiration = 0L
 
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -69,16 +71,21 @@ class LicensesActivity : ComponentActivity() {
             }
             Spacer(Modifier.padding(paddingSmall))
             // Title of current page.
-            Text("Open-Source Licenses", style = MaterialTheme.typography.h5)
+            Text("Open-Source Licenses", style = MaterialTheme.typography.headlineMedium)
         }
     }
 
+    @ExperimentalMaterial3Api
     @Composable
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -86,7 +93,7 @@ class LicensesActivity : ComponentActivity() {
             )
         }
 
-        Surface(color = MaterialTheme.colors.background) {
+        Surface(color = MaterialTheme.colorScheme.background) {
             Scaffold(topBar = { TopBar() }) {
                 // Call the library to generate the list of libraries
                 LibrariesContainer(
@@ -96,6 +103,7 @@ class LicensesActivity : ComponentActivity() {
         }
     }
 
+    @ExperimentalMaterial3Api
     @Preview(showBackground = true)
     @Composable
     fun Preview() {

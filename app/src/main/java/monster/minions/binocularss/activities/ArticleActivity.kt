@@ -11,12 +11,15 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +63,7 @@ class ArticleActivity : ComponentActivity() {
 
     private lateinit var article: Article
 
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -150,8 +154,8 @@ class ArticleActivity : ComponentActivity() {
      */
     @Composable
     fun Html(text: String) {
-        val onBackground = MaterialTheme.colors.onBackground
-        val primary = MaterialTheme.colors.primary
+        val onBackground = MaterialTheme.colorScheme.onBackground
+        val primary = MaterialTheme.colorScheme.primary
         AndroidView(factory = { context ->
             TextView(context).apply {
                 setText(HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY))
@@ -214,12 +218,17 @@ class ArticleActivity : ComponentActivity() {
     /**
      * Composable function containing the article
      */
+    @ExperimentalMaterial3Api
     @Composable
     private fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when(theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         // Get elevated color to match the bottom bar that is also elevated by 8.dp
         SideEffect {
             systemUiController.setSystemBarsColor(
@@ -230,7 +239,7 @@ class ArticleActivity : ComponentActivity() {
 
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.background
+            color = MaterialTheme.colorScheme.background
         ) {
             Scaffold(topBar = { TopBar() }) {
                 Column(
@@ -248,7 +257,7 @@ class ArticleActivity : ComponentActivity() {
                         if (article.content.isNullOrEmpty() || article.content.toString() == "null") {
                             Text(
                                 text = "Article has no content.",
-                                style = MaterialTheme.typography.body1.copy(fontStyle = FontStyle.Italic)
+                                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)
                             )
                         } else {
                             Html(text = article.content!!.toString())
@@ -297,7 +306,7 @@ class ArticleActivity : ComponentActivity() {
         text: String,
         typeOfInformation: String,
         atBottom: Boolean = false,
-        style: TextStyle = MaterialTheme.typography.caption,
+        style: TextStyle = MaterialTheme.typography.labelMedium,
         prefix: String,
     ) {
         Text(
@@ -319,9 +328,9 @@ class ArticleActivity : ComponentActivity() {
         Column(modifier = Modifier.padding(bottom = paddingLargeMedium)) {
             Text(
                 article.title.toString(),
-                style = MaterialTheme.typography.h5.copy(
+                style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight(700),
-                    color = MaterialTheme.colors.onBackground
+                    color = MaterialTheme.colorScheme.onBackground
                 ),
                 modifier = Modifier.padding(vertical = paddingLargeMedium)
             )
@@ -332,7 +341,7 @@ class ArticleActivity : ComponentActivity() {
             ArticleInformation(
                 text = article.author.toString().uppercase(),
                 typeOfInformation = "author",
-                style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight(600)),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight(600)),
                 prefix = "BY "
             )
 
@@ -349,7 +358,7 @@ class ArticleActivity : ComponentActivity() {
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCorner.small,
+                shape = roundedCornerSmall,
                 elevation = 4.dp
             ) {
                 Box(

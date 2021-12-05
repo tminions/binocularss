@@ -3,8 +3,8 @@ package monster.minions.binocularss.ui
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PanoramaFishEye
 import androidx.compose.material.icons.filled.Public
@@ -16,7 +16,6 @@ import monster.minions.binocularss.dataclasses.Article
 import java.util.*
 import androidx.compose.material.icons.filled.Bookmark as FilledBookmarkIcon
 import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIcon
-
 
 /**
  * Composable representing a flag for each bookmarked

@@ -9,11 +9,15 @@ import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material.*
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -129,7 +133,8 @@ class AddFeedActivity : ComponentActivity() {
         feedGroup.feeds = feedDao.getAll()
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value =
+            sortArticlesByDate(getBookmarkedArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
@@ -209,6 +214,13 @@ class AddFeedActivity : ComponentActivity() {
             keyboardActions = KeyboardActions(
                 // When you press the enter button on the keyboard.
                 onDone = { submit() }
+            ),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                textColor = MaterialTheme.colorScheme.onBackground,
+                placeholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
             )
         )
     }
@@ -220,8 +232,12 @@ class AddFeedActivity : ComponentActivity() {
     fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         var textState by remember { mutableStateOf(TextFieldValue()) }
 
         SideEffect {
@@ -231,7 +247,7 @@ class AddFeedActivity : ComponentActivity() {
             )
         }
 
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(
                 modifier = Modifier.padding(paddingLarge),
                 horizontalAlignment = Alignment.Start
@@ -250,13 +266,12 @@ class AddFeedActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.padding(paddingMedium))
                     FloatingActionButton(
                         onClick = { submit() },
-                        backgroundColor = MaterialTheme.colors.primary
+                        containerColor = MaterialTheme.colorScheme.primary
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = "Add feed"
                         )
-
                     }
                 }
             }

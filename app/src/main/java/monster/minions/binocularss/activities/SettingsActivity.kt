@@ -9,10 +9,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Divider
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
@@ -67,6 +70,7 @@ class SettingsActivity : ComponentActivity() {
      *
      * @param savedInstanceState Bundle to retrieve saved information from.
      */
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -138,21 +142,31 @@ class SettingsActivity : ComponentActivity() {
             }
             Spacer(Modifier.padding(paddingSmall))
             // Title of current page.
-            Text("Settings", style = MaterialTheme.typography.h5)
+            Text("Settings", style = MaterialTheme.typography.headlineMedium)
         }
+    }
+
+    @Composable
+    fun PreferenceDivider() {
+        Divider(modifier = Modifier.padding(bottom = paddingLarge), color = MaterialTheme.colorScheme.onBackground.copy(alpha = ContentAlpha.disabled))
     }
 
 
     /**
      * Compilation of UI elements in the correct order.
      */
+    @ExperimentalMaterial3Api
     @Preview(showBackground = true)
     @Composable
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -161,7 +175,7 @@ class SettingsActivity : ComponentActivity() {
         }
 
         // Surface as a background.
-        Surface(color = MaterialTheme.colors.background) {
+        Surface(color = MaterialTheme.colorScheme.background) {
             var themeSubtitle by remember { mutableStateOf(theme) }
             var cacheExpirationString = ""
             when (cacheExpiration) {
@@ -175,7 +189,7 @@ class SettingsActivity : ComponentActivity() {
             }
             var cacheSubtitle by remember { mutableStateOf(cacheExpirationString) }
 
-            Surface(color = MaterialTheme.colors.background) {
+            Surface(color = MaterialTheme.colorScheme.background) {
                 Scaffold(topBar = { TopBar() }) {
                     // Column of all the preference items.
                     Column(
@@ -208,7 +222,7 @@ class SettingsActivity : ComponentActivity() {
                             checked = false, // TODO get this value from shared preferences
                             onToggle = { println(it)/* TODO set shared preferences here */ }
                         )
-                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
+                        // PreferenceDivider()
 
                         PreferenceTitle1(title = "Preferences")
                         // Cache expiration time selector.
@@ -274,7 +288,7 @@ class SettingsActivity : ComponentActivity() {
                             ).show()
 
                         }
-                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
+                        // Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Support")
                         // Email item
@@ -297,7 +311,7 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
+                        // Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "About")
                         // Item that links to github source code page.

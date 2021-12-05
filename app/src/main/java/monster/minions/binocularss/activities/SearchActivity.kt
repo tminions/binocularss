@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,10 +15,17 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
@@ -78,7 +86,6 @@ class SearchActivity : ComponentActivity() {
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
-
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
         db = Room
@@ -119,7 +126,8 @@ class SearchActivity : ComponentActivity() {
         Log.d("SearchActivity", "onResume called")
         feedGroup.feeds = feedDao.getAll()
         feedTitles = getFeedTitles()
-        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         if (!isFirstRun) {
             themeState.value = theme
         }
@@ -129,7 +137,8 @@ class SearchActivity : ComponentActivity() {
         MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        MainActivity.searchResults.value = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+        MainActivity.searchResults.value =
+            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
     }
 
     private fun getFeedTitles(): MutableList<String> {
@@ -164,7 +173,6 @@ class SearchActivity : ComponentActivity() {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            // For each article in the list, render a card.
             items(items = articles) { article ->
                 ArticleCard(
                     context = this@SearchActivity,
@@ -208,18 +216,24 @@ class SearchActivity : ComponentActivity() {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = textState.value,
-            placeholder = { Text("Search for an article(s)") },
+            placeholder = { Text("Search for an Article") },
             onValueChange = {
                 textState.value = it
                 text = mutableStateOf(textState.value.text)
             },
             singleLine = true,
             maxLines = 1,
-            trailingIcon = { Icon(Icons.Filled.Search, null) },
             keyboardActions = KeyboardActions(
                 onDone = {
                     submit()
                 }
+            ),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                textColor = MaterialTheme.colorScheme.onBackground,
+                placeholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
             )
         )
     }
@@ -230,8 +244,12 @@ class SearchActivity : ComponentActivity() {
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -241,7 +259,7 @@ class SearchActivity : ComponentActivity() {
         Surface(
             modifier = Modifier
                 .fillMaxWidth(),
-            color = MaterialTheme.colors.background,
+            color = MaterialTheme.colorScheme.background,
         ) {
             Column {
                 Row(
@@ -249,7 +267,19 @@ class SearchActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .padding(paddingMedium)
                 ) {
-                    SearchBar()
+                    Row(modifier = Modifier.weight(1f)) {
+                        SearchBar()
+                    }
+                    Spacer(modifier = Modifier.padding(paddingMedium))
+                    FloatingActionButton(
+                        onClick = { submit() },
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Add feed"
+                        )
+                    }
                 }
                 ArticleSearchResults()
             }

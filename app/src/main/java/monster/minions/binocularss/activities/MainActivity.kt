@@ -5,12 +5,14 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.os.StrictMode
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,9 +87,8 @@ class MainActivity : ComponentActivity() {
         private var feedGroup: FeedGroup = FeedGroup()
     }
 
-
     // Parser variable
-    private lateinit var parser: Parser
+    // private lateinit var parser: Parser
 
     // Room database variables
     private lateinit var db: RoomDatabase
@@ -105,6 +113,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,10 +147,10 @@ class MainActivity : ComponentActivity() {
             .allowMainThreadQueries()
             .build()
         feedDao = (db as AppDatabase).feedDao()
-        parser = Parser.Builder()
-            .context(this)
-            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
-            .build()
+//        parser = Parser.Builder()
+//            .context(this)
+//            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
+//            .build()
 
         // Refresh LazyColumn composables
         articleList = MutableStateFlow(mutableListOf())
@@ -201,7 +210,11 @@ class MainActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true, refreshRead: Boolean = true) {
+    private fun setArticle(
+        modifiedArticle: Article,
+        refreshBookmark: Boolean = true,
+        refreshRead: Boolean = true
+    ) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -272,7 +285,7 @@ class MainActivity : ComponentActivity() {
         var showDropdown by remember { mutableStateOf(false) }
         // Location where user long pressed.
         var offset by remember { mutableStateOf(Offset(0f, 0f)) }
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(paddingMedium)
@@ -289,7 +302,7 @@ class MainActivity : ComponentActivity() {
                             ContextCompat.startActivity(context, intent, null)
                         }
                     )
-                }, elevation = 8.dp
+                }
         ) {
             Column {
                 Row(
@@ -309,11 +322,12 @@ class MainActivity : ComponentActivity() {
                         // Convert pixel to dp
                         val xDp = with(LocalDensity.current) { (offset.x).toDp() } - 15.dp
                         val yDp = with(LocalDensity.current) { (offset.y).toDp() } - 35.dp
+                        // Draw the dropdown menu
                         DropdownMenu(
                             expanded = showDropdown,
                             onDismissRequest = { showDropdown = false },
                             modifier = Modifier
-                                .background(MaterialTheme.colors.background),
+                                .background(MaterialTheme.colorScheme.background),
                             offset = DpOffset(xDp, yDp)
                         ) {
                             items.forEach { item ->
@@ -340,6 +354,16 @@ class MainActivity : ComponentActivity() {
             // ) {
             // }
         }
+//        Column(
+//            modifier = Modifier.fillMaxSize(),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Divider(
+//                thickness = 0.7.dp,
+//                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+//                modifier = Modifier.fillMaxSize(0.9f),
+//            )
+//        }
     }
 
     /**
@@ -357,7 +381,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 Text(
                     text = "No Feeds Found",
-                    style = MaterialTheme.typography.h5
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(Modifier.padding(paddingLarge))
                 Button(
@@ -380,7 +404,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 items(items = feeds) { feed ->
                     FeedCard(context = this@MainActivity, feed = feed)
-
                 }
             }
         }
@@ -403,7 +426,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 Text(
                     text = "No Articles Found",
-                    style = MaterialTheme.typography.h5
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(Modifier.padding(paddingLarge))
                 Button(
@@ -423,7 +446,6 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                // For each article in the list, render a card.
                 items(items = articles) { article ->
                     ArticleCard(
                         context = this@MainActivity,
@@ -441,17 +463,31 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun ArticlesFromFeed() {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
-            items(items = currentFeed.articles) { article ->
-                ArticleCard(
-                    context = this@MainActivity,
-                    article = article
-                ) { setArticle(it) }
-            }
-        }
+//        LazyColumn(
+//            modifier = Modifier.fillMaxSize(),
+//            contentPadding = PaddingValues(bottom = 80.dp)
+//        ) {
+//            itemsIndexed(items = articles) { index, article ->
+//                ArticleCard(
+//                    context = this@MainActivity,
+//                    article = article
+//                ) { setArticle(it) }
+//
+//                // Do not draw the divider below the last article
+//                if (index < articles.lastIndex) {
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ) {
+//                        Divider(
+//                            thickness = 0.7.dp,
+//                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+//                            modifier = Modifier.fillMaxSize(0.9f),
+//                        )
+//                    }
+//                }
+//            }
+//        }
     }
 
     /**
@@ -459,7 +495,7 @@ class MainActivity : ComponentActivity() {
      */
     @ExperimentalAnimationApi
     @Composable
-    fun ReadingHistoryView(navController: NavHostController){
+    fun ReadingHistoryView(navController: NavHostController) {
         val articles by articleList.collectAsState()
         val readArticles by readArticleList.collectAsState()
 
@@ -473,7 +509,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text(
                         text = "No Articles Found",
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(
@@ -498,14 +534,14 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = "No Read Articles",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingSmall))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = "Read an article and it will show up here",
-                        style = MaterialTheme.typography.body1
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
@@ -536,12 +572,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    // For each article in the list, render a card.
                     items(items = readArticles) { article ->
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
-                        ) { setArticle(it, refreshRead = false) }
+                        ) { setArticle(it) }
                     }
                 }
             }
@@ -569,7 +604,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text(
                         text = "No Articles Found",
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(
@@ -597,14 +632,14 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = "No Bookmarked Articles",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingSmall))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = "Bookmark an article and it will show up here",
-                        style = MaterialTheme.typography.body1
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
@@ -635,12 +670,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    // For each article in the list, render a card.
+
                     items(items = bookmarkedArticles) { article ->
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
-                        ) { setArticle(it, refreshBookmark = false) }
+                        ) { setArticle(it) }
                     }
                 }
             }
@@ -660,7 +695,7 @@ class MainActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("BinoculaRSS", style = MaterialTheme.typography.h5)
+            Text("BinoculaRSS", style = MaterialTheme.typography.headlineMedium)
             Row(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
@@ -718,7 +753,7 @@ class MainActivity : ComponentActivity() {
             NavigationItem.ReadingHistory
         )
         BottomNavigation(
-            backgroundColor = MaterialTheme.colors.background
+            backgroundColor = MaterialTheme.colorScheme.background
         ) {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
@@ -731,9 +766,14 @@ class MainActivity : ComponentActivity() {
                             contentDescription = item.title
                         )
                     },
-                    label = { Text(text = item.title) },
-                    selectedContentColor = MaterialTheme.colors.primary,
-                    unselectedContentColor = MaterialTheme.colors.onBackground.copy(0.5f),
+                    label = {
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = MaterialTheme.colorScheme.onBackground.copy(0.5f),
                     alwaysShowLabel = true,
                     selected = currentRoute == item.route,
                     onClick = {
@@ -783,7 +823,7 @@ class MainActivity : ComponentActivity() {
                     BookmarksView(navController)
                 }
             }
-            composable(NavigationItem.ReadingHistory.route){
+            composable(NavigationItem.ReadingHistory.route) {
                 EnterAnimation {
                     ReadingHistoryView(navController)
                 }
@@ -811,13 +851,18 @@ class MainActivity : ComponentActivity() {
     /**
      * The default UI of the app.
      */
+    @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         // Get elevated color to match the bottom bar that is also elevated by 8.dp
         val elevatedColor =
             LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
@@ -831,7 +876,7 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        Surface(color = MaterialTheme.colors.background) {
+        Surface(color = MaterialTheme.colorScheme.background) {
             // Navigation variables.
             val navController = rememberNavController()
 
@@ -847,7 +892,7 @@ class MainActivity : ComponentActivity() {
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
                     onRefresh = {
-                        viewModel.updateRss(parser)
+                        // viewModel.updateRss(parser)
                     }
                 ) {
                     // Navigate to whatever view is selected by the bottom bar.
@@ -857,6 +902,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     @Preview(showBackground = true)
     @Composable
