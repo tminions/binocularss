@@ -131,10 +131,8 @@ class MainActivity : ComponentActivity() {
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
 
-        dataGateway = DatabaseGateway()
-        dataGateway.setContext(context = this)
-        dataGateway.setDb()
-        dataGateway.setFeedDao()
+        dataGateway = DatabaseGateway(context = this)
+
 
         parser = Parser.Builder()
             .context(this)

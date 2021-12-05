@@ -80,10 +80,8 @@ class SettingsActivity : ComponentActivity() {
         theme = sharedPref.getString(THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
-        dataGateway = DatabaseGateway()
-        dataGateway.setContext(context = this)
-        dataGateway.setDb()
-        dataGateway.setFeedDao()
+        dataGateway = DatabaseGateway(context = this)
+
     }
 
     /**

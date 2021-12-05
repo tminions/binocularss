@@ -83,10 +83,8 @@ class ArticleActivity : ComponentActivity() {
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
-        dataGateway = DatabaseGateway()
-        dataGateway.setContext(context = this)
-        dataGateway.setDb()
-        dataGateway.setFeedDao()
+        dataGateway = DatabaseGateway(context = this)
+
 
         article = intent.getParcelableExtra("article")!!
     }

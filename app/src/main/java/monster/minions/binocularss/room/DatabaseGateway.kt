@@ -6,21 +6,25 @@ import androidx.room.RoomDatabase
 import monster.minions.binocularss.dataclasses.Feed
 
 
-class DatabaseGateway {
+class DatabaseGateway(private var context: Context) {
 
-    private lateinit var context: Context
     private lateinit var db: RoomDatabase
     private lateinit var feedDao: FeedDao
 
+    init {
+        this.setDb()
+       this.setFeedDao()
+    }
+
+    /**
+     * Get all feeds from the database
+     */
     fun read(): MutableList<Feed>{
         return feedDao.getAll()
     }
 
-    fun setContext(context: Context){
-        this.context = context
-    }
 
-    fun setDb(){
+    private fun setDb(){
         db = Room
             .databaseBuilder(context, AppDatabase::class.java, "feed-db")
             .allowMainThreadQueries()
@@ -28,7 +32,7 @@ class DatabaseGateway {
 
     }
 
-    fun setFeedDao(){
+    private fun setFeedDao(){
         feedDao = (db as AppDatabase).feedDao()
     }
 
