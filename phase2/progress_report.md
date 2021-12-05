@@ -47,24 +47,51 @@ Each group member should include a link to a significant pull request (or two if
 
 #### Benson Chou
 
+Pull Request - [Delete Feed](https://github.com/tminions/binocularss/pull/20)
 
-#### Eamon Ma
-
-
-#### Hisbaan Noorani
-
-
-#### Ismail Ahmed
+This pull request added the ability to delete a feed which was important for
+giving the user more freedom.
 
 
-#### Macdeini Niu
+#### **Eamon Ma**
 
 
-#### Salman Husainie
+#### **Hisbaan Noorani**
+
+Pull Request - [Bookmarks refactor](https://github.com/tminions/binocularss/pull/17)
+
+This pull request was important for reducing code duplication and making user experience a lot more fluid by using a View instead of an activity.
+
+Pull Request - [Standardize padding, shape, typography](https://github.com/tminions/binocularss/pull/25)
+
+This pull request replaced a lot of the hard coded values for styling with variables defined elsewhere which made code more readable.
 
 
-#### Simon Chen
+#### **Ismail Ahmed**
+
+Pull Request - [Search Function](https://github.com/tminions/binocularss/pull/23)
+
+This pull request added search functionality to our application which was critical to
+making our application fulfill our specification. 
+
+Pull Request - [Database Gateway](https://github.com/tminions/binocularss/pull/26)
+
+This pull request was significant because it added a gateway class that reduces coupling between the UI and the database. 
+
+#### **Macdeini Niu**
+
+Pull Request - [Reading History](https://github.com/tminions/binocularss/pull/22)
+
+This pull request implements reading history that will display a list of articles that have been marked as read.  
+
+#### **Salman Husainie**
 
 
-#### Tai Zhang
+#### **Simon Chen**
+
+Pull Request - [URL Trimming](https://github.com/tminions/binocularss/pull/19)
+
+This pull request implements url trimming when the user inputs a url for a feed they want to add. This was important because it could potentially have been a very inconvenient bug. 
+
+#### **Tai Zhang**
 
