@@ -30,11 +30,11 @@ import monster.minions.binocularss.activities.ui.theme.roundedCornerLarge
 @Composable
 private fun TitleSubtitle(title: String, subtitle: String) {
     // If there is no subtitle, display only the title.
-    Text(text = title, style = MaterialTheme.typography.bodyMedium)
+    Text(text = title, style = MaterialTheme.typography.bodyLarge)
     if (subtitle != "") {
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Light
         )
     }
@@ -72,13 +72,13 @@ fun ActionItem(
         Column {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = alpha),
             )
             if (subtitle != "") {
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = alpha),
                     fontWeight = FontWeight.Light
                 )

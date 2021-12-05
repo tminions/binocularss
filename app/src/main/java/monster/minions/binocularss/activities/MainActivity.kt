@@ -5,10 +5,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.os.StrictMode
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.ContentView
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,29 +17,37 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.BottomNavigationDefaults.Elevation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -51,15 +59,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.activities.ui.theme.paddingLarge
-import monster.minions.binocularss.activities.ui.theme.paddingMedium
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
+import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
@@ -67,7 +72,7 @@ import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.AppDatabase
 import monster.minions.binocularss.room.FeedDao
 import monster.minions.binocularss.ui.*
-import java.util.*
+import kotlin.math.ln
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -117,6 +122,8 @@ class MainActivity : ComponentActivity() {
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+//        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             themeState = remember { mutableStateOf(theme) }
@@ -354,16 +361,16 @@ class MainActivity : ComponentActivity() {
             // ) {
             // }
         }
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Divider(
-//                thickness = 0.7.dp,
-//                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-//                modifier = Modifier.fillMaxSize(0.9f),
-//            )
-//        }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Divider(
+                thickness = 0.7.dp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+                modifier = Modifier.fillMaxSize(0.9f),
+            )
+        }
     }
 
     /**
@@ -742,64 +749,81 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Bottom app bar with buttons for article, feed, and bookmark views.
+     * Object to replace the ripple theme to remove the "ripple" effect from the navigation bar
+     * buttons.
+     */
+    object ClearRippleTheme : RippleTheme {
+        @Composable
+        override fun defaultColor(): Color = Color.Transparent
+
+        @Composable
+        override fun rippleAlpha() = RippleAlpha(
+            draggedAlpha = 0.0f,
+            focusedAlpha = 0.0f,
+            hoveredAlpha = 0.0f,
+            pressedAlpha = 0.0f,
+        )
+    }
+
+    /**
+     * Navigation bar at the bottom to go between articles, feeds, bookmarks, and history.
      */
     @Composable
     fun BottomNavigationBar(navController: NavController) {
+        var selectedItem by remember { mutableStateOf(0) }
         val items = listOf(
             NavigationItem.Articles,
             NavigationItem.Feeds,
             NavigationItem.Bookmarks,
             NavigationItem.ReadingHistory
         )
-        BottomNavigation(
-            backgroundColor = MaterialTheme.colorScheme.background
-        ) {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            items.forEach { item ->
-                // For each item in the list, create a navigation item for it.
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.title
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    },
-                    selectedContentColor = MaterialTheme.colorScheme.primary,
-                    unselectedContentColor = MaterialTheme.colorScheme.onBackground.copy(0.5f),
-                    alwaysShowLabel = true,
-                    selected = currentRoute == item.route,
-                    onClick = {
-                        // Update bookmarkedArticleList when any nav item is clicked.
-                        if (item.route == NavigationItem.Bookmarks.route) bookmarkedArticleList.value =
-                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
-
-                        navController.navigate(item.route) {
-                            navController.graph.startDestinationRoute?.let { route ->
-                                // Pop up to the start destination of the graph to avoid building up
-                                //  a large stack of destinations on the back stack as users select
-                                //  items
-                                popUpTo(route) { saveState = true }
+        CompositionLocalProvider(LocalRippleTheme provides ClearRippleTheme) {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 4.dp
+            ) {
+                items.forEachIndexed { index, item ->
+                    // Draw a button for each item in the list
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.title
+                            )
+                        },
+                        label = { Text(item.title) },
+                        selected = selectedItem == index,
+                        onClick = {
+                            selectedItem = index
+                            // Update bookmarkedArticleList when the bookmarks are clicked
+                            if (item.route == NavigationItem.Bookmarks.route) {
+                                bookmarkedArticleList.value =
+                                    sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                                // Update readArticleList when the bookmarks are clicked
+                            } else if (item.route == NavigationItem.ReadingHistory.route) {
+                                readArticleList.value =
+                                    sortArticlesByReadDate(getReadArticles(feedGroup))
                             }
-                            // Avoid multiple copies of the same destination when re-selecting the
-                            //  same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
+
+                            navController.navigate(item.route) {
+                                navController.graph.startDestinationRoute?.let { route ->
+                                    // Pop up to the start destination of the graph to avoid building up
+                                    //  a large stack of destinations on the back stack as users select
+                                    //  items
+                                    popUpTo(route) { saveState = true }
+                                }
+                                // Avoid multiple copies of the same destination when re-selecting the
+                                //  same item
+                                launchSingleTop = true
+                                // Restore state when re-selecting a previously selected item
+                                restoreState = true
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
-
 
     /**
      * Composable that loads in and out views based on the current navigation item selected.
@@ -837,7 +861,6 @@ class MainActivity : ComponentActivity() {
     @ExperimentalAnimationApi
     @Composable
     fun EnterAnimation(content: @Composable () -> Unit) {
-        // TODO figure out non-deprecated library
         AnimatedVisibility(
             visible = true,
             enter = slideInVertically(initialOffsetY = { 10000 }),
@@ -846,6 +869,17 @@ class MainActivity : ComponentActivity() {
         ) {
             content()
         }
+    }
+
+    /**
+     * Get the any color at an elevation. This is the same algorithm that google uses so we can get
+     * get the same colors for our custom elements.
+     */
+    @Composable
+    fun colorAtElevation(color: Color, elevation: Dp): Color {
+        if (elevation == 0.dp) return color
+        val alpha = ((4.5f * ln(elevation.value + 1)) + 2f) / 100f
+        return MaterialTheme.colorScheme.primary.copy(alpha = alpha).compositeOver(color)
     }
 
     /**
@@ -863,16 +897,16 @@ class MainActivity : ComponentActivity() {
             else -> !isSystemInDarkTheme()
         }
         val color = MaterialTheme.colorScheme.background
-        // Get elevated color to match the bottom bar that is also elevated by 8.dp
+        // Get elevated color to match the bottom bar that is also elevated by 4.dp
         val elevatedColor =
-            LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
+            colorAtElevation(color = MaterialTheme.colorScheme.background, elevation = 4.dp)
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
                 darkIcons = useDarkIcons
             )
             systemUiController.setNavigationBarColor(
-                color = elevatedColor!!
+                color = elevatedColor
             )
         }
 
@@ -886,13 +920,24 @@ class MainActivity : ComponentActivity() {
 
             Scaffold(
                 topBar = { TopBar() },
-                bottomBar = { BottomNavigationBar(navController = navController) }
+                bottomBar = { BottomNavigationBar(navController) }
             ) {
                 // Update feeds when swiping down like in a browser.
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
-                    onRefresh = {
-                         viewModel.updateRss(parser)
+                    onRefresh = { viewModel.updateRss(parser) },
+                    indicator = { state, trigger ->
+                        // Custom swipe refresh indicator because of material3
+                        SwipeRefreshIndicator(
+                            state = state,
+                            refreshTriggerDistance = trigger,
+                            scale = true,
+                            backgroundColor = colorAtElevation(
+                                MaterialTheme.colorScheme.background,
+                                4.dp
+                            ),
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
                     }
                 ) {
                     // Navigate to whatever view is selected by the bottom bar.

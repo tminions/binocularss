@@ -7,18 +7,18 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val DarkColorPalette = darkColorScheme(
-    primary = evilMinionPurple,
-    secondary = evilMinionPurpleAlt,
-    tertiary = minionYellow,
-    // secondaryVariant = minionYellowAlt,
-    background = charcoal,
-    surface = charcoal,
-    error = errorRed,
-    onPrimary = black,
-    onSecondary = black,
-    onBackground = white,
-    onSurface = white,
-    onError = black,
+//    primary = evilMinionPurple,
+//    secondary = evilMinionPurpleAlt,
+//    tertiary = minionYellow,
+//    // secondaryVariant = minionYellowAlt,
+//    background = charcoal,
+//    surface = charcoal,
+//    error = errorRed,
+//    onPrimary = black,
+//    onSecondary = black,
+//    onBackground = white,
+//    onSurface = white,
+//    onError = black,
 )
 
 private val LightColorPalette = lightColorScheme(

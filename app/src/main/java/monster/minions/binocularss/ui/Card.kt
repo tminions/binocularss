@@ -86,16 +86,16 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
             }
         }
     }
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Divider(
-//            thickness = 0.7.dp,
-//            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-//            modifier = Modifier.fillMaxSize(0.9f),
-//        )
-//    }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Divider(
+            thickness = 0.7.dp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+            modifier = Modifier.fillMaxSize(0.9f),
+        )
+    }
 }
 
 /**
