@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
     }
 
     // Parser variable
-    // private lateinit var parser: Parser
+    private lateinit var parser: Parser
 
     // Room database variables
     private lateinit var db: RoomDatabase
@@ -147,10 +147,10 @@ class MainActivity : ComponentActivity() {
             .allowMainThreadQueries()
             .build()
         feedDao = (db as AppDatabase).feedDao()
-//        parser = Parser.Builder()
-//            .context(this)
-//            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
-//            .build()
+        parser = Parser.Builder()
+            .context(this)
+            .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
+            .build()
 
         // Refresh LazyColumn composables
         articleList = MutableStateFlow(mutableListOf())
@@ -892,7 +892,7 @@ class MainActivity : ComponentActivity() {
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
                     onRefresh = {
-                        // viewModel.updateRss(parser)
+                         viewModel.updateRss(parser)
                     }
                 ) {
                     // Navigate to whatever view is selected by the bottom bar.
