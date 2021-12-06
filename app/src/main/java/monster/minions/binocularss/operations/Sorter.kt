@@ -3,14 +3,14 @@ package monster.minions.binocularss.operations
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 
-interface SortingArticleStrategy {
-    val comparator: Comparator<Article>
+interface SortingStrategy<T> {
+    val comparator: Comparator<T>
 }
 
 /**
  * Strategy for sorting articles by date
  */
-class SortArticlesByDateStrategy: SortingArticleStrategy {
+class SortArticlesByDateStrategy: SortingStrategy<Article> {
     override val comparator: Comparator<Article> = ArticleDateComparator()
 }
 
@@ -19,24 +19,35 @@ class SortArticlesByDateStrategy: SortingArticleStrategy {
  *
  * @constructor query The query
  */
-class SortArticlesByFuzzyMatchStrategy(query: String): SortingArticleStrategy {
+class SortArticlesByFuzzyMatchStrategy(query: String): SortingStrategy<Article> {
     override val comparator: Comparator<Article> = ArticleSearchComparator(query)
 }
 
 /**
  * Strategy for sorting articles by read date
  */
-class SortArticlesByReadDate: SortingArticleStrategy {
+class SortArticlesByReadDateStrategy: SortingStrategy<Article> {
     override val comparator: Comparator<Article> = ArticleReadDateComparator()
 }
 
 /**
  * Sort articles
  */
-class ArticleSorter(private val sortingArticleStrategy: SortingArticleStrategy) {
+class SortArticles(private val sortingArticleStrategy: SortingStrategy<Article>) {
     fun sort(articles: MutableList<Article>): MutableList<Article> {
         val comparator = sortingArticleStrategy.comparator
         return articles.sortedWith(comparator = comparator).toMutableList()
+    }
+}
+
+class SortFeedsByTitleStrategy: SortingStrategy<Feed> {
+    override val comparator: Comparator<Feed> = FeedTitleComparator()
+}
+
+class SortFeeds(private val sortingFeedStrategy: SortingStrategy<Feed>) {
+    fun sort(feeds: MutableList<Feed>): MutableList<Feed> {
+        val comparator = sortingFeedStrategy.comparator
+        return feeds.sortedWith(comparator = comparator).toMutableList()
     }
 }
 
