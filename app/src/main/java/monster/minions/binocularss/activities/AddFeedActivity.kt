@@ -292,7 +292,7 @@ class AddFeedActivity : ComponentActivity() {
                         )
                     }
                 }
-                CuratedFeeds(addFeedToGroup = ::addTofeedGroup)
+                CuratedFeeds(addFeedToGroup = ::addTofeedGroup, existingFeeds = feedGroup.feeds)
             }
         }
     }
