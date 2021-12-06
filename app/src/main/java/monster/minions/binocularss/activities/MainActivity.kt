@@ -235,114 +235,6 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Delete feeds through deleting the source from feedDao
-     *
-     * @param feed A feed that the user wants to delete
-     */
-    private fun deleteFeed(feed: Feed) {
-        dataGateway.removeFeedBySource(feed.source)
-        feedGroup.feeds.remove(feed)
-
-        articleList.value = mutableListOf()
-        feedList.value = dataGateway.read()
-        bookmarkedArticleList.value = mutableListOf()
-        currentFeedArticles.value = mutableListOf()
-        readArticleList.value = mutableListOf()
-    }
-
-    /**
-     * Displays a single feed in a card view format
-     * Includes a long hold function to delete a feed
-     *
-     * @param context The application context
-     * @param feed The feed to be displayed
-     */
-    @ExperimentalCoilApi
-    @Composable
-    fun FeedCard(context: Context, feed: Feed) {
-        var showDropdown by remember { mutableStateOf(false) }
-        // Location where user long pressed.
-        var offset by remember { mutableStateOf(Offset(0f, 0f)) }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(paddingMedium)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = {
-                            showDropdown = true
-                            offset = it
-                        },
-                        onTap = {
-                            // Set current feed.
-                            currentFeed = feed
-                            // Set current feed list to empty so it can be updated by ArticlesFromFeedActivity.
-                            currentFeedArticles.value = mutableListOf()
-                            // Start the activity.
-                            val intent = Intent(context, ArticlesFromFeedActivity::class.java)
-                            ContextCompat.startActivity(context, intent, null)
-                        }
-                    )
-                }
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(paddingLarge),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Column for feed title.
-                    Column(
-                        modifier = Modifier.width(200.dp)
-                    ) {
-                        feed.title?.let { title ->
-                            Text(text = title, fontWeight = FontWeight.SemiBold)
-                        }
-                        val items = listOf("Delete")
-                        // Convert pixel to dp for dropdown menu offset.
-                        val xDp = with(LocalDensity.current) { (offset.x).toDp() } - 15.dp
-                        val yDp = with(LocalDensity.current) { (offset.y).toDp() } - 35.dp
-                        // Draw the dropdown menu
-                        DropdownMenu(
-                            expanded = showDropdown,
-                            onDismissRequest = { showDropdown = false },
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.background),
-                            offset = DpOffset(xDp, yDp)
-                        ) {
-                            items.forEach { item ->
-                                DropdownMenuItem(onClick = {
-                                    when (item) {
-                                        "Delete" -> {
-                                            deleteFeed(feed)
-                                            showDropdown = false
-                                        }
-                                    }
-                                }) {
-                                    Text(text = item)
-                                }
-                            }
-                        }
-                    }
-                    CardImage(image = feed.image, description = feed.description!!)
-                }
-            }
-        }
-        // Divider between feed cards.
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Divider(
-                thickness = 0.7.dp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-                modifier = Modifier.fillMaxSize(0.9f),
-            )
-        }
-    }
-
-    /**
      * Displays the list of feeds saved
      */
     @Composable
@@ -381,10 +273,26 @@ class MainActivity : ComponentActivity() {
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(items = feeds) { feed ->
-                    FeedCard(context = this@MainActivity, feed = feed)
+                    FeedCard(context = this@MainActivity, feed = feed, deleteFeed = { deleteFeed(feed) })
                 }
             }
         }
+    }
+
+    /**
+     * Delete feeds through deleting the source from feedDao
+     *
+     * @param feed A feed that the user wants to delete
+     */
+    private fun deleteFeed(feed: Feed) {
+        dataGateway.removeFeedBySource(feed.source)
+        feedGroup.feeds.remove(feed)
+
+        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        feedList.value = dataGateway.read()
+        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(currentFeed))
+        readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
     }
 
     /**
