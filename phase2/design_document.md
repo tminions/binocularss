@@ -3,7 +3,6 @@
 ### Important parts to work on from Phase 1 feedback:
 - Talk about testing
 - Talk about code style and documentation
--
 
 ## Clean Architecture
 
@@ -42,7 +41,6 @@ For our UI we made sure to pass lambda functions to our Composables, allowing us
 We have our files organized into packages by their clean architecture layer. Our frameworks and drivers are composed of the `room`, `ui`, and `activities/ui` folders. These encapsulate the UI of our program and our database interface. Our entities are organized into the `dataclasses` folder and our uses cases are organized into the `activities` and `operations` folders. Our main interface adapters however are also mixed in with the `activities` folder. To improve our package organization we would want to better separate our use cases and interface adapters into their folders.
 
 We chose this packaging strategy as it allows up to better adhere to clean architecture by making it clear what file belongs to what clean architecture layer. Overall this makes our code cleaner and easier to read.
-
 
 
 ## Design Patterns
