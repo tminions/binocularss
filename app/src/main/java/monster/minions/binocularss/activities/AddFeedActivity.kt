@@ -144,6 +144,7 @@ class AddFeedActivity : ComponentActivity() {
             sortArticlesByDate(getBookmarkedArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**

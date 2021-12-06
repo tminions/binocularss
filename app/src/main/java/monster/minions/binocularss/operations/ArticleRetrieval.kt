@@ -1,10 +1,11 @@
 package monster.minions.binocularss.operations
 
 import monster.minions.binocularss.dataclasses.Article
+import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 
 /**
- * Returns a list of all bookmarked articles from the feedGroup.
+ * Returns a list of all the articles from the feedGroup.
  *
  * @param feedGroup The feedGroup to get the list articles from.
  */
@@ -18,6 +19,15 @@ fun getAllArticles(feedGroup: FeedGroup): MutableList<Article> {
     }
 
     return articles
+}
+
+/**
+ * Returns a list of all bookmarked articles from the feedGroup.
+ *
+ * @param feed The feed to get the list articles from.
+ */
+fun getArticlesFromFeed(feed: Feed): MutableList<Article> {
+    return feed.articles
 }
 
 /**
@@ -42,7 +52,7 @@ fun getBookmarkedArticles(feedGroup: FeedGroup): MutableList<Article> {
 /**
  * Returns a list of read articles from the feedGroup
  *
- * @param feedGroup The feedGroup to get the list of bookmarked articles from.
+ * @param feedGroup The feedGroup to get the list of read articles from.
  */
 fun getReadArticles(feedGroup: FeedGroup): MutableList<Article> {
     val readArticles: MutableList<Article> = mutableListOf()

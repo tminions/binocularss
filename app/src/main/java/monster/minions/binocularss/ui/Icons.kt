@@ -99,9 +99,13 @@ fun ShareFlag(context: Context, article: Article) {
  * @param article Article that is currently being displayed
  */
 @Composable
-fun BrowserFlag(context: Context, article: Article) {
+fun BrowserFlag(context: Context, article: Article, extraAction: (article: Article) -> Unit = { }) {
     IconButton(
         onClick = {
+            article.read = true
+            article.readDate = Date().toString()
+            extraAction(article)
+
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(article.link)
             startActivity(context, intent, null)
