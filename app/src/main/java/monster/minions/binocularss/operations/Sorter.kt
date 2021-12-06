@@ -3,6 +3,43 @@ package monster.minions.binocularss.operations
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 
+interface SortingArticleStrategy {
+    val comparator: Comparator<Article>
+}
+
+/**
+ * Strategy for sorting articles by date
+ */
+class SortArticlesByDateStrategy: SortingArticleStrategy {
+    override val comparator: Comparator<Article> = ArticleDateComparator()
+}
+
+/**
+ * Strategy for sorting articles by query, fuzzily
+ *
+ * @constructor query The query
+ */
+class SortArticlesByFuzzyMatchStrategy(query: String): SortingArticleStrategy {
+    override val comparator: Comparator<Article> = ArticleSearchComparator(query)
+}
+
+/**
+ * Strategy for sorting articles by read date
+ */
+class SortArticlesByReadDate: SortingArticleStrategy {
+    override val comparator: Comparator<Article> = ArticleReadDateComparator()
+}
+
+/**
+ * Sort articles
+ */
+class ArticleSorter(private val sortingArticleStrategy: SortingArticleStrategy) {
+    fun sort(articles: MutableList<Article>): MutableList<Article> {
+        val comparator = sortingArticleStrategy.comparator
+        return articles.sortedWith(comparator = comparator).toMutableList()
+    }
+}
+
 /**
  * Sort the given list of articles by date and return another list
  *
