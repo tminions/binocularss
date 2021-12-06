@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,11 +15,15 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
@@ -30,6 +35,7 @@ import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.ArticleCard
 import java.util.*
+import kotlin.properties.Delegates
 
 class SearchActivity : ComponentActivity() {
     // FeedGroup object
@@ -46,6 +52,8 @@ class SearchActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var isFirstRun = true
     private var cacheExpiration = 0L
 
@@ -58,8 +66,10 @@ class SearchActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
+            materialYouState = remember { mutableStateOf(materialYou) }
             BinoculaRSSTheme(
-                theme = themeState.value
+                theme = themeState.value,
+                materialYou = materialYouState.value
             ) {
                 UI()
             }
@@ -73,8 +83,8 @@ class SearchActivity : ComponentActivity() {
         sharedPrefEditor = sharedPref.edit()
         theme =
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
-
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
@@ -115,17 +125,17 @@ class SearchActivity : ComponentActivity() {
         Log.d("SearchActivity", "onResume called")
         feedGroup.feeds = dataGateway.read()
         feedTitles = getFeedTitles()
-        theme = sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
-        if (!isFirstRun) {
-            themeState.value = theme
-        }
-        isFirstRun = false
+
+        theme =
+            sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        MainActivity.searchResults.value = sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+        MainActivity.searchResults.value =
+            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
     }
 
     private fun getFeedTitles(): MutableList<String> {
@@ -160,7 +170,6 @@ class SearchActivity : ComponentActivity() {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            // For each article in the list, render a card.
             items(items = articles) { article ->
                 ArticleCard(
                     context = this@SearchActivity,
@@ -204,18 +213,41 @@ class SearchActivity : ComponentActivity() {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = textState.value,
-            placeholder = { Text("Search for an article(s)") },
+            placeholder = { Text("Search for an Article") },
             onValueChange = {
                 textState.value = it
                 text = mutableStateOf(textState.value.text)
             },
             singleLine = true,
             maxLines = 1,
-            trailingIcon = { Icon(Icons.Filled.Search, null) },
             keyboardActions = KeyboardActions(
                 onDone = {
                     submit()
                 }
+            ),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                textColor = MaterialTheme.colorScheme.onBackground,
+                disabledTextColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                backgroundColor = MaterialTheme.colorScheme.background,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                errorCursorColor = MaterialTheme.colorScheme.error,
+                leadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity),
+                disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
+                    .copy(alpha = ContentAlpha.disabled),
+                errorLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity),
+                trailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity),
+                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = TextFieldDefaults.IconOpacity)
+                    .copy(alpha = ContentAlpha.disabled),
+                errorTrailingIconColor = MaterialTheme.colorScheme.error,
+                focusedLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = ContentAlpha.high),
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(ContentAlpha.medium),
+                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(ContentAlpha.medium)
+                    .copy(ContentAlpha.disabled),
+                errorLabelColor = MaterialTheme.colorScheme.error,
+                placeholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled),
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(ContentAlpha.disabled)
             )
         )
     }
@@ -226,8 +258,12 @@ class SearchActivity : ComponentActivity() {
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -237,7 +273,7 @@ class SearchActivity : ComponentActivity() {
         Surface(
             modifier = Modifier
                 .fillMaxWidth(),
-            color = MaterialTheme.colors.background,
+            color = MaterialTheme.colorScheme.background,
         ) {
             Column {
                 Row(
@@ -245,7 +281,19 @@ class SearchActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .padding(paddingMedium)
                 ) {
-                    SearchBar()
+                    Row(modifier = Modifier.weight(1f)) {
+                        SearchBar()
+                    }
+                    Spacer(modifier = Modifier.padding(paddingMedium))
+                    FloatingActionButton(
+                        onClick = { submit() },
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Add feed"
+                        )
+                    }
                 }
                 ArticleSearchResults()
             }

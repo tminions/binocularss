@@ -8,29 +8,46 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.ContentView
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.BottomNavigationDefaults.Elevation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -40,22 +57,20 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.activities.ui.theme.paddingLarge
-import monster.minions.binocularss.activities.ui.theme.paddingMedium
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
+import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
-import java.util.*
+import kotlin.math.ln
+import kotlin.properties.Delegates
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -75,7 +90,6 @@ class MainActivity : ComponentActivity() {
         private var feedGroup: FeedGroup = FeedGroup()
     }
 
-
     // Parser variable
     private lateinit var parser: Parser
 
@@ -87,6 +101,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var isFirstRun = true
     private var cacheExpiration = 0L
 
@@ -101,14 +117,17 @@ class MainActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             themeState = remember { mutableStateOf(theme) }
+            materialYouState = remember { mutableStateOf(materialYou) }
             BinoculaRSSTheme(
-                theme = themeState.value
+                theme = themeState.value,
+                materialYou = materialYouState.value
             ) {
                 UI()
             }
@@ -125,6 +144,7 @@ class MainActivity : ComponentActivity() {
         theme = sharedPref
             .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
             .toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
         // Set private variables. This is done here as we cannot initialize objects that require context
@@ -179,8 +199,10 @@ class MainActivity : ComponentActivity() {
         theme = sharedPref
             .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
             .toString()
+        materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         if (!isFirstRun) {
             themeState.value = theme
+            materialYouState.value = materialYou
         }
         isFirstRun = false
 
@@ -196,7 +218,11 @@ class MainActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true, refreshRead: Boolean = true) {
+    private fun setArticle(
+        modifiedArticle: Article,
+        refreshBookmark: Boolean = true,
+        refreshRead: Boolean = true
+    ) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -267,7 +293,7 @@ class MainActivity : ComponentActivity() {
         var showDropdown by remember { mutableStateOf(false) }
         // Location where user long pressed.
         var offset by remember { mutableStateOf(Offset(0f, 0f)) }
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(paddingMedium)
@@ -284,7 +310,7 @@ class MainActivity : ComponentActivity() {
                             ContextCompat.startActivity(context, intent, null)
                         }
                     )
-                }, elevation = 8.dp
+                }
         ) {
             Column {
                 Row(
@@ -304,11 +330,12 @@ class MainActivity : ComponentActivity() {
                         // Convert pixel to dp
                         val xDp = with(LocalDensity.current) { (offset.x).toDp() } - 15.dp
                         val yDp = with(LocalDensity.current) { (offset.y).toDp() } - 35.dp
+                        // Draw the dropdown menu
                         DropdownMenu(
                             expanded = showDropdown,
                             onDismissRequest = { showDropdown = false },
                             modifier = Modifier
-                                .background(MaterialTheme.colors.background),
+                                .background(MaterialTheme.colorScheme.background),
                             offset = DpOffset(xDp, yDp)
                         ) {
                             items.forEach { item ->
@@ -335,6 +362,16 @@ class MainActivity : ComponentActivity() {
             // ) {
             // }
         }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Divider(
+                thickness = 0.7.dp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+                modifier = Modifier.fillMaxSize(0.9f),
+            )
+        }
     }
 
     /**
@@ -352,7 +389,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 Text(
                     text = "No Feeds Found",
-                    style = MaterialTheme.typography.h5
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(Modifier.padding(paddingLarge))
                 Button(
@@ -375,7 +412,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 items(items = feeds) { feed ->
                     FeedCard(context = this@MainActivity, feed = feed)
-
                 }
             }
         }
@@ -398,7 +434,7 @@ class MainActivity : ComponentActivity() {
             ) {
                 Text(
                     text = "No Articles Found",
-                    style = MaterialTheme.typography.h5
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(Modifier.padding(paddingLarge))
                 Button(
@@ -418,7 +454,6 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                // For each article in the list, render a card.
                 items(items = articles) { article ->
                     ArticleCard(
                         context = this@MainActivity,
@@ -436,17 +471,31 @@ class MainActivity : ComponentActivity() {
      */
     @Composable
     fun ArticlesFromFeed() {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
-        ) {
-            items(items = currentFeed.articles) { article ->
-                ArticleCard(
-                    context = this@MainActivity,
-                    article = article
-                ) { setArticle(it) }
-            }
-        }
+//        LazyColumn(
+//            modifier = Modifier.fillMaxSize(),
+//            contentPadding = PaddingValues(bottom = 80.dp)
+//        ) {
+//            itemsIndexed(items = articles) { index, article ->
+//                ArticleCard(
+//                    context = this@MainActivity,
+//                    article = article
+//                ) { setArticle(it) }
+//
+//                // Do not draw the divider below the last article
+//                if (index < articles.lastIndex) {
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ) {
+//                        Divider(
+//                            thickness = 0.7.dp,
+//                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+//                            modifier = Modifier.fillMaxSize(0.9f),
+//                        )
+//                    }
+//                }
+//            }
+//        }
     }
 
     /**
@@ -454,7 +503,7 @@ class MainActivity : ComponentActivity() {
      */
     @ExperimentalAnimationApi
     @Composable
-    fun ReadingHistoryView(navController: NavHostController){
+    fun ReadingHistoryView(navController: NavHostController) {
         val articles by articleList.collectAsState()
         val readArticles by readArticleList.collectAsState()
 
@@ -468,7 +517,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text(
                         text = "No Articles Found",
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(
@@ -493,14 +542,14 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = "No Read Articles",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingSmall))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = "Read an article and it will show up here",
-                        style = MaterialTheme.typography.body1
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
@@ -531,12 +580,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    // For each article in the list, render a card.
                     items(items = readArticles) { article ->
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
-                        ) { setArticle(it, refreshRead = false) }
+                        ) { setArticle(it) }
                     }
                 }
             }
@@ -564,7 +612,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text(
                         text = "No Articles Found",
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(
@@ -592,14 +640,14 @@ class MainActivity : ComponentActivity() {
                     Text(
                         text = "No Bookmarked Articles",
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(Modifier.padding(paddingSmall))
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         text = "Bookmark an article and it will show up here",
-                        style = MaterialTheme.typography.body1
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
@@ -630,12 +678,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    // For each article in the list, render a card.
+
                     items(items = bookmarkedArticles) { article ->
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
-                        ) { setArticle(it, refreshBookmark = false) }
+                        ) { setArticle(it) }
                     }
                 }
             }
@@ -655,7 +703,7 @@ class MainActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("BinoculaRSS", style = MaterialTheme.typography.h5)
+            Text("BinoculaRSS", style = MaterialTheme.typography.headlineMedium)
             Row(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
@@ -702,59 +750,81 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Bottom app bar with buttons for article, feed, and bookmark views.
+     * Object to replace the ripple theme to remove the "ripple" effect from the navigation bar
+     * buttons.
+     */
+    object ClearRippleTheme : RippleTheme {
+        @Composable
+        override fun defaultColor(): Color = Color.Transparent
+
+        @Composable
+        override fun rippleAlpha() = RippleAlpha(
+            draggedAlpha = 0.0f,
+            focusedAlpha = 0.0f,
+            hoveredAlpha = 0.0f,
+            pressedAlpha = 0.0f,
+        )
+    }
+
+    /**
+     * Navigation bar at the bottom to go between articles, feeds, bookmarks, and history.
      */
     @Composable
     fun BottomNavigationBar(navController: NavController) {
+        var selectedItem by remember { mutableStateOf(0) }
         val items = listOf(
             NavigationItem.Articles,
             NavigationItem.Feeds,
             NavigationItem.Bookmarks,
             NavigationItem.ReadingHistory
         )
-        BottomNavigation(
-            backgroundColor = MaterialTheme.colors.background
-        ) {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            items.forEach { item ->
-                // For each item in the list, create a navigation item for it.
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.title
-                        )
-                    },
-                    label = { Text(text = item.title) },
-                    selectedContentColor = MaterialTheme.colors.primary,
-                    unselectedContentColor = MaterialTheme.colors.onBackground.copy(0.5f),
-                    alwaysShowLabel = true,
-                    selected = currentRoute == item.route,
-                    onClick = {
-                        // Update bookmarkedArticleList when any nav item is clicked.
-                        if (item.route == NavigationItem.Bookmarks.route) bookmarkedArticleList.value =
-                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
-
-                        navController.navigate(item.route) {
-                            navController.graph.startDestinationRoute?.let { route ->
-                                // Pop up to the start destination of the graph to avoid building up
-                                //  a large stack of destinations on the back stack as users select
-                                //  items
-                                popUpTo(route) { saveState = true }
+        CompositionLocalProvider(LocalRippleTheme provides ClearRippleTheme) {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 4.dp
+            ) {
+                items.forEachIndexed { index, item ->
+                    // Draw a button for each item in the list
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.title
+                            )
+                        },
+                        label = { Text(item.title) },
+                        selected = selectedItem == index,
+                        onClick = {
+                            selectedItem = index
+                            // Update bookmarkedArticleList when the bookmarks are clicked
+                            if (item.route == NavigationItem.Bookmarks.route) {
+                                bookmarkedArticleList.value =
+                                    sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                                // Update readArticleList when the bookmarks are clicked
+                            } else if (item.route == NavigationItem.ReadingHistory.route) {
+                                readArticleList.value =
+                                    sortArticlesByReadDate(getReadArticles(feedGroup))
                             }
-                            // Avoid multiple copies of the same destination when re-selecting the
-                            //  same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
+
+                            navController.navigate(item.route) {
+                                navController.graph.startDestinationRoute?.let { route ->
+                                    // Pop up to the start destination of the graph to avoid building up
+                                    //  a large stack of destinations on the back stack as users select
+                                    //  items
+                                    popUpTo(route) { saveState = true }
+                                }
+                                // Avoid multiple copies of the same destination when re-selecting the
+                                //  same item
+                                launchSingleTop = true
+                                // Restore state when re-selecting a previously selected item
+                                restoreState = true
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
-
 
     /**
      * Composable that loads in and out views based on the current navigation item selected.
@@ -778,7 +848,7 @@ class MainActivity : ComponentActivity() {
                     BookmarksView(navController)
                 }
             }
-            composable(NavigationItem.ReadingHistory.route){
+            composable(NavigationItem.ReadingHistory.route) {
                 EnterAnimation {
                     ReadingHistoryView(navController)
                 }
@@ -792,7 +862,6 @@ class MainActivity : ComponentActivity() {
     @ExperimentalAnimationApi
     @Composable
     fun EnterAnimation(content: @Composable () -> Unit) {
-        // TODO figure out non-deprecated library
         AnimatedVisibility(
             visible = true,
             enter = slideInVertically(initialOffsetY = { 10000 }),
@@ -806,27 +875,32 @@ class MainActivity : ComponentActivity() {
     /**
      * The default UI of the app.
      */
+    @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
-        // Get elevated color to match the bottom bar that is also elevated by 8.dp
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
+        // Get elevated color to match the bottom bar that is also elevated by 4.dp
         val elevatedColor =
-            LocalElevationOverlay.current?.apply(color = color, elevation = 8.dp)
+            colorAtElevation(color = MaterialTheme.colorScheme.background, elevation = 4.dp)
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
                 darkIcons = useDarkIcons
             )
             systemUiController.setNavigationBarColor(
-                color = elevatedColor!!
+                color = elevatedColor
             )
         }
 
-        Surface(color = MaterialTheme.colors.background) {
+        Surface(color = MaterialTheme.colorScheme.background) {
             // Navigation variables.
             val navController = rememberNavController()
 
@@ -836,13 +910,24 @@ class MainActivity : ComponentActivity() {
 
             Scaffold(
                 topBar = { TopBar() },
-                bottomBar = { BottomNavigationBar(navController = navController) }
+                bottomBar = { BottomNavigationBar(navController) }
             ) {
                 // Update feeds when swiping down like in a browser.
                 SwipeRefresh(
                     state = rememberSwipeRefreshState(isRefreshing = isRefreshing),
-                    onRefresh = {
-                        viewModel.updateRss(parser)
+                    onRefresh = { viewModel.updateRss(parser) },
+                    indicator = { state, trigger ->
+                        // Custom swipe refresh indicator because of material3
+                        SwipeRefreshIndicator(
+                            state = state,
+                            refreshTriggerDistance = trigger,
+                            scale = true,
+                            backgroundColor = colorAtElevation(
+                                MaterialTheme.colorScheme.background,
+                                4.dp
+                            ),
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
                     }
                 ) {
                     // Navigate to whatever view is selected by the bottom bar.
@@ -852,6 +937,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     @Preview(showBackground = true)
     @Composable

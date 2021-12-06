@@ -4,15 +4,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
@@ -22,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
+import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.MATERIAL_YOU
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
@@ -31,6 +34,7 @@ import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
+import kotlin.properties.Delegates
 import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle1
 
 /**
@@ -49,12 +53,15 @@ class SettingsActivity : ComponentActivity() {
     private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
+    private var materialYou by Delegates.notNull<Boolean>()
+    private lateinit var materialYouState: MutableState<Boolean>
     private var cacheExpiration = 0L
 
     // Global preference keys to retrieve settings from shared preferences.
     object PreferenceKeys {
         const val SETTINGS = "settings"
         const val THEME = "theme"
+        const val MATERIAL_YOU = "materialYou"
         const val CACHE_EXPIRATION = "cacheExpiration"
     }
 
@@ -63,11 +70,13 @@ class SettingsActivity : ComponentActivity() {
      *
      * @param savedInstanceState Bundle to retrieve saved information from.
      */
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             themeState = remember { mutableStateOf(theme) }
-            BinoculaRSSTheme(theme = themeState.value) {
+            materialYouState = remember { mutableStateOf(materialYou) }
+            BinoculaRSSTheme(theme = themeState.value, materialYou = materialYouState.value) {
                 UI()
             }
         }
@@ -76,6 +85,7 @@ class SettingsActivity : ComponentActivity() {
         sharedPref = this.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE)
         sharedPrefEditor = sharedPref.edit()
         theme = sharedPref.getString(THEME, "System Default").toString()
+        materialYou = sharedPref.getBoolean(MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
         dataGateway = DatabaseGateway(context = this)
@@ -131,21 +141,25 @@ class SettingsActivity : ComponentActivity() {
             }
             Spacer(Modifier.padding(paddingSmall))
             // Title of current page.
-            Text("Settings", style = MaterialTheme.typography.h5)
+            Text("Settings", style = MaterialTheme.typography.headlineMedium)
         }
     }
-
 
     /**
      * Compilation of UI elements in the correct order.
      */
+    @ExperimentalMaterial3Api
     @Preview(showBackground = true)
     @Composable
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = MaterialTheme.colors.isLight
-        val color = MaterialTheme.colors.background
+        val useDarkIcons = when (theme) {
+            "Dark Theme" -> false
+            "Light Theme" -> true
+            else -> !isSystemInDarkTheme()
+        }
+        val color = MaterialTheme.colorScheme.background
         SideEffect {
             systemUiController.setSystemBarsColor(
                 color = color,
@@ -154,7 +168,7 @@ class SettingsActivity : ComponentActivity() {
         }
 
         // Surface as a background.
-        Surface(color = MaterialTheme.colors.background) {
+        Surface(color = MaterialTheme.colorScheme.background) {
             var themeSubtitle by remember { mutableStateOf(theme) }
             var cacheExpirationString = ""
             when (cacheExpiration) {
@@ -168,7 +182,7 @@ class SettingsActivity : ComponentActivity() {
             }
             var cacheSubtitle by remember { mutableStateOf(cacheExpirationString) }
 
-            Surface(color = MaterialTheme.colors.background) {
+            Surface(color = MaterialTheme.colorScheme.background) {
                 Scaffold(topBar = { TopBar() }) {
                     // Column of all the preference items.
                     Column(
@@ -195,13 +209,19 @@ class SettingsActivity : ComponentActivity() {
                                 sharedPrefEditor.commit()
                             }
                         )
-                        // Material You toggle.
-                        ToggleItem(
-                            title = "Material You Theme",
-                            checked = false, // TODO get this value from shared preferences
-                            onToggle = { println(it)/* TODO set shared preferences here */ }
-                        )
-                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
+                        // Material You toggle. Only show on android version >= 12.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            ToggleItem(
+                                title = "Material You Theme",
+                                checked = materialYouState.value,
+                            ) {
+                                materialYouState.value = it
+                                // Update the shared preferences.
+                                sharedPrefEditor.putBoolean(MATERIAL_YOU, it)
+                                sharedPrefEditor.apply()
+                                sharedPrefEditor.commit()
+                            }
+                        }
 
                         PreferenceTitle1(title = "Preferences")
                         // Cache expiration time selector.
@@ -265,9 +285,7 @@ class SettingsActivity : ComponentActivity() {
                                 "Feeds cleared",
                                 Toast.LENGTH_LONG
                             ).show()
-
                         }
-                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "Support")
                         // Email item
@@ -290,7 +308,6 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             openLink(it)
                         }
-                        Divider(modifier = Modifier.padding(bottom = paddingLarge))
 
                         PreferenceTitle1(title = "About")
                         // Item that links to github source code page.

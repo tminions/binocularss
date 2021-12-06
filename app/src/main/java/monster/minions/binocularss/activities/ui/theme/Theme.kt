@@ -1,31 +1,31 @@
 package monster.minions.binocularss.activities.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorPalette = darkColors(
-    primary = evilMinionPurple,
-    primaryVariant = evilMinionPurpleAlt,
-    secondary = minionYellow,
-    secondaryVariant = minionYellowAlt,
-    background = charcoal,
-    surface = charcoal,
-    error = errorRed,
-    onPrimary = black,
-    onSecondary = black,
-    onBackground = white,
-    onSurface = white,
-    onError = black,
+private val DarkColorPalette = darkColorScheme(
+//    primary = evilMinionPurple,
+//    secondary = evilMinionPurpleAlt,
+//    tertiary = minionYellow,
+//    // secondaryVariant = minionYellowAlt,
+//    background = charcoal,
+//    surface = charcoal,
+//    error = errorRed,
+//    onPrimary = black,
+//    onSecondary = black,
+//    onBackground = white,
+//    onSurface = white,
+//    onError = black,
 )
 
-private val LightColorPalette = lightColors(
+private val LightColorPalette = lightColorScheme(
     primary = minionYellow,
-    primaryVariant = minionYellowAlt,
+    // primaryVariant = minionYellowAlt,
     secondary = evilMinionPurple,
-    secondaryVariant = evilMinionPurpleAlt,
+    // secondaryVariant = evilMinionPurpleAlt,
     background = white,
     surface = white,
     error = errorRed,
@@ -39,6 +39,7 @@ private val LightColorPalette = lightColors(
 @Composable
 fun BinoculaRSSTheme(
     theme: String = "System Default",
+    materialYou: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when(theme) {
@@ -46,12 +47,19 @@ fun BinoculaRSSTheme(
         "Dark Theme" -> true
         else -> isSystemInDarkTheme()
     }
-    val colors = if (darkTheme) DarkColorPalette else LightColorPalette
+
+    val dynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val colorScheme = when(materialYou && dynamic) {
+        true -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        false -> { if (darkTheme) DarkColorPalette else LightColorPalette }
+    }
 
     MaterialTheme(
-        colors = colors,
+        colorScheme = colorScheme,
         typography = Typography,
-        shapes = RoundedCorner,
         content = content
     )
 }

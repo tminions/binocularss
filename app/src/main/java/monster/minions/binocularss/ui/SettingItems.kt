@@ -8,7 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material.*
+import androidx.compose.material.LocalElevationOverlay
+import androidx.compose.material.Switch
+import androidx.compose.material.SwitchDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +22,7 @@ import androidx.compose.ui.window.Popup
 import androidx.core.content.ContextCompat.startActivity
 import monster.minions.binocularss.activities.ui.theme.paddingLarge
 import monster.minions.binocularss.activities.ui.theme.paddingMedium
+import monster.minions.binocularss.activities.ui.theme.roundedCornerLarge
 
 /**
  * Display the title and subtitle of an item.
@@ -26,11 +30,11 @@ import monster.minions.binocularss.activities.ui.theme.paddingMedium
 @Composable
 private fun TitleSubtitle(title: String, subtitle: String) {
     // If there is no subtitle, display only the title.
-    Text(text = title, style = MaterialTheme.typography.subtitle1)
+    Text(text = title, style = MaterialTheme.typography.bodyLarge)
     if (subtitle != "") {
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.subtitle2,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Light
         )
     }
@@ -68,14 +72,14 @@ fun ActionItem(
         Column {
             Text(
                 text = title,
-                style = MaterialTheme.typography.subtitle1,
-                color = MaterialTheme.colors.onBackground.copy(alpha = alpha),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = alpha),
             )
             if (subtitle != "") {
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.subtitle2,
-                    color = MaterialTheme.colors.onBackground.copy(alpha = alpha),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = alpha),
                     fontWeight = FontWeight.Light
                 )
             }
@@ -128,8 +132,8 @@ fun InformationPopupItem(
                     .fillMaxWidth(0.8f)
                     .height(popupHeight)
                     .background(
-                        it.apply(MaterialTheme.colors.background, 4.dp),
-                        MaterialTheme.shapes.large
+                        it.apply(MaterialTheme.colorScheme.background, 4.dp),
+                        roundedCornerLarge
                     )
                     .padding(paddingLarge)
             }?.let {
@@ -141,7 +145,7 @@ fun InformationPopupItem(
                     Column(modifier = Modifier.selectableGroup()) {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.h6,
+                            style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold
                         )
                         content()
@@ -150,7 +154,7 @@ fun InformationPopupItem(
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(onClick = { showPopup = false }) {
-                                Text("CLOSE", color = MaterialTheme.colors.primary)
+                                Text("CLOSE", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -247,7 +251,7 @@ fun MultipleOptionItem(
     // If the popup is to be shown ...
     if (showPopup) {
         // Get popup height based on number of elements to display.
-        var popupHeight = 90.dp
+        var popupHeight = 100.dp
         for (i in radioOptions) {
             popupHeight += 56.dp
         }
@@ -256,75 +260,74 @@ fun MultipleOptionItem(
             alignment = Alignment.Center,
             onDismissRequest = { showPopup = false }
         ) {
-            // Elevate the popup so it is distinguishable from the background.
-            LocalElevationOverlay.current?.let {
+            Box(
                 Modifier
                     .fillMaxWidth(0.8f)
                     .height(popupHeight)
                     .background(
-                        it.apply(MaterialTheme.colors.background, 4.dp),
-                        MaterialTheme.shapes.large
+                        // Elevate the popup so it is distinguishable from the background.
+                        colorAtElevation(
+                            color = MaterialTheme.colorScheme.background,
+                            elevation = 4.dp
+                        ),
+                        roundedCornerLarge
                     )
                     .padding(paddingLarge)
-            }?.let {
-                Box(
-                    it
-                ) {
-                    val (selectedOption, onOptionSelected) = remember {
-                        mutableStateOf(
-                            initialItem
-                        )
-                    }
+            ) {
+                val (selectedOption, onOptionSelected) = remember {
+                    mutableStateOf(
+                        initialItem
+                    )
+                }
 
-                    // Render radio buttons, title, text, and cancel button.
-                    Column(modifier = Modifier.selectableGroup()) {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.h6,
-                            fontWeight = FontWeight.Bold
-                        )
-                        radioOptions.forEach { text ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .selectable(
-                                        selected = (text == selectedOption),
-                                        onClick = {
-                                            // When a radio button is selected, set it to be s
-                                            //  elected.
-                                            onOptionSelected(text)
-                                            // Call the provided function.
-                                            onSelect(text)
-                                            // Dismiss the popup.
-                                            showPopup = false
-                                        },
-                                        role = Role.RadioButton
-                                    )
-                                    .padding(horizontal = paddingLarge),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = (text == selectedOption),
-                                    onClick = null,
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = MaterialTheme.colors.primary
-                                    )
-                                )
-                                Text(
-                                    text = text,
-                                    style = MaterialTheme.typography.body1.merge(),
-                                    modifier = Modifier.padding(start = paddingLarge)
-                                )
-                            }
-                        }
+                // Render radio buttons, title, text, and cancel button.
+                Column(modifier = Modifier.selectableGroup()) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    radioOptions.forEach { text ->
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .selectable(
+                                    selected = (text == selectedOption),
+                                    onClick = {
+                                        // When a radio button is selected, set it to be s
+                                        //  elected.
+                                        onOptionSelected(text)
+                                        // Call the provided function.
+                                        onSelect(text)
+                                        // Dismiss the popup.
+                                        showPopup = false
+                                    },
+                                    role = Role.RadioButton
+                                )
+                                .padding(horizontal = paddingLarge),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TextButton(onClick = { showPopup = false }) {
-                                Text("CANCEL", color = MaterialTheme.colors.primary)
-                            }
+                            RadioButton(
+                                selected = (text == selectedOption),
+                                onClick = null,
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.bodyLarge.merge(),
+                                modifier = Modifier.padding(start = paddingLarge)
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showPopup = false }) {
+                            Text("CANCEL", color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -370,9 +373,12 @@ fun ToggleItem(
                 onToggle(it)
             },
             colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colors.primary,
-                checkedTrackColor = MaterialTheme.colors.primary,
-                checkedTrackAlpha = 0.54f
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                checkedTrackAlpha = 0.54f,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
+                uncheckedTrackColor = MaterialTheme.colorScheme.onSurface,
+                uncheckedTrackAlpha = 0.38f,
             )
         )
     }
@@ -388,8 +394,8 @@ fun PreferenceTitle(title: String) {
     Text(
         modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingMedium),
         text = title,
-        style = MaterialTheme.typography.h6,
-        color = MaterialTheme.colors.primary,
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.Normal,
     )
 }

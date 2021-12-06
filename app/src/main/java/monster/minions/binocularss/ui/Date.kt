@@ -27,7 +27,7 @@ fun getTime(pubDate: String, shortOutput: Boolean = false): String {
 
     when {
         diff < 1000L * 60L * 60L -> {
-            time = "${diff / (1000L * 60L)}" + if (shortOutput) "m" else " months ago"
+            time = "${diff / (1000L * 60L)}" + if (shortOutput) "m" else " minutes ago"
         }
         diff < 1000L * 60L * 60L * 24L -> {
             time = "${diff / (1000L * 60L * 60L)}" + if (shortOutput) "h" else " hours ago"

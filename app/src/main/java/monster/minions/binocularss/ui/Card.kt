@@ -8,9 +8,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -22,10 +24,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ArticleActivity
-import monster.minions.binocularss.activities.ui.theme.RoundedCorner
-import monster.minions.binocularss.activities.ui.theme.paddingLarge
-import monster.minions.binocularss.activities.ui.theme.paddingLargeMedium
-import monster.minions.binocularss.activities.ui.theme.paddingMedium
+import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import java.util.*
 
@@ -38,7 +37,7 @@ import java.util.*
 @ExperimentalCoilApi
 @Composable
 fun ArticleCard(context: Context, article: Article, updateValues: (article: Article) -> Unit) {
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(paddingMedium)
@@ -50,7 +49,6 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                 updateValues(article)
                 ContextCompat.startActivity(context, intent, null)
             },
-        elevation = 4.dp
     ) {
         Column {
             Row(
@@ -88,6 +86,16 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
             }
         }
     }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Divider(
+            thickness = 0.7.dp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
+            modifier = Modifier.fillMaxSize(0.9f),
+        )
+    }
 }
 
 /**
@@ -115,13 +123,13 @@ fun CardImage(image: String, description: String = "") {
     // Box for image on the right.
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCorner.medium,
+        shape = roundedCornerMedium,
         elevation = 4.dp
     ) {
         Box(
             modifier = Modifier
                 .size(150.dp, 150.dp)
-                .background(MaterialTheme.colors.background, RoundedCorner.small)
+                .background(MaterialTheme.colorScheme.background, roundedCornerSmall)
         ) {
             Image(
                 painter = rememberImagePainter(
