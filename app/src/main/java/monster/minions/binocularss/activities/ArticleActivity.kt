@@ -37,8 +37,9 @@ import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.SortArticles
+import monster.minions.binocularss.operations.SortArticlesByDateStrategy
 import monster.minions.binocularss.operations.getArticlesFromFeed
-import monster.minions.binocularss.operations.sortArticlesByDate
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.BookmarkFlag
 import monster.minions.binocularss.ui.ReadFlag
@@ -111,7 +112,8 @@ class ArticleActivity : ComponentActivity() {
         MainActivity.bookmarkedArticleList.value = mutableListOf()
         MainActivity.readArticleList.value = mutableListOf()
         MainActivity.searchResults.value = mutableListOf()
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            SortArticles(SortArticlesByDateStrategy()).sort(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**
@@ -228,7 +230,7 @@ class ArticleActivity : ComponentActivity() {
     private fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = when(theme) {
+        val useDarkIcons = when (theme) {
             "Dark Theme" -> false
             "Light Theme" -> true
             else -> !isSystemInDarkTheme()
