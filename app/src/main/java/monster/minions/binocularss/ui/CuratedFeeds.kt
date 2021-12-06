@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,7 +25,10 @@ val feeds = listOf(
     Feed(source = "https://rss.cbc.ca/lineup/canada.xml", title = "CBC Canada"),
     Feed(source = "https://rss.cbc.ca/lineup/politics.xml", title = "CBC Politics"),
     Feed(source = "https://androidauthority.com/feed", title = "Android Authority"),
-    Feed(source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009", title = "CTV Top Stories"),
+    Feed(
+        source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009",
+        title = "CTV Top Stories"
+    ),
 )
 
 /**
@@ -33,14 +37,19 @@ val feeds = listOf(
  * @param addFeedToGroup: callback to run when row is clicked
  */
 @Composable
-fun CuratedFeeds(addFeedToGroup: (url: String, feedExistsCallback: () -> Unit) -> Unit, existingFeeds: MutableList<Feed>) {
-    Surface(modifier = Modifier.padding(top = paddingLargeMedium)) {
+fun CuratedFeeds(
+    addFeedToGroup: (url: String, feedExistsCallback: () -> Unit) -> Unit,
+    existingFeeds: MutableList<Feed> = mutableListOf()
+) {
+    Column(modifier = Modifier.padding(top = paddingLargeMedium)) {
+        Text(style = MaterialTheme.typography.caption, text = "Suggested feeds")
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 80.dp)
         ) {
             items(items = feeds) { feed ->
-                if(existingFeeds.all {existingFeed -> existingFeed.source != feed.source}) {
+                // Check to not show any existing feed
+                if (existingFeeds.all { existingFeed -> existingFeed.source != feed.source }) {
                     AddableFeed(feed = feed, addFeedToGroup = addFeedToGroup)
                 }
             }
@@ -50,13 +59,14 @@ fun CuratedFeeds(addFeedToGroup: (url: String, feedExistsCallback: () -> Unit) -
 
 @Composable
 fun AddableFeed(feed: Feed, addFeedToGroup: (url: String, feedExistsCallback: () -> Unit) -> Unit) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .height(42.dp)
-        .padding(8.dp)
-        .clickable {
-            addFeedToGroup(feed.source!!) {}
-        }, horizontalArrangement = Arrangement.SpaceBetween
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(42.dp)
+            .padding(8.dp)
+            .clickable {
+                addFeedToGroup(feed.source!!) {}
+            }, horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(feed.title!!)
         Icon(
