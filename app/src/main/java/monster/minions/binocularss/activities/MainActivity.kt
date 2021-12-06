@@ -3,12 +3,10 @@ package monster.minions.binocularss.activities
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.ContentView
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.material.BottomNavigationDefaults.Elevation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
@@ -37,23 +34,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -69,16 +62,19 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
-import kotlin.math.ln
+import java.util.*
 import kotlin.properties.Delegates
 
 class MainActivity : ComponentActivity() {
     companion object {
+        // Lists of articles used in various points throughout the app.
         lateinit var articleList: MutableStateFlow<MutableList<Article>>
         lateinit var bookmarkedArticleList: MutableStateFlow<MutableList<Article>>
         lateinit var searchResults: MutableStateFlow<MutableList<Article>>
         lateinit var feedList: MutableStateFlow<MutableList<Feed>>
         lateinit var readArticleList: MutableStateFlow<MutableList<Article>>
+        lateinit var currentFeed: Feed
+        lateinit var currentFeedArticles: MutableStateFlow<MutableList<Article>>
 
         // Function to update feedGroup from other activities to avoid
         // 	bugs with returning to the main activity.
@@ -86,29 +82,24 @@ class MainActivity : ComponentActivity() {
             feedGroup.feeds = feeds
         }
 
-        // FeedGroup object
+        // FeedGroup object.
         private var feedGroup: FeedGroup = FeedGroup()
     }
 
-    // Parser variable
+    // Parser for RSS parsing.
     private lateinit var parser: Parser
 
-    // Room database variables
+    // Room database variables.
     private lateinit var dataGateway: DatabaseGateway
 
-    // User Preferences
+    // User Preferences.
     private lateinit var sharedPref: SharedPreferences
-    private lateinit var sharedPrefEditor: SharedPreferences.Editor
     private lateinit var theme: String
     private lateinit var themeState: MutableState<String>
     private var materialYou by Delegates.notNull<Boolean>()
     private lateinit var materialYouState: MutableState<Boolean>
     private var isFirstRun = true
     private var cacheExpiration = 0L
-
-    // Local variables
-    private lateinit var currentFeed: Feed
-    private lateinit var currentArticle: Article
 
     /**
      * The function that is run when the activity is created. This is on app launch in this case.
@@ -131,8 +122,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 UI()
             }
-
-            currentFeed = Feed("default")
         }
 
         // Set shared preferences variables.
@@ -140,19 +129,16 @@ class MainActivity : ComponentActivity() {
             SettingsActivity.PreferenceKeys.SETTINGS,
             Context.MODE_PRIVATE
         )
-        sharedPrefEditor = sharedPref.edit()
         theme = sharedPref
             .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
             .toString()
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(SettingsActivity.PreferenceKeys.CACHE_EXPIRATION, 0L)
 
-        // Set private variables. This is done here as we cannot initialize objects that require context
-        //  before we have context (generated during onCreate)
-
+        // Initialize database gateway.
         dataGateway = DatabaseGateway(context = this)
 
-
+        // Initialize parser
         parser = Parser.Builder()
             .context(this)
             .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
@@ -164,6 +150,8 @@ class MainActivity : ComponentActivity() {
         searchResults = MutableStateFlow(mutableListOf())
         feedList = MutableStateFlow(mutableListOf())
         readArticleList = MutableStateFlow(mutableListOf())
+        currentFeed = Feed()
+        currentFeedArticles = MutableStateFlow(mutableListOf())
     }
 
     /**
@@ -208,6 +196,7 @@ class MainActivity : ComponentActivity() {
 
         articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+        currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(currentFeed))
         feedList.value = sortFeedsByTitle(feedGroup.feeds)
         readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
     }
@@ -219,10 +208,9 @@ class MainActivity : ComponentActivity() {
      * @param modifiedArticle Article with a modified property.
      */
     private fun setArticle(
-        modifiedArticle: Article,
-        refreshBookmark: Boolean = true,
-        refreshRead: Boolean = true
+        modifiedArticle: Article, refreshBookmark: Boolean = true, refreshRead: Boolean = true
     ) {
+        // Replace article in feedGroup
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -234,34 +222,15 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Update article lists.
         articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-
+        currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(currentFeed))
         if (refreshBookmark) {
             bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
         }
         if (refreshRead) {
             readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
         }
-
-        feedList.value = sortFeedsByTitle(feedGroup.feeds)
-    }
-
-    /**
-     * Replace the unmodified feeds with a modified feed.
-     * This is to be used when updating feed.tags
-     *
-     * @param modifiedFeed Feed with a modified property.
-     */
-    private fun setFeeds(modifiedFeed: Feed) {
-        val feeds = feedGroup.feeds.toMutableList()
-        for (unmodifiedFeed in feeds) {
-            if (modifiedFeed == unmodifiedFeed) {
-                feedGroup.feeds.remove(unmodifiedFeed)
-                feedGroup.feeds.add(modifiedFeed)
-                break
-            }
-        }
-
         feedList.value = sortFeedsByTitle(feedGroup.feeds)
     }
 
@@ -277,6 +246,7 @@ class MainActivity : ComponentActivity() {
         articleList.value = mutableListOf()
         feedList.value = dataGateway.read()
         bookmarkedArticleList.value = mutableListOf()
+        currentFeedArticles.value = mutableListOf()
         readArticleList.value = mutableListOf()
     }
 
@@ -304,9 +274,12 @@ class MainActivity : ComponentActivity() {
                             offset = it
                         },
                         onTap = {
-                            // TODO temporary until articleFromFeed
-                            val intent = Intent(Intent.ACTION_VIEW)
-                            intent.data = Uri.parse(feed.link)
+                            // Set current feed.
+                            currentFeed = feed
+                            // Set current feed list to empty so it can be updated by ArticlesFromFeedActivity.
+                            currentFeedArticles.value = mutableListOf()
+                            // Start the activity.
+                            val intent = Intent(context, ArticlesFromFeedActivity::class.java)
                             ContextCompat.startActivity(context, intent, null)
                         }
                     )
@@ -327,7 +300,7 @@ class MainActivity : ComponentActivity() {
                             Text(text = title, fontWeight = FontWeight.SemiBold)
                         }
                         val items = listOf("Delete")
-                        // Convert pixel to dp
+                        // Convert pixel to dp for dropdown menu offset.
                         val xDp = with(LocalDensity.current) { (offset.x).toDp() } - 15.dp
                         val yDp = with(LocalDensity.current) { (offset.y).toDp() } - 35.dp
                         // Draw the dropdown menu
@@ -355,14 +328,8 @@ class MainActivity : ComponentActivity() {
                     CardImage(image = feed.image, description = feed.description!!)
                 }
             }
-
-            // TODO Row for buttons in the future that is currently not used
-            // Row(
-            //     modifier = Modifier
-            //         .fillMaxWidth()
-            // ) {
-            // }
         }
+        // Divider between feed cards.
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -381,8 +348,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SortedFeedView() {
         var showAddFeed by remember { mutableStateOf(feedGroup.feeds.isNullOrEmpty()) }
+
+        // If there are no feeds, prompt the user to add some.
         if (showAddFeed) {
-            // Sad minion no feeds found
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -406,6 +374,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         } else {
+            // List of feed cards for the user to interact with.
             val feeds by feedList.collectAsState()
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -426,8 +395,8 @@ class MainActivity : ComponentActivity() {
         // Mutable state variable that is updated when articleList is updated to force a recompose.
         val articles by articleList.collectAsState()
 
+        // If there are no articles, promt the user to add some.
         if (articles.isNullOrEmpty()) {
-            // Sad minion no article found
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -466,40 +435,6 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Displays the list of articles associated with a given feed
-     *
-     * TODO to be implemented
-     */
-    @Composable
-    fun ArticlesFromFeed() {
-//        LazyColumn(
-//            modifier = Modifier.fillMaxSize(),
-//            contentPadding = PaddingValues(bottom = 80.dp)
-//        ) {
-//            itemsIndexed(items = articles) { index, article ->
-//                ArticleCard(
-//                    context = this@MainActivity,
-//                    article = article
-//                ) { setArticle(it) }
-//
-//                // Do not draw the divider below the last article
-//                if (index < articles.lastIndex) {
-//                    Column(
-//                        modifier = Modifier.fillMaxSize(),
-//                        horizontalAlignment = Alignment.CenterHorizontally
-//                    ) {
-//                        Divider(
-//                            thickness = 0.7.dp,
-//                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f),
-//                            modifier = Modifier.fillMaxSize(0.9f),
-//                        )
-//                    }
-//                }
-//            }
-//        }
-    }
-
-    /**
      * Displays a list of all read articles.
      */
     @ExperimentalAnimationApi
@@ -509,8 +444,8 @@ class MainActivity : ComponentActivity() {
         val readArticles by readArticleList.collectAsState()
 
         when {
+            // If there are no articles, prompt the user to add some.
             articles.isNullOrEmpty() -> {
-                // Sad minion no article found
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -533,7 +468,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            // Show "No Read Articles"
+            // If there are no read articles, prompt the user to read some.
             readArticles.isNullOrEmpty() -> {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -585,7 +520,7 @@ class MainActivity : ComponentActivity() {
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
-                        ) { setArticle(it) }
+                        ) { setArticle(it, refreshRead = false) }
                     }
                 }
             }
@@ -605,7 +540,6 @@ class MainActivity : ComponentActivity() {
         when {
             // Show "No Articles Found"
             articles.isNullOrEmpty() -> {
-                // Sad minion no article found
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -684,7 +618,7 @@ class MainActivity : ComponentActivity() {
                         ArticleCard(
                             context = this@MainActivity,
                             article = article
-                        ) { setArticle(it) }
+                        ) { setArticle(it, refreshBookmark = false) }
                     }
                 }
             }
@@ -805,6 +739,12 @@ class MainActivity : ComponentActivity() {
                             } else if (item.route == NavigationItem.ReadingHistory.route) {
                                 readArticleList.value =
                                     sortArticlesByReadDate(getReadArticles(feedGroup))
+                            } else if (item.route == NavigationItem.Feeds.route) {
+                                currentFeedArticles.value = sortArticlesByDate(
+                                    getArticlesFromFeed(
+                                        currentFeed
+                                    )
+                                )
                             }
 
                             navController.navigate(item.route) {

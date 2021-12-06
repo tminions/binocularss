@@ -82,7 +82,7 @@ fun ArticleCard(context: Context, article: Article, updateValues: (article: Arti
                 BookmarkFlag(article = article) { updateValues(article) }
                 ShareFlag(context = context, article = article)
                 ReadFlag(article = article) { updateValues(article) }
-                BrowserFlag(context = context, article = article)
+                BrowserFlag(context = context, article = article) { updateValues(article) }
             }
         }
     }
