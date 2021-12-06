@@ -55,6 +55,10 @@ giving the user more freedom.
 
 #### **Eamon Ma**
 
+Pull Request - [Curated Feeds](https://github.com/tminions/binocularss/pull/33)
+
+This pull request implemented curated feeds which were essentially feeds that we handpicked as suggestions for the user. This was important for improving the overall
+user experience.  
 
 #### **Hisbaan Noorani**
 
@@ -85,6 +89,10 @@ Pull Request - [Reading History](https://github.com/tminions/binocularss/pull/22
 This pull request implements reading history that will display a list of articles that have been marked as read.  
 
 #### **Salman Husainie**
+
+Pull Request - [Fetch Feed](https://github.com/tminions/binocularss/pull/30)
+
+This pull request implemented a boundary between our UI as well as an interface between our Use Case and UI which was important for adhering to clean architecture.
 
 
 #### **Simon Chen**
