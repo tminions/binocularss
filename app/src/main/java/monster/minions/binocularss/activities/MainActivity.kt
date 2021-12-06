@@ -275,7 +275,7 @@ class MainActivity : ComponentActivity() {
         feedGroup.feeds.remove(feed)
 
         articleList.value = mutableListOf()
-        feedList.value = mutableListOf()
+        feedList.value = dataGateway.read()
         bookmarkedArticleList.value = mutableListOf()
         readArticleList.value = mutableListOf()
     }
@@ -343,6 +343,7 @@ class MainActivity : ComponentActivity() {
                                     when (item) {
                                         "Delete" -> {
                                             deleteFeed(feed)
+                                            showDropdown = false
                                         }
                                     }
                                 }) {

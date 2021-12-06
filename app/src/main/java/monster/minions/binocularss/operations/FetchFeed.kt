@@ -80,7 +80,16 @@ class FetchFeed: ViewModel() {
             articles.add(articleToArticle(article, title))
         }
 
-        feed = Feed("", title, link, description, lastBuildDate, image, updatePeriod, articles)
+        feed = Feed.Builder()
+            .source("")
+            .title(title)
+            .link(link)
+            .description(description)
+            .lastBuildDate(lastBuildDate)
+            .image(image)
+            .updatePeriod(updatePeriod)
+            .articles(articles)
+            .build()
 
         return feed
     }
@@ -108,25 +117,25 @@ class FetchFeed: ViewModel() {
         val sourceUrl = oldArticle.sourceUrl.toString()
         val categories = oldArticle.categories
 
-        article = Article(
-            title = title,
-            author = author,
-            link = link,
-            pubDate = pubDate,
-            description = description,
-            content = content,
-            image = image,
-            audio = audio,
-            video = video,
-            guid = guid,
-            sourceName = sourceName,
-            sourceUrl = sourceUrl,
-            sourceTitle = sourceTitle,
-            categories = categories,
-            bookmarked = false,
-            read = false,
-            readDate = "",
-        )
+        article = Article.Builder()
+            .title(title)
+            .author(author)
+            .link(link)
+            .pubDate(pubDate)
+            .description(description)
+            .content(content)
+            .image(image)
+            .audio(audio)
+            .video(video)
+            .guid(guid)
+            .sourceName(sourceName)
+            .sourceUrl(sourceUrl)
+            .bookmarked(false)
+            .read(false)
+            .sourceTitle(sourceTitle)
+            .readDate("")
+            .categories(categories)
+            .build()
 
         return article
     }
