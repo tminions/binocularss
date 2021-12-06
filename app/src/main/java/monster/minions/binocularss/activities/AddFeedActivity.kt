@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
@@ -158,7 +157,7 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
-    private fun addTofeedGroup(url: String, feedExistsCallback: () -> Unit) {
+    fun addTofeedGroup(url: String, feedExistsCallback: () -> Unit) {
         // Check if the feed is already in the feedGroup
         val feedToAdd = Feed(source = url)
         var inFeedGroup = false
@@ -196,28 +195,6 @@ class AddFeedActivity : ComponentActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-//            // Check if the feed is already in the feedGroup
-//            val feedToAdd = Feed(source = url)
-//            var inFeedGroup = false
-//            for (feed in feedGroup.feeds) {
-//                if (feedToAdd == feed) {
-//                    inFeedGroup = true
-//                    Toast.makeText(
-//                        this@AddFeedActivity,
-//                        "You've already added that RSS feed",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                    break
-//                }
-//            }
-//
-//            // Add feed and update feeds if the feed is not in the feedGroup
-//            if (!inFeedGroup) {
-//                feedGroup.feeds.add(Feed(source = url))
-//                val viewModel = PullFeed(this, feedGroup)
-//                viewModel.updateRss(parser)
-//                finish()
-//            }
         } else {
             Toast.makeText(this@AddFeedActivity, "Invalid URL", Toast.LENGTH_SHORT).show()
         }
@@ -315,7 +292,7 @@ class AddFeedActivity : ComponentActivity() {
                         )
                     }
                 }
-                CuratedFeeds()
+                CuratedFeeds(addFeedToGroup = ::addTofeedGroup)
             }
         }
     }
