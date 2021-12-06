@@ -292,7 +292,28 @@ class AddFeedActivity : ComponentActivity() {
                         )
                     }
                 }
-                CuratedFeeds(addFeedToGroup = ::addTofeedGroup, existingFeeds = feedGroup.feeds)
+                CuratedFeeds(
+                    feeds = listOf(
+                        Feed(
+                            source = "https://rss.cbc.ca/lineup/topstories.xml",
+                            title = "CBC Top Stories"
+                        ),
+                        Feed(source = "https://rss.cbc.ca/lineup/world.xml", title = "CBC World"),
+                        Feed(source = "https://rss.cbc.ca/lineup/canada.xml", title = "CBC Canada"),
+                        Feed(
+                            source = "https://rss.cbc.ca/lineup/politics.xml",
+                            title = "CBC Politics"
+                        ),
+                        Feed(
+                            source = "https://androidauthority.com/feed",
+                            title = "Android Authority"
+                        ),
+                        Feed(
+                            source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009",
+                            title = "CTV Top Stories"
+                        ),
+                    ), addFeedToGroup = ::addTofeedGroup, existingFeeds = feedGroup.feeds
+                )
             }
         }
     }
