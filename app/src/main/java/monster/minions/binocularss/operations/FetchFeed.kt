@@ -108,25 +108,25 @@ class FetchFeed: ViewModel() {
         val sourceUrl = oldArticle.sourceUrl.toString()
         val categories = oldArticle.categories
 
-        article = Article(
-            title = title,
-            author = author,
-            link = link,
-            pubDate = pubDate,
-            description = description,
-            content = content,
-            image = image,
-            audio = audio,
-            video = video,
-            guid = guid,
-            sourceName = sourceName,
-            sourceUrl = sourceUrl,
-            sourceTitle = sourceTitle,
-            categories = categories,
-            bookmarked = false,
-            read = false,
-            readDate = "",
-        )
+        article = Article.Builder()
+            .title(title)
+            .author(author)
+            .link(link)
+            .pubDate(pubDate)
+            .description(description)
+            .content(content)
+            .image(image)
+            .audio(audio)
+            .video(video)
+            .guid(guid)
+            .sourceName(sourceName)
+            .sourceUrl(sourceUrl)
+            .bookmarked(false)
+            .read(false)
+            .sourceTitle(sourceTitle)
+            .readDate("")
+            .categories(categories)
+            .build()
 
         return article
     }

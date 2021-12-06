@@ -82,4 +82,111 @@ data class Article  (
         result = 31 * result + (readDate?.hashCode() ?: 0)
         return result
     }
+
+    class Builder {
+        var title: String? = ""
+            private set
+
+        var author: String? = ""
+            private set
+
+        var link: String? = ""
+            private set
+
+        var pubDate: String? = ""
+            private set
+
+        var description: String? = ""
+            private set
+
+        var content: String? = ""
+            private set
+
+        var image: String? = ""
+            private set
+
+        var audio: String? = ""
+            private set
+
+        var video: String? = ""
+            private set
+
+        var guid: String? = ""
+            private set
+
+        var sourceName: String? = ""
+            private set
+
+        var sourceUrl: String? = ""
+            private set
+
+        var sourceTitle: String = ""
+            private set
+
+        var categories: MutableList<String>? = mutableListOf()
+            private set
+
+        var bookmarked: Boolean = false
+            private set
+
+        var read: Boolean = false
+            private set
+
+        var readDate: String? = ""
+            private set
+
+        fun title (title: String) = apply { this.title = title }
+
+        fun author (author: String) = apply { this.author = author }
+
+        fun link (link: String) = apply { this.link = link }
+
+        fun pubDate (pubDate: String) = apply { this.pubDate = pubDate }
+
+        fun description (description: String) = apply { this.description = description }
+
+        fun content (content: String) = apply { this.content = content }
+
+        fun image (image: String) = apply { this.image = image }
+
+        fun audio (audio: String) = apply { this.audio = audio }
+
+        fun video (video: String) = apply { this.video = video }
+
+        fun guid (guid: String) = apply { this.guid = guid }
+
+        fun sourceName (sourceName: String) = apply { this.sourceName = sourceName }
+
+        fun sourceUrl (sourceUrl: String) = apply { this.sourceUrl = sourceUrl }
+
+        fun sourceTitle (sourceTitle: String) = apply { this.sourceTitle = sourceTitle }
+
+        fun categories (categories: MutableList<String>) = apply { this.categories = categories }
+
+        fun bookmarked (bookmarked: Boolean) = apply { this.bookmarked = bookmarked }
+
+        fun read (read: Boolean) = apply { this.read = read }
+
+        fun readDate (readDate: String) = apply { this.readDate = readDate }
+
+        fun build() = Article(
+            title = title,
+            author = author,
+            link = link,
+            pubDate = pubDate,
+            description = description,
+            content = content,
+            image = image,
+            audio = audio,
+            video = video,
+            guid = guid,
+            sourceName = sourceName,
+            sourceUrl = sourceUrl,
+            sourceTitle = sourceTitle,
+            categories = categories,
+            bookmarked = false,
+            read = false,
+            readDate = "",
+        )
+    }
 }
