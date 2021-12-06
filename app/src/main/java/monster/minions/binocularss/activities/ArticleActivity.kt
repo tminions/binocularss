@@ -30,8 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -39,8 +37,7 @@ import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.room.AppDatabase
-import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.BookmarkFlag
 import monster.minions.binocularss.ui.ReadFlag
 import monster.minions.binocularss.ui.getTime
@@ -61,8 +58,7 @@ class ArticleActivity : ComponentActivity() {
 
     // Room database variables
     private var feedGroup: FeedGroup = FeedGroup()
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     private lateinit var article: Article
 
@@ -90,11 +86,8 @@ class ArticleActivity : ComponentActivity() {
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+        dataGateway = DatabaseGateway(context = this)
+
 
         article = intent.getParcelableExtra("article")!!
     }
@@ -129,7 +122,7 @@ class ArticleActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         Log.d("MainActivity", "onPause called")
-        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+        dataGateway.addFeeds(feedGroup.feeds)
 
         MainActivity.articleList.value = mutableListOf()
         MainActivity.bookmarkedArticleList.value = mutableListOf()
@@ -149,8 +142,7 @@ class ArticleActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
-        feedGroup.feeds = feedDao.getAll()
-
+        feedGroup.feeds = dataGateway.read()
         theme =
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)

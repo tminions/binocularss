@@ -21,13 +21,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
@@ -36,8 +32,7 @@ import monster.minions.binocularss.activities.ui.theme.paddingMedium
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
-import monster.minions.binocularss.room.AppDatabase
-import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.ArticleCard
 import java.util.*
 import kotlin.properties.Delegates
@@ -50,8 +45,7 @@ class SearchActivity : ComponentActivity() {
     private lateinit var parser: Parser
 
     // Room Database variables
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     // User Preferences
     private lateinit var sharedPref: SharedPreferences
@@ -94,11 +88,10 @@ class SearchActivity : ComponentActivity() {
 
         // Set private variables. This is done here as we cannot initialize objects that require context
         //  before we have context (generated during onCreate)
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+
+        dataGateway = DatabaseGateway(context = this)
+
+
         parser = Parser.Builder()
             .context(this)
             .cacheExpirationMillis(60L * 60L * 100L)
@@ -116,7 +109,7 @@ class SearchActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         Log.d("SearchActivity", "onPause called")
-        feedDao.insertAll(*(feedGroup.feeds.toTypedArray()))
+        dataGateway.addFeeds(feedGroup.feeds)
     }
 
     /**
@@ -130,7 +123,7 @@ class SearchActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("SearchActivity", "onResume called")
-        feedGroup.feeds = feedDao.getAll()
+        feedGroup.feeds = dataGateway.read()
         feedTitles = getFeedTitles()
 
         theme =

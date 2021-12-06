@@ -22,8 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.MATERIAL_YOU
@@ -34,8 +32,7 @@ import monster.minions.binocularss.activities.ui.theme.paddingLarge
 import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.room.AppDatabase
-import monster.minions.binocularss.room.FeedDao
+import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
 import kotlin.properties.Delegates
 import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle1
@@ -49,8 +46,7 @@ class SettingsActivity : ComponentActivity() {
     private var feedGroup: FeedGroup = FeedGroup()
 
     // Room database variables
-    private lateinit var db: RoomDatabase
-    private lateinit var feedDao: FeedDao
+    private lateinit var dataGateway: DatabaseGateway
 
     // SharedPreferences variables.
     private lateinit var sharedPref: SharedPreferences
@@ -92,11 +88,8 @@ class SettingsActivity : ComponentActivity() {
         materialYou = sharedPref.getBoolean(MATERIAL_YOU, false)
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
-        db = Room
-            .databaseBuilder(this, AppDatabase::class.java, "feed-db")
-            .allowMainThreadQueries()
-            .build()
-        feedDao = (db as AppDatabase).feedDao()
+        dataGateway = DatabaseGateway(context = this)
+
     }
 
     /**
@@ -111,7 +104,7 @@ class SettingsActivity : ComponentActivity() {
         super.onResume()
         Log.d("MainActivity", "onResume called")
 
-        val feeds: MutableList<Feed> = feedDao.getAll()
+        val feeds: MutableList<Feed> = dataGateway.read()
 
         feedGroup.feeds = feeds
     }
@@ -275,7 +268,7 @@ class SettingsActivity : ComponentActivity() {
                         ) {
                             // Delete each feed in the database
                             for (feed in feedGroup.feeds) {
-                                feedDao.deleteBySource(feed.source)
+                                dataGateway.removeFeedBySource(feed.source)
                             }
 
                             // Set feedGroup.feeds to empty
