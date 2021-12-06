@@ -70,4 +70,69 @@ data class Feed(
         result = 31 * result + priority
         return result
     }
+
+    class Builder {
+        var source: String = ""
+            private set
+
+        var title: String? = ""
+            private set
+
+        var link: String? = ""
+            private set
+
+        var description: String? = ""
+            private set
+
+        var lastBuildDate: String? = ""
+            private set
+
+        var image: String = ""
+            private set
+
+        var updatePeriod: String? = ""
+            private set
+
+        var articles: MutableList<Article> = mutableListOf()
+            private set
+
+        var tags: MutableList<String> = mutableListOf()
+            private set
+
+        var priority: Int = 0
+            private set
+
+        fun source(source: String) = apply { this.source = source }
+
+        fun title(title: String) = apply { this.title = title }
+
+        fun link(link: String) = apply { this.link = link }
+
+        fun description(description: String) = apply { this.description = description }
+
+        fun lastBuildDate(lastBuildDate: String) = apply { this.lastBuildDate = lastBuildDate }
+
+        fun image(image: String) = apply { this.image = image }
+
+        fun updatePeriod(updatePeriod: String) = apply { this.updatePeriod = updatePeriod }
+
+        fun articles(articles: MutableList<Article>) = apply { this.articles = articles }
+
+        fun tags(tags: MutableList<String>) = apply { this.tags = tags }
+
+        fun priority(priority: Int) = apply { this.priority = priority }
+
+        fun build() = Feed(
+            source = source,
+            title = title,
+            link = link,
+            description = description,
+            lastBuildDate = lastBuildDate,
+            image = image,
+            updatePeriod = updatePeriod,
+            articles = articles,
+            tags = tags,
+            priority = priority
+        )
+    }
 }

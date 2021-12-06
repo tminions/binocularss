@@ -80,7 +80,16 @@ class FetchFeed: ViewModel() {
             articles.add(articleToArticle(article, title))
         }
 
-        feed = Feed("", title, link, description, lastBuildDate, image, updatePeriod, articles)
+        feed = Feed.Builder()
+            .source("")
+            .title(title)
+            .link(link)
+            .description(description)
+            .lastBuildDate(lastBuildDate)
+            .image(image)
+            .updatePeriod(updatePeriod)
+            .articles(articles)
+            .build()
 
         return feed
     }
