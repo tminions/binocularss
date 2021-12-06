@@ -34,6 +34,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import kotlin.properties.Delegates
 import monster.minions.binocularss.room.DatabaseGateway
+import monster.minions.binocularss.ui.CuratedFeeds
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
@@ -157,6 +158,26 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
+    private fun addTofeedGroup(url: String, feedExistsCallback: () -> Unit) {
+        // Check if the feed is already in the feedGroup
+        val feedToAdd = Feed(source = url)
+        var inFeedGroup = false
+        for (feed in feedGroup.feeds) {
+            if (feedToAdd == feed) {
+                inFeedGroup = true
+                feedExistsCallback()
+                break
+            }
+        }
+
+        // Add feed and update feeds if the feed is not in the feedGroup
+        if (!inFeedGroup) {
+            feedGroup.feeds.add(Feed(source = url))
+            val viewModel = PullFeed(this, feedGroup)
+            viewModel.updateRss(parser)
+            finish()
+        }
+    }
 
 
     /**
@@ -168,28 +189,35 @@ class AddFeedActivity : ComponentActivity() {
 
         // If the url is valid ...
         if (Patterns.WEB_URL.matcher(url).matches()) {
-            // Check if the feed is already in the feedGroup
-            val feedToAdd = Feed(source = url)
-            var inFeedGroup = false
-            for (feed in feedGroup.feeds) {
-                if (feedToAdd == feed) {
-                    inFeedGroup = true
-                    Toast.makeText(
-                        this@AddFeedActivity,
-                        "You've already added that RSS feed",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    break
-                }
+            addTofeedGroup(url) {
+                Toast.makeText(
+                    this@AddFeedActivity,
+                    "You've already added that RSS feed",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-
-            // Add feed and update feeds if the feed is not in the feedGroup
-            if (!inFeedGroup) {
-                feedGroup.feeds.add(Feed(source = url))
-                val viewModel = PullFeed(this, feedGroup)
-                viewModel.updateRss(parser)
-                finish()
-            }
+//            // Check if the feed is already in the feedGroup
+//            val feedToAdd = Feed(source = url)
+//            var inFeedGroup = false
+//            for (feed in feedGroup.feeds) {
+//                if (feedToAdd == feed) {
+//                    inFeedGroup = true
+//                    Toast.makeText(
+//                        this@AddFeedActivity,
+//                        "You've already added that RSS feed",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                    break
+//                }
+//            }
+//
+//            // Add feed and update feeds if the feed is not in the feedGroup
+//            if (!inFeedGroup) {
+//                feedGroup.feeds.add(Feed(source = url))
+//                val viewModel = PullFeed(this, feedGroup)
+//                viewModel.updateRss(parser)
+//                finish()
+//            }
         } else {
             Toast.makeText(this@AddFeedActivity, "Invalid URL", Toast.LENGTH_SHORT).show()
         }
@@ -287,6 +315,7 @@ class AddFeedActivity : ComponentActivity() {
                         )
                     }
                 }
+                CuratedFeeds()
             }
         }
     }
