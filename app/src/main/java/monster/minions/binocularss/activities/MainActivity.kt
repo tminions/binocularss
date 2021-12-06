@@ -194,11 +194,13 @@ class MainActivity : ComponentActivity() {
         }
         isFirstRun = false
 
-        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
-        currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(currentFeed))
-        feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+        articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
+        bookmarkedArticleList.value = sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
+        currentFeedArticles.value = sortArticlesByDate.sort(getArticlesFromFeed(currentFeed))
+        feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort((feedGroup.feeds))
+        readArticleList.value =
+            SortArticles(SortArticlesByReadDateStrategy()).sort(getReadArticles(feedGroup))
     }
 
     /**
@@ -273,7 +275,10 @@ class MainActivity : ComponentActivity() {
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(items = feeds) { feed ->
-                    FeedCard(context = this@MainActivity, feed = feed, deleteFeed = { deleteFeed(feed) })
+                    FeedCard(
+                        context = this@MainActivity,
+                        feed = feed,
+                        deleteFeed = { deleteFeed(feed) })
                 }
             }
         }
