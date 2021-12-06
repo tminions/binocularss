@@ -1,66 +1,16 @@
 package monster.minions.binocularss.operations
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.prof.rssparser.Channel
 import com.prof.rssparser.Parser
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import monster.minions.binocularss.activities.MainActivity
+import kotlinx.coroutines.withContext
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.room.AppDatabase
-import monster.minions.binocularss.room.FeedDao
 
-/**
- * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
- */
-class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
-
-    var isRefreshing = MutableStateFlow(false)
-
-    // FeedGroup object
-    private var localFeedGroup: FeedGroup = feedGroup
-
-    // Room database variables
-    private var db: RoomDatabase = Room
-        .databaseBuilder(context, AppDatabase::class.java, "feed-db")
-        .allowMainThreadQueries()
-        .build()
-    private var feedDao: FeedDao = (db as AppDatabase).feedDao()
-
-    /**
-     * Call the required functions to update the Rss feed.
-     *
-     * @param parser A parser with preconfigured settings.
-     */
-    fun updateRss(parser: Parser) {
-        val scope = CoroutineScope(Job() + Dispatchers.IO)
-        scope.launch {
-            isRefreshing.value = true
-            // Update feedGroup variable.
-            localFeedGroup = pullRss(localFeedGroup, parser)
-
-            // Update DB with updated feeds.
-            feedDao.insertAll(*(localFeedGroup.feeds.toTypedArray()))
-
-            // Update list states in MainActivity.
-            MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
-            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(localFeedGroup))
-            MainActivity.readArticleList.value = sortArticlesByReadDate(getReadArticles(localFeedGroup))
-            MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
-
-            isRefreshing.value = false
-
-            // TODO add controller layers between ui and databse
-            MainActivity.updateFeedGroup(feedDao.getAll())
-        }
-    }
+class FetchFeed: ViewModel() {
 
     /**
      * Get the RSS feeds in feedGroup from the internet or cache.
@@ -69,7 +19,7 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
      * @param parser A parser with preconfigured settings.
      * @return An updated FeedGroup object.
      */
-    private suspend fun pullRss(feedGroup: FeedGroup, parser: Parser): FeedGroup {
+    suspend fun pullRss(feedGroup: FeedGroup, parser: Parser): FeedGroup {
         val feedList: MutableList<Feed> = mutableListOf()
 
         // Loop through all the feeds
