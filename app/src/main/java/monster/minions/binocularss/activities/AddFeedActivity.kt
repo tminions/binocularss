@@ -23,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
@@ -34,6 +33,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import kotlin.properties.Delegates
 import monster.minions.binocularss.room.DatabaseGateway
+import monster.minions.binocularss.ui.CuratedFeeds
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
@@ -158,6 +158,26 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
+    fun addTofeedGroup(url: String, feedExistsCallback: () -> Unit) {
+        // Check if the feed is already in the feedGroup
+        val feedToAdd = Feed(source = url)
+        var inFeedGroup = false
+        for (feed in feedGroup.feeds) {
+            if (feedToAdd == feed) {
+                inFeedGroup = true
+                feedExistsCallback()
+                break
+            }
+        }
+
+        // Add feed and update feeds if the feed is not in the feedGroup
+        if (!inFeedGroup) {
+            feedGroup.feeds.add(Feed(source = url))
+            val viewModel = PullFeed(this, feedGroup)
+            viewModel.updateRss(parser)
+            finish()
+        }
+    }
 
 
     /**
@@ -169,27 +189,12 @@ class AddFeedActivity : ComponentActivity() {
 
         // If the url is valid ...
         if (Patterns.WEB_URL.matcher(url).matches()) {
-            // Check if the feed is already in the feedGroup
-            val feedToAdd = Feed(source = url)
-            var inFeedGroup = false
-            for (feed in feedGroup.feeds) {
-                if (feedToAdd == feed) {
-                    inFeedGroup = true
-                    Toast.makeText(
-                        this@AddFeedActivity,
-                        "You've already added that RSS feed",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    break
-                }
-            }
-
-            // Add feed and update feeds if the feed is not in the feedGroup
-            if (!inFeedGroup) {
-                feedGroup.feeds.add(Feed(source = url))
-                val viewModel = PullFeed(this, feedGroup)
-                viewModel.updateRss(parser)
-                finish()
+            addTofeedGroup(url) {
+                Toast.makeText(
+                    this@AddFeedActivity,
+                    "You've already added that RSS feed",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         } else {
             Toast.makeText(this@AddFeedActivity, "Invalid URL", Toast.LENGTH_SHORT).show()
@@ -288,6 +293,28 @@ class AddFeedActivity : ComponentActivity() {
                         )
                     }
                 }
+                CuratedFeeds(
+                    feeds = listOf(
+                        Feed(
+                            source = "https://rss.cbc.ca/lineup/topstories.xml",
+                            title = "CBC Top Stories"
+                        ),
+                        Feed(source = "https://rss.cbc.ca/lineup/world.xml", title = "CBC World"),
+                        Feed(source = "https://rss.cbc.ca/lineup/canada.xml", title = "CBC Canada"),
+                        Feed(
+                            source = "https://rss.cbc.ca/lineup/politics.xml",
+                            title = "CBC Politics"
+                        ),
+                        Feed(
+                            source = "https://androidauthority.com/feed",
+                            title = "Android Authority"
+                        ),
+                        Feed(
+                            source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009",
+                            title = "CTV Top Stories"
+                        ),
+                    ), addFeedToGroup = ::addTofeedGroup, existingFeeds = feedGroup.feeds
+                )
             }
         }
     }
