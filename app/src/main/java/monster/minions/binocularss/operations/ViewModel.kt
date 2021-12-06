@@ -45,15 +45,20 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             localFeedGroup = fetchFeed.pullRss(localFeedGroup, parser)
 
             // Update DB with updated feeds.
-            databaseGateway = DatabaseGateway(context=localContext)
+            databaseGateway = DatabaseGateway(context = localContext)
             databaseGateway.addFeeds(localFeedGroup.feeds)
 
             // Update list states in MainActivity.
-            MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
-            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(localFeedGroup))
-            MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
-            MainActivity.readArticleList.value = sortArticlesByReadDate(getReadArticles(localFeedGroup))
-            MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
+            val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+            MainActivity.articleList.value = sortArticlesByDate.sort(getAllArticles(localFeedGroup))
+            MainActivity.bookmarkedArticleList.value =
+                sortArticlesByDate.sort(getBookmarkedArticles(localFeedGroup))
+            MainActivity.currentFeedArticles.value =
+                sortArticlesByDate.sort(getArticlesFromFeed(MainActivity.currentFeed))
+            MainActivity.readArticleList.value =
+                SortArticles(SortArticlesByReadDateStrategy()).sort(getReadArticles(localFeedGroup))
+            MainActivity.feedList.value =
+                SortFeeds(SortFeedsByTitleStrategy()).sort(localFeedGroup.feeds)
 
             isRefreshing.value = false
 
