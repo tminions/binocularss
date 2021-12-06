@@ -225,15 +225,17 @@ class MainActivity : ComponentActivity() {
         }
 
         // Update article lists.
-        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(currentFeed))
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+        articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
+        currentFeedArticles.value = sortArticlesByDate.sort(getArticlesFromFeed(currentFeed))
         if (refreshBookmark) {
-            bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+            bookmarkedArticleList.value = sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
         }
         if (refreshRead) {
-            readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
+            readArticleList.value =
+                SortArticles(SortArticlesByReadDateStrategy()).sort(getReadArticles(feedGroup))
         }
-        feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort(feedGroup.feeds)
     }
 
     /**
@@ -293,11 +295,13 @@ class MainActivity : ComponentActivity() {
         dataGateway.removeFeedBySource(feed.source)
         feedGroup.feeds.remove(feed)
 
-        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+        articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
+        bookmarkedArticleList.value = sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
+        currentFeedArticles.value = sortArticlesByDate.sort(getArticlesFromFeed(currentFeed))
+        readArticleList.value =
+            SortArticles(SortArticlesByReadDateStrategy()).sort(getReadArticles(feedGroup))
         feedList.value = dataGateway.read()
-        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
-        currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(currentFeed))
-        readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
     }
 
     /**
@@ -403,8 +407,10 @@ class MainActivity : ComponentActivity() {
                     Spacer(Modifier.padding(paddingLarge))
                     Button(onClick = {
                         // Update readArticleList when any nav item is clicked.
-                        readArticleList.value =
-                            sortArticlesByReadDate(getReadArticles(feedGroup))
+
+                        readArticleList.value = SortArticles(SortArticlesByReadDateStrategy()).sort(
+                            getReadArticles(feedGroup)
+                        )
 
                         navController.navigate(NavigationItem.Articles.route) {
                             navController.graph.startDestinationRoute?.let { route ->
@@ -501,7 +507,11 @@ class MainActivity : ComponentActivity() {
                     Button(onClick = {
                         // Update bookmarkedArticleList when any nav item is clicked.
                         bookmarkedArticleList.value =
-                            sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                            SortArticles(SortArticlesByDateStrategy()).sort(
+                                getBookmarkedArticles(
+                                    feedGroup
+                                )
+                            )
 
                         navController.navigate(NavigationItem.Articles.route) {
                             navController.graph.startDestinationRoute?.let { route ->
@@ -647,17 +657,20 @@ class MainActivity : ComponentActivity() {
                             // Update bookmarkedArticleList when the bookmarks are clicked
                             if (item.route == NavigationItem.Bookmarks.route) {
                                 bookmarkedArticleList.value =
-                                    sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                                    SortArticles(SortArticlesByDateStrategy()).sort(
+                                        getBookmarkedArticles(feedGroup)
+                                    )
                                 // Update readArticleList when the bookmarks are clicked
                             } else if (item.route == NavigationItem.ReadingHistory.route) {
                                 readArticleList.value =
-                                    sortArticlesByReadDate(getReadArticles(feedGroup))
-                            } else if (item.route == NavigationItem.Feeds.route) {
-                                currentFeedArticles.value = sortArticlesByDate(
-                                    getArticlesFromFeed(
-                                        currentFeed
+                                    SortArticles(SortArticlesByReadDateStrategy()).sort(
+                                        getReadArticles(feedGroup)
                                     )
-                                )
+                            } else if (item.route == NavigationItem.Feeds.route) {
+                                currentFeedArticles.value =
+                                    SortArticles(SortArticlesByDateStrategy()).sort(
+                                        getArticlesFromFeed(currentFeed)
+                                    )
                             }
 
                             navController.navigate(item.route) {
