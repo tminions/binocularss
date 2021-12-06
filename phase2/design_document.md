@@ -77,6 +77,8 @@ db = Room
     .build()
 ```
 
+We also implemented the builder design pattern in our [Article](https://github.com/tminions/binocularss/blob/main/app/src/main/java/monster/minions/binocularss/dataclasses/Article.kt) and [Feed](https://github.com/tminions/binocularss/blob/main/app/src/main/java/monster/minions/binocularss/dataclasses/Feed.kt) dataclasses. This allows us to build them more easily and have, essentailly, self documenting code.
+
 ## Use of Github Features
 
 ### Pull Requests
@@ -114,94 +116,91 @@ Another code smell that we found was an instance of Data Clumps. Each activity h
 // MainActivity
 
 // Parser variable
-    private lateinit var parser: Parser
+private lateinit var parser: Parser
 
-    // Room database variables
-    private lateinit var dataGateway: DatabaseGateway
+// Room database variables
+private lateinit var dataGateway: DatabaseGateway
 
-    // User Preferences
-    private lateinit var sharedPref: SharedPreferences
-    private lateinit var sharedPrefEditor: SharedPreferences.Editor
-    private lateinit var theme: String
-    private lateinit var themeState: MutableState<String>
-    private var isFirstRun = true
-    private var cacheExpiration = 0L
-
+// User Preferences
+private lateinit var sharedPref: SharedPreferences
+private lateinit var sharedPrefEditor: SharedPreferences.Editor
+private lateinit var theme: String
+private lateinit var themeState: MutableState<String>
+private var isFirstRun = true
+private var cacheExpiration = 0L
 ```
 
 ```kotlin
 // SettingsActivity
 
 // Room database variables
-    private lateinit var dataGateway: DatabaseGateway
+private lateinit var dataGateway: DatabaseGateway
 
-    // SharedPreferences variables.
-    private lateinit var sharedPref: SharedPreferences
-    private lateinit var sharedPrefEditor: SharedPreferences.Editor
-    private lateinit var theme: String
-    private lateinit var themeState: MutableState<String>
-    private var cacheExpiration = 0L
-
+// SharedPreferences variables.
+private lateinit var sharedPref: SharedPreferences
+private lateinit var sharedPrefEditor: SharedPreferences.Editor
+private lateinit var theme: String
+private lateinit var themeState: MutableState<String>
+private var cacheExpiration = 0L
 ```
 
 Another code smell that we found was Long Method (Bloater). We see this code smell a lot throughout our code. Most of the time this code smell occurs in lifecycle methods such as `onCreate` and `onResume`, as well as in our Composables such as `UI`, `FeedCard` and `FeedView`.
 
 ```kotlin
 override fun onResume() {
-        super.onResume()
-        Log.d("MainActivity", "onResume called")
+    super.onResume()
+    Log.d("MainActivity", "onResume called")
 
-        val feeds: MutableList<Feed> = dataGateway.read()
+    val feeds: MutableList<Feed> = dataGateway.read()
 
-        feedGroup.feeds = feeds
+    feedGroup.feeds = feeds
 
-        theme = sharedPref
-            .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
-            .toString()
-        if (!isFirstRun) {
-            themeState.value = theme
-        }
-        isFirstRun = false
-
-        articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
-        feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
+    theme = sharedPref
+        .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
+        .toString()
+    if (!isFirstRun) {
+        themeState.value = theme
     }
+    isFirstRun = false
+
+    articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+    bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(feedGroup))
+    feedList.value = sortFeedsByTitle(feedGroup.feeds)
+    readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
+}
 ```
 
 ```kotlin
 var showDropdown by remember { mutableStateOf(false) }
-        // Location where user long pressed.
-        var offset by remember { mutableStateOf(Offset(0f, 0f)) }
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(paddingMedium)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = {
-                            showDropdown = true
-                            offset = it
-                        },
-                        onTap = {
-                            // TODO temporary until articleFromFeed
-                            val intent = Intent(Intent.ACTION_VIEW)
-                            intent.data = Uri.parse(feed.link)
-                            ContextCompat.startActivity(context, intent, null)
-                        }
-                    )
-                }, elevation = 8.dp
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(paddingLarge),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-         // More lines of code below
-
+	// Location where user long pressed.
+	var offset by remember { mutableStateOf(Offset(0f, 0f)) }
+	Card(
+	    modifier = Modifier
+	        .fillMaxWidth()
+	        .padding(paddingMedium)
+	        .pointerInput(Unit) {
+	            detectTapGestures(
+	                onLongPress = {
+	                    showDropdown = true
+	                    offset = it
+	                },
+	                onTap = {
+	                    // TODO temporary until articleFromFeed
+	                    val intent = Intent(Intent.ACTION_VIEW)
+	                    intent.data = Uri.parse(feed.link)
+	                    ContextCompat.startActivity(context, intent, null)
+	                }
+	            )
+	        }, elevation = 8.dp
+	) {
+	    Column {
+	        Row(
+	            modifier = Modifier
+	                .fillMaxWidth()
+	                .padding(paddingLarge),
+	            horizontalArrangement = Arrangement.SpaceBetween
+	        ) {
+		// More lines of code ...
 ```
 
 ##Testing
