@@ -14,9 +14,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,7 +88,6 @@ class SettingsActivity : ComponentActivity() {
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
         dataGateway = DatabaseGateway(context = this)
-
     }
 
     /**
@@ -278,6 +277,8 @@ class SettingsActivity : ComponentActivity() {
                             MainActivity.bookmarkedArticleList.value = mutableListOf()
                             MainActivity.currentFeedArticles.value = mutableListOf()
                             MainActivity.readArticleList.value = mutableListOf()
+                            MainActivity.searchResults.value = mutableListOf()
+                            MainActivity.feedList.value = mutableListOf()
 
                             Toast.makeText(
                                 this@SettingsActivity,

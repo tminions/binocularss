@@ -22,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
@@ -31,9 +30,9 @@ import monster.minions.binocularss.activities.ui.theme.paddingMedium
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
-import kotlin.properties.Delegates
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.CuratedFeeds
+import kotlin.properties.Delegates
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
@@ -144,7 +143,8 @@ class AddFeedActivity : ComponentActivity() {
             sortArticlesByDate(getBookmarkedArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**

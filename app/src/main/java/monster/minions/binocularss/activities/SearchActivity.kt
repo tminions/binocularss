@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
@@ -130,7 +129,8 @@ class SearchActivity : ComponentActivity() {
 
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
         MainActivity.searchResults.value =

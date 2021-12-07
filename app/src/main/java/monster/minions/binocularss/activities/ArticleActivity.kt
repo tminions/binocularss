@@ -111,7 +111,8 @@ class ArticleActivity : ComponentActivity() {
         MainActivity.bookmarkedArticleList.value = mutableListOf()
         MainActivity.readArticleList.value = mutableListOf()
         MainActivity.searchResults.value = mutableListOf()
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value = mutableListOf()
+            // sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**
@@ -228,7 +229,7 @@ class ArticleActivity : ComponentActivity() {
     private fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = when(theme) {
+        val useDarkIcons = when (theme) {
             "Dark Theme" -> false
             "Light Theme" -> true
             else -> !isSystemInDarkTheme()

@@ -16,13 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Article
-import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
@@ -75,7 +73,8 @@ class ArticlesFromFeedActivity : ComponentActivity() {
 
         dataGateway = DatabaseGateway(context = this)
 
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**
@@ -113,9 +112,11 @@ class ArticlesFromFeedActivity : ComponentActivity() {
         MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
         MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**
@@ -165,7 +166,8 @@ class ArticlesFromFeedActivity : ComponentActivity() {
         MainActivity.bookmarkedArticleList.value = mutableListOf()
         MainActivity.readArticleList.value = mutableListOf()
         MainActivity.feedList.value = mutableListOf()
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**
