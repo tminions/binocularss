@@ -33,6 +33,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.ArticleCard
+import monster.minions.binocularss.ui.TopBar
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -59,6 +60,7 @@ class SearchActivity : ComponentActivity() {
 
     private var feedTitles: MutableList<String> = mutableListOf()
 
+    @ExperimentalMaterial3Api
     @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -252,6 +254,7 @@ class SearchActivity : ComponentActivity() {
         )
     }
 
+    @ExperimentalMaterial3Api
     @ExperimentalCoilApi
     @Composable
     fun UI() {
@@ -274,27 +277,29 @@ class SearchActivity : ComponentActivity() {
                 .fillMaxWidth(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(paddingMedium)
-                ) {
-                    Row(modifier = Modifier.weight(1f)) {
-                        SearchBar()
-                    }
-                    Spacer(modifier = Modifier.padding(paddingMedium))
-                    FloatingActionButton(
-                        onClick = { submit() },
-                        containerColor = MaterialTheme.colorScheme.primary
+            Scaffold(topBar = { TopBar("Search") { finish() } }) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(paddingMedium)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Add feed"
-                        )
+                        Row(modifier = Modifier.weight(1f)) {
+                            SearchBar()
+                        }
+                        Spacer(modifier = Modifier.padding(paddingMedium))
+                        FloatingActionButton(
+                            onClick = { submit() },
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Add feed"
+                            )
+                        }
                     }
+                    ArticleSearchResults()
                 }
-                ArticleSearchResults()
             }
         }
     }

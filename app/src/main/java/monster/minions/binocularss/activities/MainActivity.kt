@@ -362,11 +362,14 @@ class MainActivity : ComponentActivity() {
         val articles by articleList.collectAsState()
 
         // If there are no articles, prompt the user to add some.
-        if (articles.isNullOrEmpty()) {
-            AddFeedPrompt(text = "No Articles Found", buttonText = "Add a Feed")
-        } else {
-            // LazyColumn containing the article cards.
-            ArticleCardList(articles = articles, context = this@MainActivity) { setArticle(it) }
+        if (articles.isNullOrEmpty()) AddFeedPrompt(
+            text = "No Articles Found",
+            buttonText = "Add a Feed"
+        ) else ArticleCardList(
+            articles = articles,
+            context = this@MainActivity
+        ) {
+            setArticle(it)
         }
     }
 
@@ -381,9 +384,10 @@ class MainActivity : ComponentActivity() {
 
         when {
             // If there are no articles, prompt the user to add some.
-            articles.isNullOrEmpty() -> {
-                AddFeedPrompt(text = "No Articles Found", buttonText = "Add a Feed")
-            }
+            articles.isNullOrEmpty() -> AddFeedPrompt(
+                text = "No Articles Found",
+                buttonText = "Add a Feed"
+            )
             // If there are no read articles, prompt the user to read some.
             readArticles.isNullOrEmpty() -> {
                 ArticleActionPrompt(
@@ -394,9 +398,11 @@ class MainActivity : ComponentActivity() {
                 )
             }
             // Show the lazy column with the bookmarked articles
-            else -> {
-                // LazyColumn containing the article cards.
-                ArticleCardList(articles = readArticles, context = this@MainActivity) { setArticle(it) }
+            else -> ArticleCardList(
+                articles = readArticles,
+                context = this@MainActivity
+            ) {
+                setArticle(it)
             }
         }
     }
@@ -413,23 +419,22 @@ class MainActivity : ComponentActivity() {
 
         when {
             // Show "No Articles Found"
-            articles.isNullOrEmpty() -> {
-                AddFeedPrompt(text = "No Article Found", buttonText = "Add a Feed")
-            }
+            articles.isNullOrEmpty() -> AddFeedPrompt(
+                text = "No Article Found",
+                buttonText = "Add a Feed"
+            )
             // Show "No Bookmarked Articles"
-            bookmarkedArticles.isNullOrEmpty() -> {
-                ArticleActionPrompt(
-                    text = "No Bookmarked Articles",
-                    description = "Bookmark an article and it will show up here",
-                    buttonText = "Go to articles",
-                    navController = navController
-                )
-            }
+            bookmarkedArticles.isNullOrEmpty() -> ArticleActionPrompt(
+                text = "No Bookmarked Articles",
+                description = "Bookmark an article and it will show up here",
+                buttonText = "Go to articles",
+                navController = navController
+            )
             // Show the lazy column with the bookmarked articles
-            else -> {
-                // LazyColumn containing the article cards.
-                ArticleCardList(articles = bookmarkedArticles, context = this@MainActivity) { setArticle(it) }
-            }
+            else -> ArticleCardList(
+                articles = bookmarkedArticles,
+                context = this@MainActivity
+            ) { setArticle(it) }
         }
     }
 
@@ -464,18 +469,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                // Settings Activity Button
-                IconButton(onClick = {
-                    val intent =
-                        Intent(this@MainActivity, SettingsActivity::class.java).apply {}
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = "Settings Activity"
-                    )
-                }
-
                 // Add Feed Activity Button
                 IconButton(onClick = {
                     val intent =
@@ -486,6 +479,18 @@ class MainActivity : ComponentActivity() {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Add Feed Activity"
+                    )
+                }
+
+                // Settings Activity Button
+                IconButton(onClick = {
+                    val intent =
+                        Intent(this@MainActivity, SettingsActivity::class.java).apply {}
+                    startActivity(intent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Settings Activity"
                     )
                 }
             }

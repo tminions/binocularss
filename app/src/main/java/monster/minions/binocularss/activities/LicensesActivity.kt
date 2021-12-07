@@ -29,6 +29,7 @@ import com.mikepenz.aboutlibraries.ui.compose.util.author
 import com.mikepenz.aboutlibraries.util.withContext
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.activities.ui.theme.paddingSmall
+import monster.minions.binocularss.ui.TopBar
 import kotlin.properties.Delegates
 
 class LicensesActivity : ComponentActivity() {
@@ -66,30 +67,6 @@ class LicensesActivity : ComponentActivity() {
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
     }
 
-    /**
-     * Top navigation bar
-     */
-    @Composable
-    fun TopBar() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Back button icon that goes back one activity.
-            IconButton(onClick = { finish() }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back Arrow"
-                )
-            }
-            Spacer(Modifier.padding(paddingSmall))
-            // Title of current page.
-            Text("Open-Source Licenses", style = MaterialTheme.typography.headlineMedium)
-        }
-    }
 
     @ExperimentalMaterial3Api
     @Composable
@@ -111,7 +88,7 @@ class LicensesActivity : ComponentActivity() {
 
         Surface(color = MaterialTheme.colorScheme.onBackground) {
             Scaffold(
-                topBar = { TopBar() },
+                topBar = { TopBar("Open-Source Licenses") { finish() } },
                 modifier = Modifier.background(MaterialTheme.colorScheme.onBackground)
             ) {
                 // Call the library to generate the list of libraries

@@ -119,31 +119,6 @@ class SettingsActivity : ComponentActivity() {
     }
 
     /**
-     * Top navigation bar
-     */
-    @Composable
-    fun TopBar() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Back button icon that goes back one activity.
-            IconButton(onClick = { finish() }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back Arrow"
-                )
-            }
-            Spacer(Modifier.padding(paddingSmall))
-            // Title of current page.
-            Text("Settings", style = MaterialTheme.typography.headlineMedium)
-        }
-    }
-
-    /**
      * Compilation of UI elements in the correct order.
      */
     @ExperimentalMaterial3Api
@@ -180,7 +155,7 @@ class SettingsActivity : ComponentActivity() {
             var cacheSubtitle by remember { mutableStateOf(cacheExpirationString) }
 
             Surface(color = MaterialTheme.colorScheme.background) {
-                Scaffold(topBar = { TopBar() }) {
+                Scaffold(topBar = { TopBar("Settings") { finish() } }) {
                     // Column of all the preference items.
                     Column(
                         Modifier

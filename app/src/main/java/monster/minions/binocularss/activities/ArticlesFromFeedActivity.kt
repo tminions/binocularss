@@ -25,6 +25,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.ArticleCard
+import monster.minions.binocularss.ui.TopBar
 import kotlin.properties.Delegates
 
 class ArticlesFromFeedActivity : ComponentActivity() {
@@ -170,34 +171,6 @@ class ArticlesFromFeedActivity : ComponentActivity() {
             sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
-    /**
-     * Top navigation bar
-     */
-    @Composable
-    fun TopBar() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Back button icon that goes back one activity.
-            IconButton(onClick = { finish() }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back Arrow"
-                )
-            }
-            Spacer(Modifier.padding(paddingSmall))
-            // Title of current page.
-            Text(
-                MainActivity.currentFeed.title!!,
-                style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
-            )
-        }
-    }
-
     @ExperimentalMaterial3Api
     @Composable
     fun UI() {
@@ -220,7 +193,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
                 .fillMaxWidth(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            Scaffold(topBar = { TopBar() }) {
+            Scaffold(topBar = { TopBar(MainActivity.currentFeed.title!!) { finish() } }) {
                 ArticlesFromFeed()
             }
         }
