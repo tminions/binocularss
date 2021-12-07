@@ -37,8 +37,6 @@ import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
-import monster.minions.binocularss.operations.getArticlesFromFeed
-import monster.minions.binocularss.operations.sortArticlesByDate
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.BookmarkFlag
 import monster.minions.binocularss.ui.ReadFlag
@@ -56,7 +54,6 @@ class ArticleActivity : ComponentActivity() {
     private lateinit var themeState: MutableState<String>
     private var materialYou by Delegates.notNull<Boolean>()
     private lateinit var materialYouState: MutableState<Boolean>
-    private var cacheExpiration = 0L
 
     // Room database variables
     private var feedGroup: FeedGroup = FeedGroup()
@@ -64,6 +61,7 @@ class ArticleActivity : ComponentActivity() {
 
     private lateinit var article: Article
 
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -224,6 +222,7 @@ class ArticleActivity : ComponentActivity() {
     /**
      * Composable function containing the article
      */
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @Composable
     private fun UI() {

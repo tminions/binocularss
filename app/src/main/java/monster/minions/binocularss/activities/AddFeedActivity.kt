@@ -160,7 +160,7 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
-    fun addTofeedGroup(url: String, feedExistsCallback: () -> Unit) {
+    private fun addToFeedGroup(url: String, feedExistsCallback: () -> Unit) {
         // Check if the feed is already in the feedGroup
         val feedToAdd = Feed(source = url)
         var inFeedGroup = false
@@ -191,7 +191,7 @@ class AddFeedActivity : ComponentActivity() {
 
         // If the url is valid ...
         if (Patterns.WEB_URL.matcher(url).matches()) {
-            addTofeedGroup(url) {
+            addToFeedGroup(url) {
                 Toast.makeText(
                     this@AddFeedActivity,
                     "You've already added that RSS feed",
@@ -323,7 +323,7 @@ class AddFeedActivity : ComponentActivity() {
                                 source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009",
                                 title = "CTV Top Stories"
                             ),
-                        ), addFeedToGroup = ::addTofeedGroup, existingFeeds = feedGroup.feeds
+                        ), addFeedToGroup = ::addToFeedGroup, existingFeeds = feedGroup.feeds
                     )
                 }
             }

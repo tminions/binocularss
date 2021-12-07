@@ -10,16 +10,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
@@ -44,6 +41,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
     private lateinit var materialYouState: MutableState<Boolean>
     private var cacheExpiration = 0L
 
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +122,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
      * Displays a list of articles from a specific feed in the order given by the currently
      * selected sorting method
      */
+    @ExperimentalCoilApi
     @Composable
     fun ArticlesFromFeed() {
         // Mutable state variable that is updated when articleList is updated to force a recompose.
@@ -149,7 +148,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
+    private fun setArticle(modifiedArticle: Article) {
         // Replace article in feedGroup.
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
@@ -171,6 +170,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
             sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @Composable
     fun UI() {

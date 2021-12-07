@@ -9,8 +9,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +26,6 @@ import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.util.author
 import com.mikepenz.aboutlibraries.util.withContext
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.ui.TopBar
 import kotlin.properties.Delegates
 
@@ -56,7 +53,7 @@ class LicensesActivity : ComponentActivity() {
             }
         }
 
-        // Initialize lateinit variables.
+        // Initialize late init variables.
         sharedPref = this.getSharedPreferences(
             SettingsActivity.PreferenceKeys.SETTINGS,
             Context.MODE_PRIVATE

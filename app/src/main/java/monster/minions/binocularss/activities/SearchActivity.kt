@@ -186,7 +186,7 @@ class SearchActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
+    private fun setArticle(modifiedArticle: Article) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {

@@ -39,6 +39,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -98,6 +99,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -250,10 +252,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun ArticleActionPrompt(
-        text: String,
-        description: String,
-        buttonText: String,
-        navController: NavHostController
+        text: String, description: String, buttonText: String, navController: NavHostController
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -298,6 +297,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Displays the list of feeds saved
      */
+    @ExperimentalCoilApi
     @Composable
     fun SortedFeedView() {
         val feeds by feedList.collectAsState()
@@ -337,11 +337,10 @@ class MainActivity : ComponentActivity() {
         readArticleList.value = sortArticlesByReadDate(getReadArticles(feedGroup))
     }
 
+    @ExperimentalCoilApi
     @Composable
     fun ArticleCardList(
-        articles: MutableList<Article>,
-        context: Context,
-        updateValues: (article: Article) -> Unit
+        articles: MutableList<Article>, context: Context, updateValues: (article: Article) -> Unit
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -356,6 +355,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Displays a list of articles in the order given by the currently selected sorting method
      */
+    @ExperimentalCoilApi
     @Composable
     fun SortedArticleView() {
         // Mutable state variable that is updated when articleList is updated to force a recompose.
@@ -376,6 +376,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Displays a list of all read articles.
      */
+    @ExperimentalCoilApi
     @ExperimentalAnimationApi
     @Composable
     fun ReadingHistoryView(navController: NavHostController) {
@@ -410,6 +411,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Displays a list of all bookmarked articles.
      */
+    @ExperimentalCoilApi
     @ExperimentalAnimationApi
     @Composable
     fun BookmarksView(navController: NavHostController) {
@@ -544,20 +546,25 @@ class MainActivity : ComponentActivity() {
                         selected = selectedItem == index,
                         onClick = {
                             selectedItem = index
-                            // Update bookmarkedArticleList when the bookmarks are clicked
-                            if (item.route == NavigationItem.Bookmarks.route) {
-                                bookmarkedArticleList.value =
-                                    sortArticlesByDate(getBookmarkedArticles(feedGroup))
-                                // Update readArticleList when the bookmarks are clicked
-                            } else if (item.route == NavigationItem.ReadingHistory.route) {
-                                readArticleList.value =
-                                    sortArticlesByReadDate(getReadArticles(feedGroup))
-                            } else if (item.route == NavigationItem.Feeds.route) {
-                                currentFeedArticles.value = sortArticlesByDate(
-                                    getArticlesFromFeed(
-                                        currentFeed
+                            when (item.route) {
+                                // Update bookmarkedArticleList when the Bookmarks is clicked
+                                NavigationItem.Bookmarks.route -> {
+                                    bookmarkedArticleList.value =
+                                        sortArticlesByDate(getBookmarkedArticles(feedGroup))
+                                }
+                                // Update readArticleList when History is clicked
+                                NavigationItem.ReadingHistory.route -> {
+                                    readArticleList.value =
+                                        sortArticlesByReadDate(getReadArticles(feedGroup))
+                                }
+                                // Update currentFeedArticles when Feed is clicked.
+                                NavigationItem.Feeds.route -> {
+                                    currentFeedArticles.value = sortArticlesByDate(
+                                        getArticlesFromFeed(
+                                            currentFeed
+                                        )
                                     )
-                                )
+                                }
                             }
 
                             navController.navigate(item.route) {
@@ -583,6 +590,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Composable that loads in and out views based on the current navigation item selected.
      */
+    @ExperimentalCoilApi
     @ExperimentalAnimationApi
     @Composable
     fun Navigation(navController: NavHostController) {
@@ -629,6 +637,7 @@ class MainActivity : ComponentActivity() {
     /**
      * The default UI of the app.
      */
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     @Composable
