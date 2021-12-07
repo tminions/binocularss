@@ -318,12 +318,4 @@ class AddFeedActivity : ComponentActivity() {
             }
         }
     }
-
-    @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        BinoculaRSSTheme {
-            UI()
-        }
-    }
 }

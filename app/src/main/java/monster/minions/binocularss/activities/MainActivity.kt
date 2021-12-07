@@ -785,12 +785,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    @ExperimentalMaterial3Api
-    @ExperimentalAnimationApi
-    @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        UI()
-    }
 }

@@ -281,11 +281,4 @@ class LicensesActivity : ComponentActivity() {
             }
         }
     }
-
-    @ExperimentalMaterial3Api
-    @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        UI()
-    }
 }

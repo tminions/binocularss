@@ -254,7 +254,6 @@ class SearchActivity : ComponentActivity() {
 
     @ExperimentalCoilApi
     @Composable
-    @Preview
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()

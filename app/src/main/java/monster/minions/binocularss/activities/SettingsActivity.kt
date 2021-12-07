@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
@@ -149,7 +148,6 @@ class SettingsActivity : ComponentActivity() {
      * Compilation of UI elements in the correct order.
      */
     @ExperimentalMaterial3Api
-    @Preview(showBackground = true)
     @Composable
     fun UI() {
         // Set status bar and nav bar colours.

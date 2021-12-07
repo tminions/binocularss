@@ -197,7 +197,6 @@ class ArticlesFromFeedActivity : ComponentActivity() {
     }
 
     @ExperimentalMaterial3Api
-    @Preview(showBackground = true)
     @Composable
     fun UI() {
         // Set status bar and nav bar colours.
