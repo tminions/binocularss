@@ -14,7 +14,6 @@ fun sortArticlesByDate(articles: MutableList<Article>): MutableList<Article> {
     return articles.sortedWith(comparator = dateComparator).toMutableList()
 }
 
-
 /**
  * Sort the given list of articles by date and return another list
  *
@@ -25,7 +24,6 @@ fun sortArticlesByFuzzyMatch(articles: MutableList<Article>, query: String): Mut
     val searchComparator = ArticleSearchComparator(query)
     return articles.sortedWith(comparator = searchComparator).toMutableList()
 }
-
 
 /**
  * Sort the given list of articles by read date and return another list
@@ -48,5 +46,3 @@ fun sortFeedsByTitle(feeds: MutableList<Feed>): MutableList<Feed> {
     val titleComparator = FeedTitleComparator()
     return feeds.sortedWith(comparator = titleComparator).toMutableList()
 }
-
-

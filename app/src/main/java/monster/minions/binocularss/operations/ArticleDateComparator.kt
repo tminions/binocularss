@@ -19,7 +19,6 @@ class ArticleDateComparator : Comparator<Article> {
      * @return a negative integer, zero, or a positive integer
      *      as article1 is less than, equal to, or greater than article2
      */
-
     @SuppressLint("SimpleDateFormat")
     override fun compare(article1: Article, article2: Article): Int {
         val dateFormats = listOf("EEE, dd MMM yyyy HH:mm:ss zzz", "EEE, dd MMM yyyy HH:mm zzz", "EEE, dd MMM yyyy HH:mm zzz")

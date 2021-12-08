@@ -11,7 +11,6 @@ import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 
 class FetchFeed: ViewModel() {
-
     /**
      * Get the RSS feeds in feedGroup from the internet or cache.
      *
@@ -41,6 +40,8 @@ class FetchFeed: ViewModel() {
                         "PullFeed",
                         "Feed ${feed.title} ignored as there is an error with the source"
                     )
+                    // TODO toast message. Throw this exception then catch it in ViewModel
+                    //  which has context to make the toast with.
                     e.printStackTrace()
                 }
             }
