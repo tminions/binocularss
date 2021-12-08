@@ -20,6 +20,7 @@ Each group member should include a link to a significant pull request (or two if
 - Standardize padding, shape and typograhy values
 - Added dyanmic open-source license information
 - General refactoring
+- Material3 UI Library. This is my most prominent contribution during this phase. [Here](https://github.com/tminions/binocularss/pull/29) is the link to the pull request.
 
 
 #### Ismail Ahmed

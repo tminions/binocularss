@@ -24,8 +24,7 @@ For example `Cards.kt` and `Icons.kt` are both elements of our UI, but as they p
 
 
 ### Open-closed Principle
-One way our code follows the Open-closed principle is through our UI. We can easily extend our UI by adding more options to our settings, adding more feeds and articles to their respective views, and adding more selectable views without editing the functionality of our code directly. This is done by creating more composables and adding them to our UI which can be done without editing our UI classes.
-
+One way our code follows the Open-closed principle is through our UI classes. Our UI can be eaily extend with new features. For example, in order to add a settings option, one simply adds a new instance of an composable from the `SettingItems` file to the `UI` composable function in the `SettingsActivity`. If we wanted to add a new type of view to our main activity, we would simply create a new composable function in the `MainActivity`, and call it from the `Navigation` function to view it. As illustrated in these examples, we do not need to modify existing code, we simply need to add new code to represent additional functionaliy, even within the same UI class. This adheres to the open-closed principle.
 
 
 ### Vacuous SOLID
