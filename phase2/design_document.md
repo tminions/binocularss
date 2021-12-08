@@ -205,3 +205,21 @@ var showDropdown by remember { mutableStateOf(false) }
 ##Testing
 
 BIG TODO: Expand more on how we implemented rigorous testing for classes/UI for better coverage.
+
+### Significant pull request
+
+#### Hisbaan
+
+#### Eamon
+
+#### Macdeini
+
+#### Benson
+
+#### Ismail
+
+#### Simon
+
+#### Salman
+
+#### Tai
