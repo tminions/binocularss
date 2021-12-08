@@ -26,6 +26,7 @@ Each group member should include a link to a significant pull request (or two if
 
 #### Macdeini Niu
 - Added read history view to main activity
+- Added the ability to export and import feed URLs from internal storage
 
 #### Salman Husainie
 - Implement builder design pattern for Article and Feeds
@@ -78,7 +79,7 @@ This pull request was significant because it added a gateway class that reduces 
 
 Pull Request - [Reading History](https://github.com/tminions/binocularss/pull/22)
 
-This pull request implements reading history that will display a list of articles that have been marked as read.  
+This pull request implements reading history that will display a list of articles that have been marked as read. This helps our app feel much more complete with major quality of life features and makes it more on par with enterprise level software.  
 
 #### **Salman Husainie**
 
