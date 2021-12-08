@@ -37,6 +37,9 @@ import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.SortArticles
+import monster.minions.binocularss.operations.SortArticlesByDateStrategy
+import monster.minions.binocularss.operations.getArticlesFromFeed
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.BookmarkFlag
 import monster.minions.binocularss.ui.ReadFlag
@@ -110,7 +113,6 @@ class ArticleActivity : ComponentActivity() {
         MainActivity.readArticleList.value = mutableListOf()
         MainActivity.searchResults.value = mutableListOf()
         MainActivity.currentFeedArticles.value = mutableListOf()
-            // sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**

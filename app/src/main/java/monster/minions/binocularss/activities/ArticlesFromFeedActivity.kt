@@ -73,7 +73,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
         dataGateway = DatabaseGateway(context = this)
 
         MainActivity.currentFeedArticles.value =
-            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+            SortArticles(SortArticlesByDateStrategy()).sort(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     /**
@@ -108,14 +108,14 @@ class ArticlesFromFeedActivity : ComponentActivity() {
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
         // Update article lists.
-        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+        MainActivity.articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value =
+            sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
+        MainActivity.readArticleList.value = sortArticlesByDate.sort(getReadArticles(feedGroup))
         MainActivity.currentFeedArticles.value =
-            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
-        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        MainActivity.currentFeedArticles.value =
-            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+            sortArticlesByDate.sort(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort(feedGroup.feeds)
     }
 
     /**
@@ -166,8 +166,7 @@ class ArticlesFromFeedActivity : ComponentActivity() {
         MainActivity.bookmarkedArticleList.value = mutableListOf()
         MainActivity.readArticleList.value = mutableListOf()
         MainActivity.feedList.value = mutableListOf()
-        MainActivity.currentFeedArticles.value =
-            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value = SortArticles(SortArticlesByDateStrategy()).sort(getArticlesFromFeed(MainActivity.currentFeed))
     }
 
     @ExperimentalCoilApi

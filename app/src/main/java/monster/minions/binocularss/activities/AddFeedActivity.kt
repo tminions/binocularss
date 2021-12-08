@@ -140,13 +140,21 @@ class AddFeedActivity : ComponentActivity() {
             .toString()
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
-        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.bookmarkedArticleList.value =
-            sortArticlesByDate(getBookmarkedArticles(feedGroup))
-        MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
-        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
-        MainActivity.currentFeedArticles.value =
-            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+
+        MainActivity.articleList.value = sortArticlesByDate.sort(
+            getAllArticles(feedGroup)
+        )
+        MainActivity.bookmarkedArticleList.value = sortArticlesByDate.sort(
+            getBookmarkedArticles(feedGroup)
+        )
+        MainActivity.readArticleList.value = sortArticlesByDate.sort(
+            getReadArticles(feedGroup)
+        )
+        MainActivity.feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort(feedGroup.feeds)
+        MainActivity.currentFeedArticles.value = sortArticlesByDate.sort(
+            getArticlesFromFeed(MainActivity.currentFeed)
+        )
     }
 
     /**

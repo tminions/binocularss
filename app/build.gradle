@@ -8,14 +8,6 @@ plugins {
 }
 
 android {
-    signingConfigs {
-        debug {
-            storeFile file('/home/hisbaan/.keystore/keystore.jks')
-            storePassword 'awd102938'
-            keyAlias 'upload'
-            keyPassword 'awd102938'
-        }
-    }
     compileSdk 31
 
     defaultConfig {

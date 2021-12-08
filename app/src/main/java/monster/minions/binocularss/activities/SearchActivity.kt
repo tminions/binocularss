@@ -129,14 +129,18 @@ class SearchActivity : ComponentActivity() {
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
-        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+        MainActivity.articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value =
+            sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
+        MainActivity.readArticleList.value = sortArticlesByDate.sort(getReadArticles(feedGroup))
         MainActivity.currentFeedArticles.value =
-            sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
-        MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
-        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+            sortArticlesByDate.sort(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort(feedGroup.feeds)
         MainActivity.searchResults.value =
-            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+            SortArticles(SortArticlesByFuzzyMatchStrategy(text.value)).sort(
+                getAllArticles(feedGroup)
+            )
     }
 
     private fun getFeedTitles(): MutableList<String> {
@@ -156,7 +160,9 @@ class SearchActivity : ComponentActivity() {
     private fun submit() {
         Log.d("SearchActivity", "Submitting")
         MainActivity.searchResults.value =
-            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+            SortArticles(SortArticlesByFuzzyMatchStrategy(text.value)).sort(
+                getAllArticles(feedGroup)
+            )
 
         if (MainActivity.searchResults.value.isEmpty()) {
             Toast.makeText(this@SearchActivity, "No matches", Toast.LENGTH_SHORT).show()
