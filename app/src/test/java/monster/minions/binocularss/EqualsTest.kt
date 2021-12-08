@@ -56,8 +56,8 @@ class EqualsTest {
         feeds3.add(feed3)
 
         val feedGroup1 = FeedGroup(feeds1)
-        val feedGroup2 = FeedGroup(feeds1)
-        val feedGroup3 = FeedGroup(feeds1)
+        val feedGroup2 = FeedGroup(feeds2)
+        val feedGroup3 = FeedGroup(feeds3)
 
         assertEquals(true, feedGroup1 == feedGroup2)
         assertEquals(false, feedGroup1 == feedGroup3)
