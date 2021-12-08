@@ -202,24 +202,25 @@ var showDropdown by remember { mutableStateOf(false) }
 		// More lines of code ...
 ```
 
-##Testing
+## Testing
+For testing, we split it into three different categories.
 
-BIG TODO: Expand more on how we implemented rigorous testing for classes/UI for better coverage.
+The first would be entity/sorting testing.
 
-### Significant pull request
+We implemented multiple tests for the various entities such as Articles, Feeds and FeedGroups, as well as other uses cases.
 
-#### Hisbaan
+The second large portion was UI testing. We utilized AndroidComposeRules to make automatic testing that various elements exist and are displayed.
 
-#### Eamon
+We had tests for each individual activity such as MainActivity, addFeedActivity, testing their respective elements and functionalities.
 
-#### Macdeini
+This ensured  that we could efficiently and rigorously test our app's UI, as a part of our continuous testing.
 
-#### Benson
+We also utilized AndroidComposeTools for functional testing. Using functions such as performClick, we can simulate an entire process from start to finish, such as adding a feed. This would involve creating a dummy article, and manipulating it with commands and asserting that it shows up in the feed, and in the history.
 
-#### Ismail
+Finally, a large component of our UI/UX testing happened to be physical.
 
-#### Simon
+We had 3 members with Android phones who could test the accessibility and usability of features on their physical devices. This type of testing became a part of our Github repository, ensuring that bugs were documented with steps to reproduce as well as potential fixes.
 
-#### Salman
+As an example, we were simulating on various virtual devices, we found that the cards displayed were not aligned for each screen size
 
-#### Tai
+This ended up being an entire pull request and refactoring on how we were approaching sizing each element.
