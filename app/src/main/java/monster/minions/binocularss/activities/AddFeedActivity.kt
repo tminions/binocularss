@@ -175,7 +175,7 @@ class AddFeedActivity : ComponentActivity() {
         // Add feed and update feeds if the feed is not in the feedGroup
         if (!inFeedGroup) {
             feedGroup.feeds.add(Feed(source = url))
-            val viewModel = PullFeed(this, feedGroup)
+            val viewModel = ViewModel(this, feedGroup)
             viewModel.updateRss(parser)
             finish()
         }

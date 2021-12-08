@@ -15,6 +15,9 @@ import monster.minions.binocularss.activities.ui.theme.paddingSmall
 
 /**
  * Top navigation bar
+ *
+ * @param title The title of the current view.
+ * @param backButtonAction A lambda function that will exit the current activity and return to the parent.
  */
 @Composable
 fun TopBar(title: String, backButtonAction: () -> Unit) {

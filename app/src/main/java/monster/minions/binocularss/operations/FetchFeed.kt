@@ -11,7 +11,6 @@ import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 
 class FetchFeed: ViewModel() {
-
     /**
      * Get the RSS feeds in feedGroup from the internet or cache.
      *

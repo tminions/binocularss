@@ -51,6 +51,7 @@ import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
+import monster.minions.binocularss.operations.ViewModel
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
 import java.util.*
@@ -668,7 +669,8 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             // Swipe refresh variables.
-            val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
+            val viewModel =
+                ViewModel(this, feedGroup = feedGroup)
             val isRefreshing by viewModel.isRefreshing.collectAsState()
 
             Scaffold(

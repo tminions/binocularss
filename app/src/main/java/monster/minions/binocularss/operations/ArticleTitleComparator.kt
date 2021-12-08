@@ -16,7 +16,6 @@ class ArticleTitleComparator: Comparator<Article> {
      * @return a negative integer, zero, or a positive integer
      *      as article1 is alphabetically before, equal to, or after article2
      */
-
     override fun compare(article1: Article, article2: Article): Int{
         val article1Title = article1.title!!.lowercase()
         val article2Title = article2.title!!.lowercase()
