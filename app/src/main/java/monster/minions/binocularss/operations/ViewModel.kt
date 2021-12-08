@@ -1,5 +1,6 @@
 package monster.minions.binocularss.operations
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -19,9 +20,13 @@ import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.room.FeedDao
 
 /**
- * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
+ * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI.
+ *
+ * @param context The application context it is being called from.
+ * @param feedGroup The feed group provided to merge with the new list of feeds.
  */
-class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
+class ViewModel(context: Context, feedGroup: FeedGroup) : ViewModel() {
+    @SuppressLint("StaticFieldLeak")
     var localContext = context
     var isRefreshing = MutableStateFlow(false)
 
@@ -65,5 +70,4 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             MainActivity.updateFeedGroup(databaseGateway.read())
         }
     }
-
 }

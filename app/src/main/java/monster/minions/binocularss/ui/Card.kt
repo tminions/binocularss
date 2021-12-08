@@ -44,13 +44,15 @@ import java.util.*
  *
  * @param context The application context
  * @param feed The feed to be displayed
+ * @param deleteFeed A lambda function that contains the logic for deleting a feed,
+ *                   which needs to be contained inside of MainActivity.
  */
 @ExperimentalCoilApi
 @Composable
 fun FeedCard(context: Context, feed: Feed, deleteFeed: (feed: Feed) -> Unit) {
     var showDropdown by remember { mutableStateOf(false) }
     // Location where user long pressed.
-     var offset by remember { mutableStateOf(Offset(0f, 0f)) }
+    var offset by remember { mutableStateOf(Offset(0f, 0f)) }
     // var offset = Offset(0f, 0f)
     Box(
         modifier = Modifier
@@ -135,7 +137,9 @@ fun FeedCard(context: Context, feed: Feed, deleteFeed: (feed: Feed) -> Unit) {
 /**
  * Displays a single article in a card view format
  *
- * @param article The article to be displayed
+ * @param context The context where the card is being called from.
+ * @param article The article to be displayed.
+ * @param updateValues A lambda function to update the article in the feedGroup after modifications.
  */
 @SuppressLint("SimpleDateFormat")
 @ExperimentalCoilApi

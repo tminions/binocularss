@@ -26,6 +26,9 @@ import monster.minions.binocularss.activities.ui.theme.roundedCornerLarge
 
 /**
  * Display the title and subtitle of an item.
+ *
+ * @param title The title of the item.
+ * @param subtitle The subtitle of the item.
  */
 @Composable
 private fun TitleSubtitle(title: String, subtitle: String) {

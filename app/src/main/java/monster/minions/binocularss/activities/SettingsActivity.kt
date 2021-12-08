@@ -15,13 +15,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.MATERIAL_YOU
@@ -29,7 +24,6 @@ import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SE
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.THEME
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.activities.ui.theme.paddingLarge
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.room.DatabaseGateway
@@ -89,7 +83,6 @@ class SettingsActivity : ComponentActivity() {
         cacheExpiration = sharedPref.getLong(CACHE_EXPIRATION, 0L)
 
         dataGateway = DatabaseGateway(context = this)
-
     }
 
     /**
@@ -121,35 +114,9 @@ class SettingsActivity : ComponentActivity() {
     }
 
     /**
-     * Top navigation bar
-     */
-    @Composable
-    fun TopBar() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Back button icon that goes back one activity.
-            IconButton(onClick = { finish() }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back Arrow"
-                )
-            }
-            Spacer(Modifier.padding(paddingSmall))
-            // Title of current page.
-            Text("Settings", style = MaterialTheme.typography.headlineMedium)
-        }
-    }
-
-    /**
      * Compilation of UI elements in the correct order.
      */
     @ExperimentalMaterial3Api
-    @Preview(showBackground = true)
     @Composable
     fun UI() {
         // Set status bar and nav bar colours.
@@ -183,7 +150,7 @@ class SettingsActivity : ComponentActivity() {
             var cacheSubtitle by remember { mutableStateOf(cacheExpirationString) }
 
             Surface(color = MaterialTheme.colorScheme.background) {
-                Scaffold(topBar = { TopBar() }) {
+                Scaffold(topBar = { TopBar("Settings") { finish() } }) {
                     // Column of all the preference items.
                     Column(
                         Modifier
@@ -280,6 +247,8 @@ class SettingsActivity : ComponentActivity() {
                             MainActivity.bookmarkedArticleList.value = mutableListOf()
                             MainActivity.currentFeedArticles.value = mutableListOf()
                             MainActivity.readArticleList.value = mutableListOf()
+                            MainActivity.searchResults.value = mutableListOf()
+                            MainActivity.feedList.value = mutableListOf()
 
                             Toast.makeText(
                                 this@SettingsActivity,

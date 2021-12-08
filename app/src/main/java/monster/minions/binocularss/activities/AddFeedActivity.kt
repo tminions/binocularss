@@ -22,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
@@ -31,9 +30,10 @@ import monster.minions.binocularss.activities.ui.theme.paddingMedium
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
-import kotlin.properties.Delegates
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.CuratedFeeds
+import monster.minions.binocularss.ui.TopBar
+import kotlin.properties.Delegates
 
 // TODO check that this is an RSS feed (probably in pull feed or something of the sort and send a
 //  toast to the user if it is not. Try and check this when initially adding maybe? Basically deeper
@@ -67,6 +67,7 @@ class AddFeedActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -167,7 +168,7 @@ class AddFeedActivity : ComponentActivity() {
         }
     }
 
-    fun addTofeedGroup(url: String, feedExistsCallback: () -> Unit) {
+    private fun addToFeedGroup(url: String, feedExistsCallback: () -> Unit) {
         // Check if the feed is already in the feedGroup
         val feedToAdd = Feed(source = url)
         var inFeedGroup = false
@@ -182,7 +183,7 @@ class AddFeedActivity : ComponentActivity() {
         // Add feed and update feeds if the feed is not in the feedGroup
         if (!inFeedGroup) {
             feedGroup.feeds.add(Feed(source = url))
-            val viewModel = PullFeed(this, feedGroup)
+            val viewModel = ViewModel(this, feedGroup)
             viewModel.updateRss(parser)
             finish()
         }
@@ -198,7 +199,7 @@ class AddFeedActivity : ComponentActivity() {
 
         // If the url is valid ...
         if (Patterns.WEB_URL.matcher(url).matches()) {
-            addTofeedGroup(url) {
+            addToFeedGroup(url) {
                 Toast.makeText(
                     this@AddFeedActivity,
                     "You've already added that RSS feed",
@@ -256,6 +257,7 @@ class AddFeedActivity : ComponentActivity() {
     /**
      * Main UI of the AddFeedActivity.
      */
+    @ExperimentalMaterial3Api
     @Composable
     fun UI() {
         // Set status bar and nav bar colours
@@ -276,63 +278,63 @@ class AddFeedActivity : ComponentActivity() {
         }
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(
-                modifier = Modifier.padding(paddingLarge),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+            Scaffold(topBar = { TopBar("Add Feed") { finish() } }) {
+                Column(
+                    modifier = Modifier.padding(paddingLarge),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Row(modifier = Modifier.weight(1f)) {
-                        FeedTextField(textState, onValueChange = {
-                            textState = it
-                            text = mutableStateOf(textState.text)
-                        })
-                    }
-                    Spacer(modifier = Modifier.padding(paddingMedium))
-                    FloatingActionButton(
-                        onClick = { submit() },
-                        containerColor = MaterialTheme.colorScheme.primary
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = "Add feed"
-                        )
+                        Row(modifier = Modifier.weight(1f)) {
+                            FeedTextField(textState, onValueChange = {
+                                textState = it
+                                text = mutableStateOf(textState.text)
+                            })
+                        }
+                        Spacer(modifier = Modifier.padding(paddingMedium))
+                        FloatingActionButton(
+                            onClick = { submit() },
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = "Add feed"
+                            )
+                        }
                     }
+                    CuratedFeeds(
+                        feeds = listOf(
+                            Feed(
+                                source = "https://rss.cbc.ca/lineup/topstories.xml",
+                                title = "CBC Top Stories"
+                            ),
+                            Feed(
+                                source = "https://rss.cbc.ca/lineup/world.xml",
+                                title = "CBC World"
+                            ),
+                            Feed(
+                                source = "https://rss.cbc.ca/lineup/canada.xml",
+                                title = "CBC Canada"
+                            ),
+                            Feed(
+                                source = "https://rss.cbc.ca/lineup/politics.xml",
+                                title = "CBC Politics"
+                            ),
+                            Feed(
+                                source = "https://androidauthority.com/feed",
+                                title = "Android Authority"
+                            ),
+                            Feed(
+                                source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009",
+                                title = "CTV Top Stories"
+                            ),
+                        ), addFeedToGroup = ::addToFeedGroup, existingFeeds = feedGroup.feeds
+                    )
                 }
-                CuratedFeeds(
-                    feeds = listOf(
-                        Feed(
-                            source = "https://rss.cbc.ca/lineup/topstories.xml",
-                            title = "CBC Top Stories"
-                        ),
-                        Feed(source = "https://rss.cbc.ca/lineup/world.xml", title = "CBC World"),
-                        Feed(source = "https://rss.cbc.ca/lineup/canada.xml", title = "CBC Canada"),
-                        Feed(
-                            source = "https://rss.cbc.ca/lineup/politics.xml",
-                            title = "CBC Politics"
-                        ),
-                        Feed(
-                            source = "https://androidauthority.com/feed",
-                            title = "Android Authority"
-                        ),
-                        Feed(
-                            source = "https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-public-rss-1.822009",
-                            title = "CTV Top Stories"
-                        ),
-                    ), addFeedToGroup = ::addTofeedGroup, existingFeeds = feedGroup.feeds
-                )
             }
-        }
-    }
-
-    @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        BinoculaRSSTheme {
-            UI()
         }
     }
 }

@@ -8,8 +8,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,21 +25,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -60,6 +51,7 @@ import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
+import monster.minions.binocularss.operations.ViewModel
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
 import java.util.*
@@ -108,6 +100,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param savedInstanceState A bundle of parcelable information that was previously saved.
      */
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -227,7 +220,8 @@ class MainActivity : ComponentActivity() {
         // Update article lists.
         val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
         articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
-        currentFeedArticles.value = sortArticlesByDate.sort(getArticlesFromFeed(currentFeed))
+        // currentFeedArticles.value = sortArticlesByDate.sort(getArticlesFromFeed(currentFeed))
+        currentFeedArticles.value = mutableListOf()
         if (refreshBookmark) {
             bookmarkedArticleList.value = sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
         }
@@ -238,40 +232,87 @@ class MainActivity : ComponentActivity() {
         feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort(feedGroup.feeds)
     }
 
+    @Composable
+    fun AddFeedPrompt(text: String, buttonText: String) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(Modifier.padding(paddingLarge))
+            Button(
+                onClick = {
+                    val intent = Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
+                    dataGateway.addFeeds(feedGroup.feeds)
+                    startActivity(intent)
+                }
+            ) {
+                Text(text = buttonText)
+            }
+        }
+    }
+
+    @Composable
+    fun ArticleActionPrompt(
+        text: String, description: String, buttonText: String, navController: NavHostController
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = text,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(Modifier.padding(paddingSmall))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                text = description,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(Modifier.padding(paddingLarge))
+            Button(onClick = {
+                // Update bookmarkedArticleList when any nav item is clicked.
+                bookmarkedArticleList.value =
+                    SortArticles(SortArticlesByDateStrategy()).sort(getBookmarkedArticles(feedGroup))
+
+                navController.navigate(NavigationItem.Articles.route) {
+                    navController.graph.startDestinationRoute?.let { route ->
+                        // Pop up to the start destination of the graph to avoid building up
+                        //  a large stack of destinations on the back stack as users select
+                        //  items
+                        popUpTo(route) { saveState = true }
+                    }
+                    // Avoid multiple copies of the same destination when re-selecting the
+                    //  same item
+                    launchSingleTop = true
+                    // Restore state when re-selecting a previously selected item
+                    restoreState = true
+                }
+            }) { Text(buttonText) }
+        }
+    }
+
     /**
      * Displays the list of feeds saved
      */
+    @ExperimentalCoilApi
     @Composable
     fun SortedFeedView() {
-        var showAddFeed by remember { mutableStateOf(feedGroup.feeds.isNullOrEmpty()) }
+        val feeds by feedList.collectAsState()
 
         // If there are no feeds, prompt the user to add some.
-        if (showAddFeed) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "No Feeds Found",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Spacer(Modifier.padding(paddingLarge))
-                Button(
-                    onClick = {
-                        showAddFeed = false
-                        val intent =
-                            Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        dataGateway.addFeeds(feedGroup.feeds)
-                        startActivity(intent)
-                    }
-                ) {
-                    Text("Add Feed")
-                }
-            }
+        if (feeds.isNullOrEmpty()) {
+            AddFeedPrompt(text = "No Feeds Found", buttonText = "Add a Feed")
         } else {
             // List of feed cards for the user to interact with.
-            val feeds by feedList.collectAsState()
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
@@ -304,56 +345,46 @@ class MainActivity : ComponentActivity() {
         feedList.value = dataGateway.read()
     }
 
+    @ExperimentalCoilApi
+    @Composable
+    fun ArticleCardList(
+        articles: MutableList<Article>, context: Context, updateValues: (article: Article) -> Unit
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)
+        ) {
+            items(items = articles) { article ->
+                ArticleCard(context = context, article = article, updateValues = updateValues)
+            }
+        }
+    }
+
     /**
      * Displays a list of articles in the order given by the currently selected sorting method
      */
+    @ExperimentalCoilApi
     @Composable
     fun SortedArticleView() {
         // Mutable state variable that is updated when articleList is updated to force a recompose.
         val articles by articleList.collectAsState()
 
-        // If there are no articles, promt the user to add some.
-        if (articles.isNullOrEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "No Articles Found",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-                Spacer(Modifier.padding(paddingLarge))
-                Button(
-                    onClick = {
-                        val intent =
-                            Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                        dataGateway.addFeeds(feedGroup.feeds)
-                        startActivity(intent)
-                    }
-                ) {
-                    Text("Add Feed")
-                }
-            }
-        } else {
-            // LazyColumn containing the article cards.
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(items = articles) { article ->
-                    ArticleCard(
-                        context = this@MainActivity,
-                        article = article
-                    ) { setArticle(it) }
-                }
-            }
+        // If there are no articles, prompt the user to add some.
+        if (articles.isNullOrEmpty()) AddFeedPrompt(
+            text = "No Articles Found",
+            buttonText = "Add a Feed"
+        ) else ArticleCardList(
+            articles = articles,
+            context = this@MainActivity
+        ) {
+            setArticle(it)
         }
     }
 
     /**
      * Displays a list of all read articles.
      */
+    @ExperimentalCoilApi
     @ExperimentalAnimationApi
     @Composable
     fun ReadingHistoryView(navController: NavHostController) {
@@ -362,86 +393,23 @@ class MainActivity : ComponentActivity() {
 
         when {
             // If there are no articles, prompt the user to add some.
-            articles.isNullOrEmpty() -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No Articles Found",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    Spacer(Modifier.padding(paddingLarge))
-                    Button(
-                        onClick = {
-                            val intent =
-                                Intent(this@MainActivity, AddFeedActivity::class.java).apply {}
-                            dataGateway.addFeeds(feedGroup.feeds)
-                            startActivity(intent)
-                        }
-                    ) {
-                        Text("Add Feed")
-                    }
-                }
-            }
+            articles.isNullOrEmpty() -> AddFeedPrompt(
+                text = "No Articles Found",
+                buttonText = "Add a Feed"
+            )
             // If there are no read articles, prompt the user to read some.
-            readArticles.isNullOrEmpty() -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No Read Articles",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    Spacer(Modifier.padding(paddingSmall))
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        text = "Read an article and it will show up here",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(Modifier.padding(paddingLarge))
-                    Button(onClick = {
-                        // Update readArticleList when any nav item is clicked.
-
-                        readArticleList.value = SortArticles(SortArticlesByReadDateStrategy()).sort(
-                            getReadArticles(feedGroup)
-                        )
-
-                        navController.navigate(NavigationItem.Articles.route) {
-                            navController.graph.startDestinationRoute?.let { route ->
-                                // Pop up to the start destination of the graph to avoid building up
-                                //  a large stack of destinations on the back stack as users select
-                                //  items
-                                popUpTo(route) { saveState = true }
-                            }
-                            // Avoid multiple copies of the same destination when re-selecting the
-                            //  same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
-                    }) { Text("Go to Articles") }
-                }
-            }
+            readArticles.isNullOrEmpty() -> ArticleActionPrompt(
+                text = "No Read Articles",
+                description = "Read an article and it will show up here",
+                buttonText = "Go to Articles",
+                navController = navController
+            )
             // Show the lazy column with the bookmarked articles
-            else -> {
-                // LazyColumn containing the article cards.
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-                    items(items = readArticles) { article ->
-                        ArticleCard(
-                            context = this@MainActivity,
-                            article = article
-                        ) { setArticle(it, refreshRead = false) }
-                    }
-                }
+            else -> ArticleCardList(
+                articles = readArticles,
+                context = this@MainActivity
+            ) {
+                setArticle(it, refreshRead = false)
             }
         }
     }
@@ -449,6 +417,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Displays a list of all bookmarked articles.
      */
+    @ExperimentalCoilApi
     @ExperimentalAnimationApi
     @Composable
     fun BookmarksView(navController: NavHostController) {
@@ -458,93 +427,22 @@ class MainActivity : ComponentActivity() {
 
         when {
             // Show "No Articles Found"
-            articles.isNullOrEmpty() -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No Articles Found",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    Spacer(Modifier.padding(paddingLarge))
-                    Button(
-                        onClick = {
-                            val intent =
-                                Intent(
-                                    this@MainActivity,
-                                    AddFeedActivity::class.java
-                                ).apply {}
-                            dataGateway.addFeeds(feedGroup.feeds)
-                            startActivity(intent)
-                        }
-                    ) {
-                        Text("Add Feed")
-                    }
-                }
-            }
+            articles.isNullOrEmpty() -> AddFeedPrompt(
+                text = "No Article Found",
+                buttonText = "Add a Feed"
+            )
             // Show "No Bookmarked Articles"
-            bookmarkedArticles.isNullOrEmpty() -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "No Bookmarked Articles",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    Spacer(Modifier.padding(paddingSmall))
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        text = "Bookmark an article and it will show up here",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(Modifier.padding(paddingLarge))
-                    Button(onClick = {
-                        // Update bookmarkedArticleList when any nav item is clicked.
-                        bookmarkedArticleList.value =
-                            SortArticles(SortArticlesByDateStrategy()).sort(
-                                getBookmarkedArticles(
-                                    feedGroup
-                                )
-                            )
-
-                        navController.navigate(NavigationItem.Articles.route) {
-                            navController.graph.startDestinationRoute?.let { route ->
-                                // Pop up to the start destination of the graph to avoid building up
-                                //  a large stack of destinations on the back stack as users select
-                                //  items
-                                popUpTo(route) { saveState = true }
-                            }
-                            // Avoid multiple copies of the same destination when re-selecting the
-                            //  same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
-                    }) { Text("Go to Articles") }
-                }
-            }
+            bookmarkedArticles.isNullOrEmpty() -> ArticleActionPrompt(
+                text = "No Bookmarked Articles",
+                description = "Bookmark an article and it will show up here",
+                buttonText = "Go to articles",
+                navController = navController
+            )
             // Show the lazy column with the bookmarked articles
-            else -> {
-                // LazyColumn containing the article cards.
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp)
-                ) {
-
-                    items(items = bookmarkedArticles) { article ->
-                        ArticleCard(
-                            context = this@MainActivity,
-                            article = article
-                        ) { setArticle(it, refreshBookmark = false) }
-                    }
-                }
-            }
+            else -> ArticleCardList(
+                articles = bookmarkedArticles,
+                context = this@MainActivity
+            ) { setArticle(it, refreshBookmark = false) }
         }
     }
 
@@ -579,18 +477,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                // Settings Activity Button
-                IconButton(onClick = {
-                    val intent =
-                        Intent(this@MainActivity, SettingsActivity::class.java).apply {}
-                    startActivity(intent)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = "Settings Activity"
-                    )
-                }
-
                 // Add Feed Activity Button
                 IconButton(onClick = {
                     val intent =
@@ -601,6 +487,18 @@ class MainActivity : ComponentActivity() {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Add Feed Activity"
+                    )
+                }
+
+                // Settings Activity Button
+                IconButton(onClick = {
+                    val intent =
+                        Intent(this@MainActivity, SettingsActivity::class.java).apply {}
+                    startActivity(intent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Settings Activity"
                     )
                 }
             }
@@ -654,23 +552,28 @@ class MainActivity : ComponentActivity() {
                         selected = selectedItem == index,
                         onClick = {
                             selectedItem = index
-                            // Update bookmarkedArticleList when the bookmarks are clicked
-                            if (item.route == NavigationItem.Bookmarks.route) {
-                                bookmarkedArticleList.value =
-                                    SortArticles(SortArticlesByDateStrategy()).sort(
-                                        getBookmarkedArticles(feedGroup)
-                                    )
-                                // Update readArticleList when the bookmarks are clicked
-                            } else if (item.route == NavigationItem.ReadingHistory.route) {
-                                readArticleList.value =
-                                    SortArticles(SortArticlesByReadDateStrategy()).sort(
-                                        getReadArticles(feedGroup)
-                                    )
-                            } else if (item.route == NavigationItem.Feeds.route) {
-                                currentFeedArticles.value =
-                                    SortArticles(SortArticlesByDateStrategy()).sort(
-                                        getArticlesFromFeed(currentFeed)
-                                    )
+                            when (item.route) {
+                                // Update bookmarkedArticleList when the Bookmarks is clicked
+                                NavigationItem.Bookmarks.route -> {
+                                    bookmarkedArticleList.value =
+                                        SortArticles(SortArticlesByDateStrategy()).sort(
+                                            getBookmarkedArticles(feedGroup)
+                                        )
+                                }
+                                // Update readArticleList when History is clicked
+                                NavigationItem.ReadingHistory.route -> {
+                                    readArticleList.value =
+                                        SortArticles(SortArticlesByReadDateStrategy()).sort(
+                                            getReadArticles(feedGroup)
+                                        )
+                                }
+                                // Update currentFeedArticles when Feed is clicked.
+                                NavigationItem.Feeds.route -> {
+                                    currentFeedArticles.value =
+                                        SortArticles(SortArticlesByDateStrategy()).sort(
+                                            getArticlesFromFeed(currentFeed)
+                                        )
+                                }
                             }
 
                             navController.navigate(item.route) {
@@ -696,6 +599,7 @@ class MainActivity : ComponentActivity() {
     /**
      * Composable that loads in and out views based on the current navigation item selected.
      */
+    @ExperimentalCoilApi
     @ExperimentalAnimationApi
     @Composable
     fun Navigation(navController: NavHostController) {
@@ -742,6 +646,7 @@ class MainActivity : ComponentActivity() {
     /**
      * The default UI of the app.
      */
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @ExperimentalAnimationApi
     @Composable
@@ -772,7 +677,8 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             // Swipe refresh variables.
-            val viewModel = PullFeed(this@MainActivity, feedGroup = feedGroup)
+            val viewModel =
+                ViewModel(this, feedGroup = feedGroup)
             val isRefreshing by viewModel.isRefreshing.collectAsState()
 
             Scaffold(
@@ -802,13 +708,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    @ExperimentalMaterial3Api
-    @ExperimentalAnimationApi
-    @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        UI()
     }
 }

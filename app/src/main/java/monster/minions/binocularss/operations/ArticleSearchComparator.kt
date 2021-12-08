@@ -7,8 +7,6 @@ class ArticleSearchComparator(
     private var query: String
     ): Comparator<Article> {
 
-
-
     /**
      * Compare both articles using FuzzySearch ratio to determine which is a better
      * match to a user's query. Return a negative int, it p0 is a better match, 0 if
@@ -27,6 +25,4 @@ class ArticleSearchComparator(
        // the articles with higher ratios to show up first and the list is in ascending order
        return p1Ratio - p0Ratio
     }
-
-
 }

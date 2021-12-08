@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
@@ -34,6 +33,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.ArticleCard
+import monster.minions.binocularss.ui.TopBar
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -60,6 +60,7 @@ class SearchActivity : ComponentActivity() {
 
     private var feedTitles: MutableList<String> = mutableListOf()
 
+    @ExperimentalMaterial3Api
     @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,7 +132,7 @@ class SearchActivity : ComponentActivity() {
         val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
         MainActivity.articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
         MainActivity.bookmarkedArticleList.value =
-            sortArticlesByDate.sort(getAllArticles(feedGroup))
+            sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
         MainActivity.readArticleList.value = sortArticlesByDate.sort(getReadArticles(feedGroup))
         MainActivity.currentFeedArticles.value =
             sortArticlesByDate.sort(getArticlesFromFeed(MainActivity.currentFeed))
@@ -191,7 +192,7 @@ class SearchActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
+    private fun setArticle(modifiedArticle: Article) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -259,9 +260,9 @@ class SearchActivity : ComponentActivity() {
         )
     }
 
+    @ExperimentalMaterial3Api
     @ExperimentalCoilApi
     @Composable
-    @Preview
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
@@ -282,27 +283,29 @@ class SearchActivity : ComponentActivity() {
                 .fillMaxWidth(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(paddingMedium)
-                ) {
-                    Row(modifier = Modifier.weight(1f)) {
-                        SearchBar()
-                    }
-                    Spacer(modifier = Modifier.padding(paddingMedium))
-                    FloatingActionButton(
-                        onClick = { submit() },
-                        containerColor = MaterialTheme.colorScheme.primary
+            Scaffold(topBar = { TopBar("Search") { finish() } }) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(paddingMedium)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Add feed"
-                        )
+                        Row(modifier = Modifier.weight(1f)) {
+                            SearchBar()
+                        }
+                        Spacer(modifier = Modifier.padding(paddingMedium))
+                        FloatingActionButton(
+                            onClick = { submit() },
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Add feed"
+                            )
+                        }
                     }
+                    ArticleSearchResults()
                 }
-                ArticleSearchResults()
             }
         }
     }

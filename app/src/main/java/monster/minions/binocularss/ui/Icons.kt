@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.BookmarkBorder as EmptyBookmarkIco
  * article
  *
  * @param article Article that is currently being displayed
+ * @param extraAction An action to be performed after the button is clicked.
  */
 @Composable
 fun BookmarkFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
@@ -46,6 +47,7 @@ fun BookmarkFlag(article: Article, extraAction: (article: Article) -> Unit = { }
  * article
  *
  * @param article Article that is currently being displayed
+ * @param extraAction An action to be performed after the button is clicked.
  */
 @Composable
 fun ReadFlag(article: Article, extraAction: (article: Article) -> Unit = { }) {
@@ -97,6 +99,7 @@ fun ShareFlag(context: Context, article: Article) {
  *
  * @param context The application context from which to share
  * @param article Article that is currently being displayed
+ * @param extraAction An action to be performed after the button is clicked.
  */
 @Composable
 fun BrowserFlag(context: Context, article: Article, extraAction: (article: Article) -> Unit = { }) {

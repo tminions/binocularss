@@ -11,6 +11,9 @@ import kotlin.math.ln
 /**
  * Get the any color at an elevation. This is the same algorithm that google uses so we can get
  * get the same colors for our custom elements.
+ *
+ * @param color The color to be elevated.
+ * @param elevation The height of the elevation in DP.
  */
 @Composable
 fun colorAtElevation(color: Color, elevation: Dp): Color {
