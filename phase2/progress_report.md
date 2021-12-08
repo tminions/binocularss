@@ -33,6 +33,7 @@ Each group member should include a link to a significant pull request (or two if
 
 #### Simon Chen
 - Add URL trimming and associated tests.
+- Set up Github Actions CI/CD pipeline
 
 #### Tai Zhang
 - Added more tests
