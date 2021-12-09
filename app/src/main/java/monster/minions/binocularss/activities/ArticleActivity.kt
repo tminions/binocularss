@@ -301,7 +301,6 @@ class ArticleActivity : ComponentActivity() {
                         ) {
                             Text(text = "View article")
                         }
-
                     }
                 }
             }
