@@ -298,7 +298,7 @@ class SettingsActivity : ComponentActivity() {
                         }
                         // Item to export URLs of subscribed feeds.
                         ActionItem (
-                            title = "Export Data"
+                            title = "Export save file"
                         ) {
                             val dataExporter = ExportData()
                             val jsonData = dataExporter.toJson(feedGroup.feeds)
@@ -348,7 +348,7 @@ class SettingsActivity : ComponentActivity() {
                         // Item that links to feedback form.
                         LinkItem(
                             title = "Feedback",
-                            link = "google form or something"
+                            link = "https://forms.gle/wX9rSfMicFeAc1kn6"
                         ) {
                             openLink(it)
                         }
