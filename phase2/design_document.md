@@ -1,9 +1,5 @@
 # Phase 2 - Design Document
 
-### Important parts to work on from Phase 1 feedback:
-- Talk about testing
-- Talk about code style and documentation
-
 ## Clean Architecture
 
 ### Adherence to Clean Architecture
@@ -15,7 +11,7 @@ Although there are some violations in our code (see below) our code does a good 
 
 ## Solid Design Principles
 
-Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix
+Examples of code that we fixed, violations that we found that we could not fix or are unsure of how to fix.
 
 ### Single Responsibility Principle
 Our code closely follows the single responsibility principle. We've done this by separating our critical data classes into multiple files (`Article.kt, Feed.kt, FeedGroup.kt`), keeping our important data operations in separate files (our code for sorting by date, article title, and feed title are all separated), and by keeping our UI activities in separate files as well.
@@ -33,7 +29,6 @@ Two principles of SOLID, Liskov Substitution and Interface Segregation, are neve
 
 ### Dependency Inversion
 For our UI we made sure to pass lambda functions to our Composables, allowing us to execute that code in the current scope, even if the Composables are in a different location. This ensures our Composables do not cause a circular dependency, but are still able to be used and run.
-
 
 
 ## Packaging Strategies
@@ -76,7 +71,24 @@ db = Room
     .build()
 ```
 
-We also implemented the builder design pattern in our [Article](https://github.com/tminions/binocularss/blob/main/app/src/main/java/monster/minions/binocularss/dataclasses/Article.kt) and [Feed](https://github.com/tminions/binocularss/blob/main/app/src/main/java/monster/minions/binocularss/dataclasses/Feed.kt) dataclasses. This allows us to build them more easily and have, essentailly, self documenting code.
+We also implemented the builder design pattern in our [Article](https://github.com/tminions/binocularss/blob/main/app/src/main/java/monster/minions/binocularss/dataclasses/Article.kt) and [Feed](https://github.com/tminions/binocularss/blob/main/app/src/main/java/monster/minions/binocularss/dataclasses/Feed.kt) dataclasses. This allows us to build them more easily and have, essentailly, self documenting code. We have left out code snippets as these are very long due to the nature of the Article and Feed classes.
+
+### Stategy
+We implemented the strategy design pattern in our `Sorter.kt` file. This design pattern allows us to define a gamily of similar algorithms, in a neat, clean, and organized manner. This allowed us to make our code easier to read and helped with refactoring. The following is an example of our implementation, a full display is available in `Sorter.kt`:
+
+```kotlin
+interface SortingStrategy<T> {
+    val comparator: Comparator<T>
+}
+
+/**
+ * Strategy for sorting articles by date
+ */
+class SortArticlesByDateStrategy: SortingStrategy<Article> {
+    override val comparator: Comparator<Article> = ArticleDateComparator()
+}
+```
+
 
 ## Use of Github Features
 
@@ -205,22 +217,130 @@ var showDropdown by remember { mutableStateOf(false) }
 ## Testing
 For testing, we split it into three different categories.
 
-The first would be entity/sorting testing.
-
-We implemented multiple tests for the various entities such as Articles, Feeds and FeedGroups, as well as other uses cases.
+The first would be entity/sorting testing. We implemented multiple tests for the various entities such as Articles, Feeds and FeedGroups, as well as other uses cases.
 
 The second large portion was UI testing. We utilized AndroidComposeRules to make automatic testing that various elements exist and are displayed.
 
-We had tests for each individual activity such as MainActivity, addFeedActivity, testing their respective elements and functionalities.
-
-This ensured  that we could efficiently and rigorously test our app's UI, as a part of our continuous testing.
+We had tests for each individual activity such as MainActivity, addFeedActivity, testing their respective elements and functionalities. This ensured  that we could efficiently and rigorously test our app's UI, as a part of our continuous testing.
 
 We also utilized AndroidComposeTools for functional testing. Using functions such as performClick, we can simulate an entire process from start to finish, such as adding a feed. This would involve creating a dummy article, and manipulating it with commands and asserting that it shows up in the feed, and in the history.
 
-Finally, a large component of our UI/UX testing happened to be physical.
+Finally, a large component of our UI/UX testing happened to be physical. We had 3 members with Android phones who could test the accessibility and usability of features on their physical devices. This type of testing became a part of our Github repository, ensuring that bugs were documented with steps to reproduce as well as potential fixes.
 
-We had 3 members with Android phones who could test the accessibility and usability of features on their physical devices. This type of testing became a part of our Github repository, ensuring that bugs were documented with steps to reproduce as well as potential fixes.
+As an example, we were simulating on various virtual devices, we found that the cards displayed were not aligned for each screen size. This ended up being an entire pull request and refactoring on how we were approaching sizing each element.
 
-As an example, we were simulating on various virtual devices, we found that the cards displayed were not aligned for each screen size
+One thing to note is that UI tests do not add to the testing coverage metric that Android Studio and IntelliJ IDEA calculate. This means that the testing coverage will appear to be lower than it actually is and you will see little to no testing coverage in the UI layer. Please view this manually.
 
-This ended up being an entire pull request and refactoring on how we were approaching sizing each element.
+## Code Style and Documentation
+
+To maintain a consistent code style, we ensured to run the Android Studio auto-format before each pull request. This not only maintained consistent code style, but it maintined readability (by ensuring that lines are not too long), and optimized imports.
+
+In the case of documentation, we ensured that almost all functions have javadoc comments on them, to allow for easy use by other developers and our own team members who may not be familiar with the code they are working with. With more time, we may have written a wiki explaining the reusable parts of the system so others can extend our project in the future.
+
+To keep the actual code consistent (function names and such), we adhered to the following standards (also outlined in the README for other developers wishing to contribute):
+
+### Variable Naming Convention
+
+- Variables should be named in `camelCase`.
+- Functions should be named with `camelCase`.
+- Composable functions should be `PascalCase`.
+- Classes should be named with `PascalCase`.
+
+### UI Conventions
+
+#### Colours
+
+For theming, refer to the `MaterialTheme` package. For example, to get the primary colour, reference `MaterialTheme.colorScheme.primary`. The following is a list of colours that are available:
+- background
+- error
+- errorContainer
+- inverseOnSurface
+- inversePrimary
+- inverseSurface
+- onBackground
+- onError
+- onErrorContainer
+- onPrimary
+- onPrimaryContainer
+- onSecondary
+- onSecondaryContainer
+- onSurface
+- onSurfaceVariant
+- onTertiary
+- onTertiaryContainer
+- outline
+- primary
+- primaryContainer
+- secondary
+- secondaryContainer
+- surface
+- surfaceVariant
+- tertiary
+- tertiaryContainer
+
+View `activities/ui.theme/*` for more MaterialTheme listing convensions.
+
+#### UI Composables
+
+In your `Activity` classes, try and break up your composables as much as possible. Make things very modular so the average function line count remains low. Compile all of your composables into a composable function called `UI` at the bottom. The outermost composable in this `UI` composable should be a `Surface` with color set to `MaterialTheme.colorScheme.background`. 
+
+#### Theming
+
+To ensure that your activity is themed in accordance to the theming standards we have put in place, adhere to the following steps:
+
+1. At the top of your activity, include the following lines to make the theming work:
+
+```kotlin
+private lateinit var sharedPref: SharedPreferences
+private lateinit var sharedPrefEditor: SharedPreferences.Editor
+private lateinit var theme: String
+private lateinit var themeState: MutableState<String>
+private var materialYou by Delegates.notNull<Boolean>()
+private lateinit var materialYouState: MutableState<Boolean>
+```
+
+2. Include the following code in the `onCreate` function:
+
+```kotlin
+setContent {
+    themeState = remember { mutableStateOf(theme) }
+    materialYouState = remember { mutableStateOf(materialYou) }
+    BinoculaRSSTheme(theme = themeState.value, materialYou = materialYouState.value) {
+        UI()
+    }
+}
+
+// Initialize shared preferences theme variables
+sharedPref = this.getSharedPreferences(SETTINGS, Context.MODE_PRIVATE)
+sharedPrefEditor = sharedPref.edit()
+theme = sharedPref.getString(THEME, "System Default").toString()
+materialYou = sharedPref.getBoolean(MATERIAL_YOU, false)
+```
+
+3. Include the following code in your `onResume` function:
+
+```kotlin
+theme = sharedPref
+    .getString(SettingsActivity.PreferenceKeys.THEME, "System Default")
+    .toString()
+materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
+```
+
+4. At the top of your `UI` composable function, you should include the following code to make the status bar and navigation bar theming work:
+
+```kotlin
+// Set status bar and nav bar colours.
+val systemUiController = rememberSystemUiController()
+val useDarkIcons = when (theme) {
+    "Dark Theme" -> false
+    "Light Theme" -> true
+    else -> !isSystemInDarkTheme()
+}
+val color = MaterialTheme.colorScheme.background
+SideEffect {
+    systemUiController.setSystemBarsColor(
+        color = color,
+        darkIcons = useDarkIcons
+    )
+}
+```
