@@ -76,7 +76,7 @@ We also implemented the builder design pattern in our [Article](https://github.c
 ### Stategy
 We implemented the strategy design pattern in our `Sorter.kt` file. This design pattern allows us to define a family of similar algorithms in a neat, clean, and organized manner. This allowed us to make our code easier to read and helped with refactoring. The following is an example of our implementation; a full display is available in `Sorter.kt`:
 
-"`kotlin
+```kotlin
 interface SortingStrategy<T> {
     val comparator: Comparator<T>
 }
