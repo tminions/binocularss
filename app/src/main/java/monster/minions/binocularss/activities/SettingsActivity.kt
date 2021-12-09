@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.prof.rssparser.Parser
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.CACHE_EXPIRATION
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.MATERIAL_YOU
 import monster.minions.binocularss.activities.SettingsActivity.PreferenceKeys.SETTINGS
@@ -26,10 +27,14 @@ import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
 import monster.minions.binocularss.activities.ui.theme.paddingLarge
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.ClearData
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.*
+import monster.minions.binocularss.operations.ExportData
+import monster.minions.binocularss.operations.ImportData
+import monster.minions.binocularss.operations.ViewModel
 import kotlin.properties.Delegates
-import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle1
+import monster.minions.binocularss.ui.PreferenceTitle as PreferenceTitle
 
 /**
  * Settings Activity responsible for the settings UI and saving changes to settings.
@@ -159,7 +164,7 @@ class SettingsActivity : ComponentActivity() {
                             .padding(vertical = paddingLarge)
                             .verticalScroll(rememberScrollState())
                     ) {
-                        PreferenceTitle1(title = "Appearance")
+                        PreferenceTitle(title = "Appearance")
                         // Theme selector.
                         MultipleOptionItem(
                             title = "Theme",
@@ -190,7 +195,7 @@ class SettingsActivity : ComponentActivity() {
                             }
                         }
 
-                        PreferenceTitle1(title = "Preferences")
+                        PreferenceTitle(title = "Preferences")
                         // Cache expiration time selector.
                         MultipleOptionItem(
                             title = "Cache Expiration Time",
@@ -257,7 +262,83 @@ class SettingsActivity : ComponentActivity() {
                             ).show()
                         }
 
-                        PreferenceTitle1(title = "Support")
+                        PreferenceTitle(title = "Data")
+                        // Item to import a JSON of feed URLs.
+                        ActionItem (
+                            title = "Import Data"
+                        ) {
+                            val dataImporter = ImportData()
+                            val jsonData = dataImporter.importFile(this@SettingsActivity)
+                            val feedUrls = dataImporter.toUrlList(jsonData)
+                            // Adds imported feeds, if there are any, to the database
+                            if (feedUrls.isNotEmpty()) {
+                                feedGroup = FeedGroup()
+                                val parser = Parser.Builder()
+                                    .context(this@SettingsActivity)
+                                    .cacheExpirationMillis(cacheExpirationMillis = cacheExpiration)
+                                    .build()
+                                for(feedUrl in feedUrls){
+                                    feedGroup.feeds.add(Feed(source = feedUrl))
+                                }
+                                val viewModel = ViewModel(this@SettingsActivity, feedGroup)
+                                viewModel.updateRss(parser)
+                                dataGateway.addFeeds(feedGroup.feeds)
+                                Toast.makeText(
+                                    this@SettingsActivity,
+                                    "Data Import Successful",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    this@SettingsActivity,
+                                    "No Saved Feeds",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                        // Item to export URLs of subscribed feeds.
+                        ActionItem (
+                            title = "Export save file"
+                        ) {
+                            val dataExporter = ExportData()
+                            val jsonData = dataExporter.toJson(feedGroup.feeds)
+                            // Checks if there are any feeds to export
+                            if (jsonData != "[]") {
+                                if (dataExporter.exportFile(this@SettingsActivity, jsonData)) {
+                                    Toast.makeText(
+                                        this@SettingsActivity,
+                                        "Data Export Successful",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    Toast.makeText(
+                                        this@SettingsActivity,
+                                        "Data Export Failed",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } else {
+                                Toast.makeText(
+                                    this@SettingsActivity,
+                                    "No Saved Feeds",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                        //Item to clear the JSON of feeds
+                        ActionItem (
+                            title = "Clear Data"
+                        ) {
+                            val dataClearer = ClearData()
+                            dataClearer.clearData(this@SettingsActivity)
+                            Toast.makeText(
+                                this@SettingsActivity,
+                                "Data Cleared",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        PreferenceTitle(title = "Support")
                         // Email item
                         EmailItem(
                             context = this@SettingsActivity,
@@ -267,7 +348,7 @@ class SettingsActivity : ComponentActivity() {
                         // Item that links to feedback form.
                         LinkItem(
                             title = "Feedback",
-                            link = "google form or something"
+                            link = "https://forms.gle/wX9rSfMicFeAc1kn6"
                         ) {
                             openLink(it)
                         }
@@ -279,7 +360,7 @@ class SettingsActivity : ComponentActivity() {
                             openLink(it)
                         }
 
-                        PreferenceTitle1(title = "About")
+                        PreferenceTitle(title = "About")
                         // Item that links to github source code page.
                         LinkItem(
                             title = "GitHub",
