@@ -1,12 +1,12 @@
 # Phase 2 - Design Document
 
+*Note that this design document only applies to additions/changes made in Phase 2.
+
 ## Clean Architecture
 
 ### Adherence to Clean Architecture
 
 Although there are some violations in our code (see below), our code does an excellent job following clean architecture. Our innermost layer of entities consists primarily of Feed and Article, which only rely on each other. FeedGroup could reasonably belong to entities or use cases, but either way, Feedgroup only relies on the innermost entities. Likewise, our comparator classes also only rely on entities. Our database classes and activity classes fall into the outermost layer of frameworks and drivers. The database classes only act to interface with our database, and the activities mostly render our UI. These classes belong to the outermost layer, so they may rely on any class from any inner layer without violating clean architecture.
-
-### Fixing violations
 
 
 ## Solid Design Principles
