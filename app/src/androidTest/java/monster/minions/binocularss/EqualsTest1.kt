@@ -1,12 +1,18 @@
 package monster.minions.binocularss
 
+import androidx.compose.ui.test.*
+
+import monster.minions.binocularss.activities.MainActivity
+import org.junit.Rule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import monster.minions.binocularss.activities.AddFeedActivity
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.Feed
 import monster.minions.binocularss.dataclasses.FeedGroup
-import org.junit.Assert.assertEquals
+import org.junit.Assert
 import org.junit.Test
 
-class EqualsTest {
+class EqualsTest1 {
 
     @Test
     fun articleEqualsTest(){
@@ -18,11 +24,11 @@ class EqualsTest {
         val feed1 = Feed(link = "http://www.feedforall.com")
         val feed2 = Feed(link = "http://www.feedforall.com/industry-solutions.htm")
 
-        assertEquals(false, article1 == article2)
-        assertEquals(true, article1 == article3)
-        assertEquals(false, article1 == article4)
-        assertEquals(false, article1.equals(feed1))
-        assertEquals(false, article1.equals(feed2))
+        Assert.assertEquals(false, article1 == article2)
+        Assert.assertEquals(true, article1 == article3)
+        Assert.assertEquals(false, article1 == article4)
+        Assert.assertEquals(false, article1.equals(feed1))
+        Assert.assertEquals(false, article1.equals(feed2))
     }
 
     @Test
@@ -34,10 +40,10 @@ class EqualsTest {
         val article3 = Article(link = "http://www.feedforall.com")
         val article4 = Article(link = "http://www.feedforall.com/restaurant.htm")
 
-        assertEquals(false, feed1 == feed2)
-        assertEquals(true, feed1 == feed3)
-        assertEquals(false, feed1.equals(article3))
-        assertEquals(false, feed1.equals(article4))
+        Assert.assertEquals(false, feed1 == feed2)
+        Assert.assertEquals(true, feed1 == feed3)
+        Assert.assertEquals(false, feed1.equals(article3))
+        Assert.assertEquals(false, feed1.equals(article4))
     }
 
     @Test
@@ -59,7 +65,8 @@ class EqualsTest {
         val feedGroup2 = FeedGroup(feeds2)
         val feedGroup3 = FeedGroup(feeds3)
 
-        assertEquals(true, feedGroup1 == feedGroup2)
-        assertEquals(false, feedGroup1 == feedGroup3)
+        Assert.assertEquals(true, feedGroup1 == feedGroup2)
+        Assert.assertEquals(false, feedGroup1 == feedGroup3)
     }
+
 }
