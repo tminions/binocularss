@@ -39,7 +39,7 @@ class MainActivityTest {
     @Test
     fun SearchBarTest() {
         composeTestRule.onNodeWithContentDescription("Search Activity").performClick()
-        val searchBar = composeTestRule.onNodeWithText("Search for an article(s)")
+        val searchBar = composeTestRule.onNodeWithText("Search for an Article")
         searchBar.assertIsDisplayed()
     }
 
