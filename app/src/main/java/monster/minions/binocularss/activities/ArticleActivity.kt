@@ -37,8 +37,9 @@ import monster.minions.binocularss.R
 import monster.minions.binocularss.activities.ui.theme.*
 import monster.minions.binocularss.dataclasses.Article
 import monster.minions.binocularss.dataclasses.FeedGroup
+import monster.minions.binocularss.operations.SortArticles
+import monster.minions.binocularss.operations.SortArticlesByDateStrategy
 import monster.minions.binocularss.operations.getArticlesFromFeed
-import monster.minions.binocularss.operations.sortArticlesByDate
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.BookmarkFlag
 import monster.minions.binocularss.ui.ReadFlag
@@ -56,7 +57,6 @@ class ArticleActivity : ComponentActivity() {
     private lateinit var themeState: MutableState<String>
     private var materialYou by Delegates.notNull<Boolean>()
     private lateinit var materialYouState: MutableState<Boolean>
-    private var cacheExpiration = 0L
 
     // Room database variables
     private var feedGroup: FeedGroup = FeedGroup()
@@ -64,6 +64,7 @@ class ArticleActivity : ComponentActivity() {
 
     private lateinit var article: Article
 
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,7 +112,7 @@ class ArticleActivity : ComponentActivity() {
         MainActivity.bookmarkedArticleList.value = mutableListOf()
         MainActivity.readArticleList.value = mutableListOf()
         MainActivity.searchResults.value = mutableListOf()
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.currentFeedArticles.value = mutableListOf()
     }
 
     /**
@@ -223,12 +224,13 @@ class ArticleActivity : ComponentActivity() {
     /**
      * Composable function containing the article
      */
+    @ExperimentalCoilApi
     @ExperimentalMaterial3Api
     @Composable
     private fun UI() {
         // Set status bar and nav bar colours
         val systemUiController = rememberSystemUiController()
-        val useDarkIcons = when(theme) {
+        val useDarkIcons = when (theme) {
             "Dark Theme" -> false
             "Light Theme" -> true
             else -> !isSystemInDarkTheme()

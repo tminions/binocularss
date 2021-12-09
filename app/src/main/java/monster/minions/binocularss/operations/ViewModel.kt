@@ -1,5 +1,6 @@
 package monster.minions.binocularss.operations
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -19,9 +20,13 @@ import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.room.FeedDao
 
 /**
- * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI
+ * Asynchronous execution class that runs XML parser code off of the main thread to not interrupt UI.
+ *
+ * @param context The application context it is being called from.
+ * @param feedGroup The feed group provided to merge with the new list of feeds.
  */
-class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
+class ViewModel(context: Context, feedGroup: FeedGroup) : ViewModel() {
+    @SuppressLint("StaticFieldLeak")
     var localContext = context
     var isRefreshing = MutableStateFlow(false)
 
@@ -45,20 +50,24 @@ class PullFeed(context: Context, feedGroup: FeedGroup) : ViewModel() {
             localFeedGroup = fetchFeed.pullRss(localFeedGroup, parser)
 
             // Update DB with updated feeds.
-            databaseGateway = DatabaseGateway(context=localContext)
+            databaseGateway = DatabaseGateway(context = localContext)
             databaseGateway.addFeeds(localFeedGroup.feeds)
 
             // Update list states in MainActivity.
-            MainActivity.articleList.value = sortArticlesByDate(getAllArticles(localFeedGroup))
-            MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getBookmarkedArticles(localFeedGroup))
-            MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
-            MainActivity.readArticleList.value = sortArticlesByReadDate(getReadArticles(localFeedGroup))
-            MainActivity.feedList.value = sortFeedsByTitle(localFeedGroup.feeds)
+            val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+            MainActivity.articleList.value = sortArticlesByDate.sort(getAllArticles(localFeedGroup))
+            MainActivity.bookmarkedArticleList.value =
+                sortArticlesByDate.sort(getBookmarkedArticles(localFeedGroup))
+            MainActivity.currentFeedArticles.value =
+                sortArticlesByDate.sort(getArticlesFromFeed(MainActivity.currentFeed))
+            MainActivity.readArticleList.value =
+                SortArticles(SortArticlesByReadDateStrategy()).sort(getReadArticles(localFeedGroup))
+            MainActivity.feedList.value =
+                SortFeeds(SortFeedsByTitleStrategy()).sort(localFeedGroup.feeds)
 
             isRefreshing.value = false
 
             MainActivity.updateFeedGroup(databaseGateway.read())
         }
     }
-
 }

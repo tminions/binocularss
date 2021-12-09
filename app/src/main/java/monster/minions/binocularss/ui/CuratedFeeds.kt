@@ -17,9 +17,11 @@ import monster.minions.binocularss.dataclasses.Feed
 
 
 /**
- * Last list of predefined curated feeds
+ * Last list of predefined curated feeds.
  *
- * @param addFeedToGroup: callback to run when row is clicked
+ * @param addFeedToGroup callback to run when row is clicked.
+ * @param feeds A list of curated feeds.
+ * @param existingFeeds A list of feeds that already exist so the user may not add the same feed twice.
  */
 @Composable
 fun CuratedFeeds(
@@ -43,6 +45,12 @@ fun CuratedFeeds(
     }
 }
 
+/**
+ * A composable to display a feed that can be added to the application's list.
+ *
+ * @param feed The feed.
+ * @param addFeedToGroup A function to add the feed to the list.
+ */
 @Composable
 fun AddableFeed(feed: Feed, addFeedToGroup: (url: String, feedExistsCallback: () -> Unit) -> Unit) {
     Row(

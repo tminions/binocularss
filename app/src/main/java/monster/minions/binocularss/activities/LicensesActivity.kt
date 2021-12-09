@@ -9,10 +9,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -20,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -30,7 +26,7 @@ import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.util.author
 import com.mikepenz.aboutlibraries.util.withContext
 import monster.minions.binocularss.activities.ui.theme.BinoculaRSSTheme
-import monster.minions.binocularss.activities.ui.theme.paddingSmall
+import monster.minions.binocularss.ui.TopBar
 import kotlin.properties.Delegates
 
 class LicensesActivity : ComponentActivity() {
@@ -57,7 +53,7 @@ class LicensesActivity : ComponentActivity() {
             }
         }
 
-        // Initialize lateinit variables.
+        // Initialize late init variables.
         sharedPref = this.getSharedPreferences(
             SettingsActivity.PreferenceKeys.SETTINGS,
             Context.MODE_PRIVATE
@@ -68,30 +64,6 @@ class LicensesActivity : ComponentActivity() {
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
     }
 
-    /**
-     * Top navigation bar
-     */
-    @Composable
-    fun TopBar() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Back button icon that goes back one activity.
-            IconButton(onClick = { finish() }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back Arrow"
-                )
-            }
-            Spacer(Modifier.padding(paddingSmall))
-            // Title of current page.
-            Text("Open-Source Licenses", style = MaterialTheme.typography.headlineMedium)
-        }
-    }
 
     @ExperimentalMaterial3Api
     @Composable
@@ -113,7 +85,7 @@ class LicensesActivity : ComponentActivity() {
 
         Surface(color = MaterialTheme.colorScheme.onBackground) {
             Scaffold(
-                topBar = { TopBar() },
+                topBar = { TopBar("Open-Source Licenses") { finish() } },
                 modifier = Modifier.background(MaterialTheme.colorScheme.onBackground)
             ) {
                 // Call the library to generate the list of libraries
@@ -280,12 +252,5 @@ class LicensesActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    @ExperimentalMaterial3Api
-    @Preview(showBackground = true)
-    @Composable
-    fun Preview() {
-        UI()
     }
 }

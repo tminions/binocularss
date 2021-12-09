@@ -7,6 +7,9 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.RssFeed
 import androidx.compose.ui.graphics.vector.ImageVector
 
+/**
+ * A class to contain the navigation items for the Navigation function.
+ */
 sealed class NavigationItem(var route: String, var icon: ImageVector, var title: String) {
     object Articles: NavigationItem("articles", Icons.Filled.Article, "Articles")
     object Feeds: NavigationItem("feeds", Icons.Filled.RssFeed, "Feeds")

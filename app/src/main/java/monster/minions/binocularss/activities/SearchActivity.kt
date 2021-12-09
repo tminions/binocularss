@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import coil.annotation.ExperimentalCoilApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.prof.rssparser.Parser
@@ -34,6 +33,7 @@ import monster.minions.binocularss.dataclasses.FeedGroup
 import monster.minions.binocularss.operations.*
 import monster.minions.binocularss.room.DatabaseGateway
 import monster.minions.binocularss.ui.ArticleCard
+import monster.minions.binocularss.ui.TopBar
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -60,6 +60,7 @@ class SearchActivity : ComponentActivity() {
 
     private var feedTitles: MutableList<String> = mutableListOf()
 
+    @ExperimentalMaterial3Api
     @ExperimentalCoilApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,13 +129,18 @@ class SearchActivity : ComponentActivity() {
             sharedPref.getString(SettingsActivity.PreferenceKeys.THEME, "System Default").toString()
         materialYou = sharedPref.getBoolean(SettingsActivity.PreferenceKeys.MATERIAL_YOU, false)
 
-        MainActivity.articleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.bookmarkedArticleList.value = sortArticlesByDate(getAllArticles(feedGroup))
-        MainActivity.currentFeedArticles.value = sortArticlesByDate(getArticlesFromFeed(MainActivity.currentFeed))
-        MainActivity.readArticleList.value = sortArticlesByDate(getReadArticles(feedGroup))
-        MainActivity.feedList.value = sortFeedsByTitle(feedGroup.feeds)
+        val sortArticlesByDate = SortArticles(SortArticlesByDateStrategy())
+        MainActivity.articleList.value = sortArticlesByDate.sort(getAllArticles(feedGroup))
+        MainActivity.bookmarkedArticleList.value =
+            sortArticlesByDate.sort(getBookmarkedArticles(feedGroup))
+        MainActivity.readArticleList.value = sortArticlesByDate.sort(getReadArticles(feedGroup))
+        MainActivity.currentFeedArticles.value =
+            sortArticlesByDate.sort(getArticlesFromFeed(MainActivity.currentFeed))
+        MainActivity.feedList.value = SortFeeds(SortFeedsByTitleStrategy()).sort(feedGroup.feeds)
         MainActivity.searchResults.value =
-            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+            SortArticles(SortArticlesByFuzzyMatchStrategy(text.value)).sort(
+                getAllArticles(feedGroup)
+            )
     }
 
     private fun getFeedTitles(): MutableList<String> {
@@ -154,7 +160,9 @@ class SearchActivity : ComponentActivity() {
     private fun submit() {
         Log.d("SearchActivity", "Submitting")
         MainActivity.searchResults.value =
-            sortArticlesByFuzzyMatch(getAllArticles(feedGroup), text.value)
+            SortArticles(SortArticlesByFuzzyMatchStrategy(text.value)).sort(
+                getAllArticles(feedGroup)
+            )
 
         if (MainActivity.searchResults.value.isEmpty()) {
             Toast.makeText(this@SearchActivity, "No matches", Toast.LENGTH_SHORT).show()
@@ -184,7 +192,7 @@ class SearchActivity : ComponentActivity() {
      *
      * @param modifiedArticle Article with a modified property.
      */
-    private fun setArticle(modifiedArticle: Article, refreshBookmark: Boolean = true) {
+    private fun setArticle(modifiedArticle: Article) {
         for (feed in feedGroup.feeds) {
             val articles = feed.articles.toMutableList()
             for (unmodifiedArticle in articles) {
@@ -252,9 +260,9 @@ class SearchActivity : ComponentActivity() {
         )
     }
 
+    @ExperimentalMaterial3Api
     @ExperimentalCoilApi
     @Composable
-    @Preview
     fun UI() {
         // Set status bar and nav bar colours.
         val systemUiController = rememberSystemUiController()
@@ -275,27 +283,29 @@ class SearchActivity : ComponentActivity() {
                 .fillMaxWidth(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(paddingMedium)
-                ) {
-                    Row(modifier = Modifier.weight(1f)) {
-                        SearchBar()
-                    }
-                    Spacer(modifier = Modifier.padding(paddingMedium))
-                    FloatingActionButton(
-                        onClick = { submit() },
-                        containerColor = MaterialTheme.colorScheme.primary
+            Scaffold(topBar = { TopBar("Search") { finish() } }) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(paddingMedium)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Add feed"
-                        )
+                        Row(modifier = Modifier.weight(1f)) {
+                            SearchBar()
+                        }
+                        Spacer(modifier = Modifier.padding(paddingMedium))
+                        FloatingActionButton(
+                            onClick = { submit() },
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Add feed"
+                            )
+                        }
                     }
+                    ArticleSearchResults()
                 }
-                ArticleSearchResults()
             }
         }
     }

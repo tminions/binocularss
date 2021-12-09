@@ -24,8 +24,7 @@ For example `Cards.kt` and `Icons.kt` are both elements of our UI, but as they p
 
 
 ### Open-closed Principle
-One way our code follows the Open-closed principle is through our UI. We can easily extend our UI by adding more options to our settings, adding more feeds and articles to their respective views, and adding more selectable views without editing the functionality of our code directly. This is done by creating more composables and adding them to our UI which can be done without editing our UI classes.
-
+One way our code follows the Open-closed principle is through our UI classes. Our UI can be eaily extend with new features. For example, in order to add a settings option, one simply adds a new instance of an composable from the `SettingItems` file to the `UI` composable function in the `SettingsActivity`. If we wanted to add a new type of view to our main activity, we would simply create a new composable function in the `MainActivity`, and call it from the `Navigation` function to view it. As illustrated in these examples, we do not need to modify existing code, we simply need to add new code to represent additional functionaliy, even within the same UI class. This adheres to the open-closed principle.
 
 
 ### Vacuous SOLID
@@ -203,6 +202,25 @@ var showDropdown by remember { mutableStateOf(false) }
 		// More lines of code ...
 ```
 
-##Testing
+## Testing
+For testing, we split it into three different categories.
 
-BIG TODO: Expand more on how we implemented rigorous testing for classes/UI for better coverage.
+The first would be entity/sorting testing.
+
+We implemented multiple tests for the various entities such as Articles, Feeds and FeedGroups, as well as other uses cases.
+
+The second large portion was UI testing. We utilized AndroidComposeRules to make automatic testing that various elements exist and are displayed.
+
+We had tests for each individual activity such as MainActivity, addFeedActivity, testing their respective elements and functionalities.
+
+This ensured  that we could efficiently and rigorously test our app's UI, as a part of our continuous testing.
+
+We also utilized AndroidComposeTools for functional testing. Using functions such as performClick, we can simulate an entire process from start to finish, such as adding a feed. This would involve creating a dummy article, and manipulating it with commands and asserting that it shows up in the feed, and in the history.
+
+Finally, a large component of our UI/UX testing happened to be physical.
+
+We had 3 members with Android phones who could test the accessibility and usability of features on their physical devices. This type of testing became a part of our Github repository, ensuring that bugs were documented with steps to reproduce as well as potential fixes.
+
+As an example, we were simulating on various virtual devices, we found that the cards displayed were not aligned for each screen size
+
+This ended up being an entire pull request and refactoring on how we were approaching sizing each element.

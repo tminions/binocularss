@@ -16,7 +16,6 @@ class FeedTitleComparator: Comparator<Feed> {
      * @return a negative integer, zero, or a positive integer
      *      as feed1 is alphabetically before, equal to, or after feed2
      */
-
     override fun compare(feed1: Feed, feed2: Feed): Int{
         val feed1Title = feed1.title!!.lowercase()
         val feed2Title = feed2.title!!.lowercase()
