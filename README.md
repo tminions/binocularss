@@ -1,4 +1,7 @@
-# BinoculaRSS
+<p align="center">
+  <img src="img/binocularss-round.png" width="80" />
+  <h2 align="center">BinoculaRSS</h2>
+</p>
 
 BinoculaRSS (pronounced /bəˈnäkyələrz/) is a feature-rich [RSS](https://en.wikipedia.org/wiki/RSS) reader application, still currently under development. It is built using Kotlin and Jetpack Compose.
 
